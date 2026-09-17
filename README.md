@@ -2,7 +2,7 @@
 
 ![Ui](docs/images/Ui.png)
 
-hello world!
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp/graph/badge.svg?token=ZQ7UEO7OJX)](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp)
 
 * This is **a sample project for Software Engineering (SE) students**.<br>
   Example usages:
