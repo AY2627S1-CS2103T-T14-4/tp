@@ -36,6 +36,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/isaacser8.png" width="200px">
 
 [[github](https://github.com/isaacser8)]
+[[portfolio]()]
 
 * Role: Developer
 * Responsibilities: Data
