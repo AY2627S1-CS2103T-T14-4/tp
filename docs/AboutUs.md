@@ -11,7 +11,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### Gabriel
+### Gabriel Lau Yi Jia
 
 <img src="images/frostwrath99.png.jpg" width="340">
 
@@ -19,7 +19,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/Frostwrath99)]
 [[portfolio]()]
 
-* Role: Project Advisor
+* Role: Developer
+* Responsibilities: UI
 
 ### Jane Doe
 
