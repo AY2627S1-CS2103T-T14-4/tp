@@ -9,7 +9,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### Gabriel
+### Gabriel Lau Yi Jia
 
 <img src="images/frostwrath99.png.jpg" width="340">
 
