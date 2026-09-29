@@ -13,7 +13,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Gabriel
 
-<img src="images/Frostwrath99.png.jpg" width="340">
+<img src="images/frostwrath99.png.jpg" width="340">
 
 [[homepage]()]
 [[github](https://github.com/Frostwrath99)]
