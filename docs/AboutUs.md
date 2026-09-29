@@ -39,7 +39,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio]()]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Testing
 
 ### Jean Doe
 
