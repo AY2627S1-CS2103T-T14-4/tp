@@ -270,29 +270,56 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* is an independent mobile pet groomer
+* has a need to manage a significant number of client contacts, their pets and appointments
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Manage client contacts, appointments and related pet information faster than with a typical mouse-driven GUI application.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …                                               | I want to …                                                  | So that I can…                                                                          |
+|----------|------------------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `* *`    | pet groomer using PawPals for the first time         | see the app populated with sample data                       | understand how client, pet, and appointment records are structured                      |
+| `*`      | pet groomer ready to start using PawPals for my work | purge the sample data                                        | start with a clean database for my actual business                                      |
+| `* * *`  | pet groomer onboarding a new client                  | add a new client                                             | keep their information for future visits                                                |
+| `* * *`  | pet groomer                                          | record a client’s contact details and home address           | refer to their contact and location information when needed                             |
+| `* * *`  | pet groomer                                          | add a pet belonging to a client                              | track distinct grooming needs and histories for different pets owned by the same client |
+| `* * *`  | pet groomer                                          | record a pet’s basic details                                 | identify and understand the pet I am grooming                                           |
+| `* *`    | pet groomer                                          | record a pet’s temperament and behavioural concerns          | handle it safely and appropriately                                                      |
+| `* *`    | pet groomer                                          | record grooming-related sensitivities                        | avoid unsuitable products or procedures                                                 |
+| `* *`    | pet groomer                                          | record a pet’s grooming preferences and special instructions | provide consistent service without relying on memory                                    |
+| `* * *`  | pet groomer                                          | view a summary of available commands                         | quickly learn or remember how to use the application                                    |
+| `* * *`  | pet groomer planning my schedule                     | schedule an appointment for a client and pet                 | keep track of who I am grooming and when                                                |
+| `* * *`  | pet groomer                                          | view my upcoming appointments                                | plan my day efficiently                                                                 |
+| `* * *`  | pet groomer preparing for a visit                    | view an appointment’s date, time, client, pet, and address   | arrive at the correct location prepared for the visit                                   |
+| `* *`    | pet groomer preparing to groom on-site               | view important pet notes before grooming                     | prepare to handle the pet appropriately                                                 |
+| `* *`    | pet groomer handling schedule adjustments            | update an appointment                                        | keep the appointment details accurate                                                   |
+| `* * *`  | pet groomer                                          | cancel an appointment                                        | keep my schedule up to date                                                             |
+| `* *`    | pet groomer scheduling an appointment                | identify conflicting appointment times                       | avoid double-booking myself                                                             |
+| `* *`    | pet groomer planning my workday                      | view appointments for a selected date                        | focus on that day’s visits                                                              |
+| `* *`    | pet groomer reviewing service history                | view a pet’s previous grooming sessions                      | provide consistent service during future visits                                         |
+| `* *`    | pet groomer completing a service                     | record details and notes about a completed grooming session  | remember what was done during the visit                                                 |
+| `* *`    | pet groomer receiving client feedback                | update grooming preferences and instructions                 | reflect the client’s latest requests in future visits                                   |
+| `* *`    | pet groomer                                          | view a client’s details                                      | quickly recall their information                                                        |
+| `* *`    | pet groomer                                          | view all pets belonging to a client                          | efficiently manage multi-pet households                                                 |
+| `* *`    | pet groomer                                          | see the client associated with a pet                         | know whom to contact about the pet                                                      |
+| `* *`    | pet groomer updating outdated contact information    | update a client’s details                                    | keep the client’s information accurate                                                  |
+| `* *`    | pet groomer updating a pet’s information             | update a pet’s details                                       | keep the pet’s information accurate over time                                           |
+| `* * *`  | pet groomer looking up a returning client            | search for a client using identifying information            | find the correct client quickly without scrolling                                       |
+| `*`      | pet groomer looking up a returning pet               | search for a pet by name                                     | retrieve its information quickly without scrolling                                      |
+| `*`      | fast-typing mobile pet groomer                       | search across notes and records using keywords               | find relevant information even when I do not remember which client or pet it belongs to |
+| `*`      | pet groomer managing a large client base             | categorise clients or pets                                   | easily filter them for specialized care                                                 |
+| `*`      | pet groomer preparing for upcoming visits            | filter pets by important safety information                  | identify pets requiring special handling                                                |
+| `*`      | pet groomer managing many appointments               | filter appointments by relevant criteria                     | focus on the appointments that matter at the moment                                     |
+| `* * *`  | pet groomer maintaining long-term records            | remove inactive client records                               | keep my client list relevant and manageable                                             |
+| `* * *`  | pet groomer maintaining long-term records            | remove pet records I no longer need                          | keep my pet records relevant and manageable                                             |
 
 ### Use cases
 
