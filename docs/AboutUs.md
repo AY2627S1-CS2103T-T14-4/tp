@@ -21,15 +21,15 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Project Advisor
 
-### Jane Doe
+### Isaac 
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/isaactay9856.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/isaactay9856)]
+[[portfolio](team/isaactay9856.md)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Integration
 
 ### Johnny Doe
 
