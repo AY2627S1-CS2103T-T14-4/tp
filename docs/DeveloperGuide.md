@@ -325,16 +325,21 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
+2. For a dataset of up to 100 clients and their associated pet and appointment records, common commands such as list and find should complete and update the displayed results within 1 second.
+3. All core PawPals workflows should be completable using keyboard input without requiring mouse interaction.
+4. Client, pet, and appointment data that has been successfully saved should remain intact and available after PawPals is closed and subsequently relaunched.
+5. PawPals should support at least 100 clients and their associated pet and appointment records.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have one or more pets.
+* **Pet**: An animal belonging to a client whose grooming-related information is managed in PawPals.
+* **Appointment**: A scheduled future grooming visit associated with a client.
+* **Grooming session**: A completed grooming service whose details and notes are recorded for future reference.
+* **Safety information**: Information about a pet that may affect how it should be handled or groomed, such as temperament, behavioural concerns, or grooming-related sensitivities.
+* **Client index**: A positive integer identifying a client in the currently displayed client list. It is used by commands that require the user to specify a particular client.
+* **Mainstream OS**: Windows, macOS, or Linux.
 
 --------------------------------------------------------------------------------------------------------------------
 
