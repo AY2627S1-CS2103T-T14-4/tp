@@ -270,71 +270,306 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* is an independent mobile pet groomer
+* has a need to manage a significant number of client contacts, their pets and appointments
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Manage client contacts, appointments and related pet information faster than with a typical mouse-driven GUI application.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …                                               | I want to …                                                  | So that I can…                                                                          |
+|----------|------------------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `* *`    | pet groomer using PawPals for the first time         | see the app populated with sample data                       | understand how client, pet, and appointment records are structured                      |
+| `*`      | pet groomer ready to start using PawPals for my work | purge the sample data                                        | start with a clean database for my actual business                                      |
+| `* * *`  | pet groomer onboarding a new client                  | add a new client                                             | keep their information for future visits                                                |
+| `* * *`  | pet groomer                                          | record a client’s contact details and home address           | refer to their contact and location information when needed                             |
+| `* * *`  | pet groomer                                          | add a pet belonging to a client                              | track distinct grooming needs and histories for different pets owned by the same client |
+| `* * *`  | pet groomer                                          | record a pet’s basic details                                 | identify and understand the pet I am grooming                                           |
+| `* *`    | pet groomer                                          | record a pet’s temperament and behavioural concerns          | handle it safely and appropriately                                                      |
+| `* *`    | pet groomer                                          | record grooming-related sensitivities                        | avoid unsuitable products or procedures                                                 |
+| `* *`    | pet groomer                                          | record a pet’s grooming preferences and special instructions | provide consistent service without relying on memory                                    |
+| `* * *`  | pet groomer                                          | view a summary of available commands                         | quickly learn or remember how to use the application                                    |
+| `* * *`  | pet groomer planning my schedule                     | schedule an appointment for a client and pet                 | keep track of who I am grooming and when                                                |
+| `* * *`  | pet groomer                                          | view my upcoming appointments                                | plan my day efficiently                                                                 |
+| `* * *`  | pet groomer preparing for a visit                    | view an appointment’s date, time, client, pet, and address   | arrive at the correct location prepared for the visit                                   |
+| `* *`    | pet groomer preparing to groom on-site               | view important pet notes before grooming                     | prepare to handle the pet appropriately                                                 |
+| `* *`    | pet groomer handling schedule adjustments            | update an appointment                                        | keep the appointment details accurate                                                   |
+| `* * *`  | pet groomer                                          | cancel an appointment                                        | keep my schedule up to date                                                             |
+| `* *`    | pet groomer scheduling an appointment                | identify conflicting appointment times                       | avoid double-booking myself                                                             |
+| `* *`    | pet groomer planning my workday                      | view appointments for a selected date                        | focus on that day’s visits                                                              |
+| `* *`    | pet groomer reviewing service history                | view a pet’s previous grooming sessions                      | provide consistent service during future visits                                         |
+| `* *`    | pet groomer completing a service                     | record details and notes about a completed grooming session  | remember what was done during the visit                                                 |
+| `* *`    | pet groomer receiving client feedback                | update grooming preferences and instructions                 | reflect the client’s latest requests in future visits                                   |
+| `* *`    | pet groomer                                          | view a client’s details                                      | quickly recall their information                                                        |
+| `* *`    | pet groomer                                          | view all pets belonging to a client                          | efficiently manage multi-pet households                                                 |
+| `* *`    | pet groomer                                          | see the client associated with a pet                         | know whom to contact about the pet                                                      |
+| `* *`    | pet groomer updating outdated contact information    | update a client’s details                                    | keep the client’s information accurate                                                  |
+| `* *`    | pet groomer updating a pet’s information             | update a pet’s details                                       | keep the pet’s information accurate over time                                           |
+| `* * *`  | pet groomer looking up a returning client            | search for a client using identifying information            | find the correct client quickly without scrolling                                       |
+| `*`      | pet groomer looking up a returning pet               | search for a pet by name                                     | retrieve its information quickly without scrolling                                      |
+| `*`      | fast-typing mobile pet groomer                       | search across notes and records using keywords               | find relevant information even when I do not remember which client or pet it belongs to |
+| `*`      | pet groomer managing a large client base             | categorise clients or pets                                   | easily filter them for specialized care                                                 |
+| `*`      | pet groomer preparing for upcoming visits            | filter pets by important safety information                  | identify pets requiring special handling                                                |
+| `*`      | pet groomer managing many appointments               | filter appointments by relevant criteria                     | focus on the appointments that matter at the moment                                     |
+| `* * *`  | pet groomer maintaining long-term records            | remove inactive client records                               | keep my client list relevant and manageable                                             |
+| `* * *`  | pet groomer maintaining long-term records            | remove pet records I no longer need                          | keep my pet records relevant and manageable                                             |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+The following use cases describe the functional requirements of PawPals. They focus on the observable interaction between the user and the application.
 
-**Use case: Delete a person**
+#### UC01 - Add client
 
-**MSS**
+System: PawPals<br>
+Use case: UC01 - Add client<br>
+Actor: User<br>
+Preconditions: PawPals is running.
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+MSS:
 
-    Use case ends.
+1. User requests to add a client.
+2. User provides the client's name, phone number, email address, and home address.
+3. PawPals validates the details and adds the new client.
+4. PawPals displays a success message and the new client in the client list.
 
-**Extensions**
+Use case ends.
 
-* 2a. The list is empty.
+Extensions:
 
-  Use case ends.
+* 2a. User provides an invalid or missing detail.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 4a. PawPals detects an existing client with the same name and phone number.
+  * 4a1. PawPals informs the user that the client already exists.
+  * Use case ends.
 
-* 3a. The given index is invalid.
+#### UC02 - Add pet
 
-    * 3a1. AddressBook shows an error message.
+System: PawPals<br>
+Use case: UC02 - Add pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the pet's client exists in the displayed client list.
 
-      Use case resumes at step 2.
+MSS:
 
-*{More to be added}*
+1. User requests to add a pet.
+2. User identifies the pet's client and provides the pet's name, species, and breed.
+3. PawPals validates the details and adds the pet under the selected client.
+4. PawPals displays a success message and the new pet.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides an invalid or missing detail.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 3a. The client already has a pet with the same name.
+  * 3a1. PawPals informs the user that the pet already exists for that client.
+  * Use case ends.
+
+#### UC03 - Delete client
+
+System: PawPals<br>
+Use case: UC03 - Delete client<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to delete a client.
+2. User provides the client's index.
+3. PawPals removes the client and all appointments and pets belonging to the client.
+4. PawPals displays a success message and the updated client list.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, extra, or invalid index.
+  * 2a1. PawPals displays the corresponding validation message.
+  * Use case ends.
+
+#### UC04 - Add appointment
+
+System: PawPals<br>
+Use case: UC04 - Add appointment<br>
+Actor: User<br>
+Preconditions: PawPals is running and the appointment's client exists in the displayed client list.
+
+MSS:
+
+1. User requests to add an appointment.
+2. User identifies the client and provides a date and time.
+3. PawPals validates that the date and time form a valid future appointment.
+4. PawPals adds the appointment to the client.
+5. PawPals displays a success message and the appointment under the client.
+
+Use case ends.
+
+Extensions:
+
+* 2b. User provides an invalid date or time.
+  * 2b1. PawPals displays the corresponding date or time validation message.
+  * 2b2. User provides corrected details.
+  * Use case resumes from step 3.
+* 3a. The appointment is not strictly in the future.
+  * 3a1. PawPals informs the user that the appointment must be scheduled in the future.
+  * Use case ends.
+* 4a. The client already has an appointment at the same date and time.
+  * 4a1. PawPals informs the user that the appointment already exists.
+  * Use case ends.
+
+#### UC05 - List clients, pets, and appointments
+
+System: PawPals<br>
+Use case: UC05 - List clients, pets, and appointments<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to view the records.
+2. PawPals displays all clients with their phone number, address, email, pets, and appointments.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
+  * Use case ends.
+
+#### UC06 - Find clients
+
+System: PawPals<br>
+Use case: UC06 - Find clients<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to find clients using one or more keywords.
+2. PawPals searches client names without regard to letter case.
+3. PawPals displays the matching clients and their information.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides no keywords.
+  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
+  * Use case ends.
+
+#### UC07 - View help
+
+System: PawPals<br>
+Use case: UC07 - View help<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests help.
+2. PawPals displays instructions for using the application and accessing the user guide.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
+  * Use case ends.
+
+#### UC08 - Clear all records
+
+System: PawPals<br>
+Use case: UC08 - Clear all records<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to clear the application data.
+2. PawPals removes all clients, pets, and appointments.
+3. PawPals displays a confirmation message and an empty list.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input and retains all records.
+  * Use case ends.
+
+#### UC09 - Exit PawPals
+
+System: PawPals<br>
+Use case: UC09 - Exit PawPals<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to exit PawPals.
+2. PawPals closes the application.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
+  * Use case ends.
+
+#### UC10 - Auto-save data
+
+System: PawPals<br>
+Use case: UC10 - Auto-save data<br>
+Actor: User<br>
+Preconditions: PawPals is running and the data file is writable.
+
+MSS:
+
+1. User completes an action that changes clients, pets, or appointments.
+2. PawPals saves the updated data automatically.
+3. PawPals keeps the saved data available for the next application launch.
+
+Use case ends.
+
+Extensions:
+
+* 2a. PawPals cannot write to the data file because of insufficient permissions, concurrent access, or insufficient disk space.
+  * 2a1. PawPals displays the corresponding save failure message.
+  * 2a2. PawPals leaves the data file unchanged.
+  * Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
+2. For a dataset of up to 100 clients and their associated pet and appointment records, common commands such as list and find should complete and update the displayed results within 1 second.
+3. All core PawPals workflows should be completable using keyboard input without requiring mouse interaction.
+4. Client, pet, and appointment data that has been successfully saved should remain intact and available after PawPals is closed and subsequently relaunched.
+5. PawPals should support at least 100 clients and their associated pet and appointment records.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have one or more pets.
+* **Pet**: An animal belonging to a client whose grooming-related information is managed in PawPals.
+* **Appointment**: A scheduled future grooming visit associated with a client.
+* **Grooming session**: A completed grooming service whose details and notes are recorded for future reference.
+* **Safety information**: Information about a pet that may affect how it should be handled or groomed, such as temperament, behavioural concerns, or grooming-related sensitivities.
+* **Client index**: A positive integer identifying a client in the currently displayed client list. It is used by commands that require the user to specify a particular client.
+* **Mainstream OS**: Windows, macOS, or Linux.
 
 --------------------------------------------------------------------------------------------------------------------
 

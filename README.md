@@ -1,5 +1,7 @@
 # PawPals
 
+[![Build Status](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml)
+
 [![CI Status](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml)
 
 ![PawPals user interface](docs/images/Ui.png)
