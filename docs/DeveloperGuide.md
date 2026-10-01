@@ -296,32 +296,242 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+The following use cases describe the functional requirements of PawPals. They focus on the observable interaction between the user and the application. Command names are included where they identify the supported CLI action.
 
-**Use case: Delete a person**
+#### UC01 - Add client
 
-**MSS**
+System: PawPals<br>
+Use case: UC01 - Add client<br>
+Actor: User<br>
+Preconditions: PawPals is running.
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+MSS:
 
-    Use case ends.
+1. User requests to add a client with the `addc` command.
+2. PawPals requests the client's name, phone number, email address, and home address.
+3. User provides the requested details.
+4. PawPals validates the details and adds the new client.
+5. PawPals displays a success message and the new client in the client list.
 
-**Extensions**
+Use case ends.
 
-* 2a. The list is empty.
+Extensions:
 
-  Use case ends.
+* 3a. User provides an invalid or missing detail.
+  * 3a1. PawPals displays the corresponding validation message.
+  * 3a2. User provides corrected details.
+  * Use case resumes from step 4.
+* 4a. PawPals detects an existing client with the same name and phone number.
+  * 4a1. PawPals informs the user that the client already exists.
+  * Use case ends.
 
-* 3a. The given index is invalid.
+#### UC02 - Add pet
 
-    * 3a1. AddressBook shows an error message.
+System: PawPals<br>
+Use case: UC02 - Add pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the pet's client exists in the displayed client list.
 
-      Use case resumes at step 2.
+MSS:
 
-*{More to be added}*
+1. User requests to add a pet with the `addp` command.
+2. User identifies the pet's client and provides the pet's name, species, and breed.
+3. PawPals validates the details and adds the pet under the selected client.
+4. PawPals displays a success message and the new pet.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides an invalid or missing detail.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The specified client does not exist.
+  * 2b1. PawPals informs the user that the client index does not exist.
+  * Use case ends.
+* 3a. The client already has a pet with the same name.
+  * 3a1. PawPals informs the user that the pet already exists for that client.
+  * Use case ends.
+
+#### UC03 - Delete client
+
+System: PawPals<br>
+Use case: UC03 - Delete client<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to delete a client with the `delc` command.
+2. User provides the client's index.
+3. PawPals removes the client and all appointments and pets belonging to the client.
+4. PawPals displays a success message and the updated client list.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, extra, or invalid index.
+  * 2a1. PawPals displays the corresponding validation message.
+  * Use case ends.
+
+#### UC04 - Add appointment
+
+System: PawPals<br>
+Use case: UC04 - Add appointment<br>
+Actor: User<br>
+Preconditions: PawPals is running and the appointment's client exists in the displayed client list.
+
+MSS:
+
+1. User requests to add an appointment with the `appt` command.
+2. User identifies the client and provides a date and time.
+3. PawPals validates that the date and time form a valid future appointment.
+4. PawPals adds the appointment to the client.
+5. PawPals displays a success message and the appointment under the client.
+
+Use case ends.
+
+Extensions:
+
+* 2a. The specified client does not exist.
+  * 2a1. PawPals informs the user that the client index is invalid.
+  * Use case ends.
+* 2b. User provides an invalid date or time.
+  * 2b1. PawPals displays the corresponding date or time validation message.
+  * 2b2. User provides corrected details.
+  * Use case resumes from step 3.
+* 3a. The appointment is not strictly in the future.
+  * 3a1. PawPals informs the user that the appointment must be scheduled in the future.
+  * Use case ends.
+* 4a. The client already has an appointment at the same date and time.
+  * 4a1. PawPals informs the user that the appointment already exists.
+  * Use case ends.
+
+#### UC05 - List clients, pets, and appointments
+
+System: PawPals<br>
+Use case: UC05 - List clients, pets, and appointments<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to list the records with the `list` command.
+2. PawPals displays all clients with their phone number, address, email, pets, and appointments.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid command format.
+  * 1a1. PawPals displays the command usage message.
+  * Use case ends.
+
+#### UC06 - Find clients
+
+System: PawPals<br>
+Use case: UC06 - Find clients<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to find clients with one or more keywords using the `find` command.
+2. PawPals searches client names without regard to letter case.
+3. PawPals displays the matching clients and their information.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides no keywords.
+  * 1a1. PawPals displays the command usage message.
+  * Use case ends.
+
+#### UC07 - View help
+
+System: PawPals<br>
+Use case: UC07 - View help<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests help with the `help` command.
+2. PawPals displays instructions for using the application and accessing the user guide.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid command format.
+  * 1a1. PawPals displays the command usage message.
+  * Use case ends.
+
+#### UC08 - Clear all records
+
+System: PawPals<br>
+Use case: UC08 - Clear all records<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to clear the application data with the `clear` command.
+2. PawPals removes all clients, pets, and appointments.
+3. PawPals displays a confirmation message and an empty list.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid command format.
+  * 1a1. PawPals displays the command usage message and retains all records.
+  * Use case ends.
+
+#### UC09 - Exit PawPals
+
+System: PawPals<br>
+Use case: UC09 - Exit PawPals<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to exit with the `exit` command.
+2. PawPals closes the application.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides an invalid command format.
+  * 1a1. PawPals displays the command usage message.
+  * Use case ends.
+
+#### UC10 - Auto-save data
+
+System: PawPals<br>
+Use case: UC10 - Auto-save data<br>
+Actor: User<br>
+Preconditions: PawPals is running and the data file is writable.
+
+MSS:
+
+1. User completes a command that changes clients, pets, or appointments.
+2. PawPals saves the updated data automatically.
+3. PawPals keeps the saved data available for the next application launch.
+
+Use case ends.
+
+Extensions:
+
+* 2a. PawPals cannot write to the data file because of insufficient permissions, concurrent access, or insufficient disk space.
+  * 2a1. PawPals displays the corresponding save failure message.
+  * 2a2. PawPals leaves the data file unchanged.
+  * Use case ends.
 
 ### Non-Functional Requirements
 
