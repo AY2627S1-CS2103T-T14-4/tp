@@ -308,19 +308,18 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to add a client.
-2. PawPals requests the client's name, phone number, email address, and home address.
-3. User provides the requested details.
-4. PawPals validates the details and adds the new client.
-5. PawPals displays a success message and the new client in the client list.
+2. User provides the client's name, phone number, email address, and home address.
+3. PawPals validates the details and adds the new client.
+4. PawPals displays a success message and the new client in the client list.
 
 Use case ends.
 
 Extensions:
 
-* 3a. User provides an invalid or missing detail.
-  * 3a1. PawPals displays the corresponding validation message.
-  * 3a2. User provides corrected details.
-  * Use case resumes from step 4.
+* 2a. User provides an invalid or missing detail.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
 * 4a. PawPals detects an existing client with the same name and phone number.
   * 4a1. PawPals informs the user that the client already exists.
   * Use case ends.
@@ -347,9 +346,6 @@ Extensions:
   * 2a1. PawPals displays the corresponding validation message.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
-* 2b. The specified client does not exist.
-  * 2b1. PawPals informs the user that the client index does not exist.
-  * Use case ends.
 * 3a. The client already has a pet with the same name.
   * 3a1. PawPals informs the user that the pet already exists for that client.
   * Use case ends.
@@ -395,9 +391,6 @@ Use case ends.
 
 Extensions:
 
-* 2a. The specified client does not exist.
-  * 2a1. PawPals informs the user that the client index is invalid.
-  * Use case ends.
 * 2b. User provides an invalid date or time.
   * 2b1. PawPals displays the corresponding date or time validation message.
   * 2b2. User provides corrected details.
