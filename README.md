@@ -8,7 +8,7 @@
 
 ## Key features
 
-- Maintain searchable client contact and home-address records.
+- Maintain searchable client contact and records.
 - Associate multiple pets with each client.
 - Record pet details and grooming preferences.
 - Organise upcoming grooming appointments.
