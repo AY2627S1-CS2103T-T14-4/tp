@@ -296,7 +296,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-The following use cases describe the functional requirements of PawPals. They focus on the observable interaction between the user and the application. Command names are included where they identify the supported CLI action.
+The following use cases describe the functional requirements of PawPals. They focus on the observable interaction between the user and the application.
 
 #### UC01 - Add client
 
@@ -307,7 +307,7 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests to add a client with the `addc` command.
+1. User requests to add a client.
 2. PawPals requests the client's name, phone number, email address, and home address.
 3. User provides the requested details.
 4. PawPals validates the details and adds the new client.
@@ -334,7 +334,7 @@ Preconditions: PawPals is running and the pet's client exists in the displayed c
 
 MSS:
 
-1. User requests to add a pet with the `addp` command.
+1. User requests to add a pet.
 2. User identifies the pet's client and provides the pet's name, species, and breed.
 3. PawPals validates the details and adds the pet under the selected client.
 4. PawPals displays a success message and the new pet.
@@ -363,7 +363,7 @@ Preconditions: PawPals is running and the client exists in the displayed client 
 
 MSS:
 
-1. User requests to delete a client with the `delc` command.
+1. User requests to delete a client.
 2. User provides the client's index.
 3. PawPals removes the client and all appointments and pets belonging to the client.
 4. PawPals displays a success message and the updated client list.
@@ -385,7 +385,7 @@ Preconditions: PawPals is running and the appointment's client exists in the dis
 
 MSS:
 
-1. User requests to add an appointment with the `appt` command.
+1. User requests to add an appointment.
 2. User identifies the client and provides a date and time.
 3. PawPals validates that the date and time form a valid future appointment.
 4. PawPals adds the appointment to the client.
@@ -418,15 +418,15 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests to list the records with the `list` command.
+1. User requests to view the records.
 2. PawPals displays all clients with their phone number, address, email, pets, and appointments.
 
 Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid command format.
-  * 1a1. PawPals displays the command usage message.
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
   * Use case ends.
 
 #### UC06 - Find clients
@@ -438,7 +438,7 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests to find clients with one or more keywords using the `find` command.
+1. User requests to find clients using one or more keywords.
 2. PawPals searches client names without regard to letter case.
 3. PawPals displays the matching clients and their information.
 
@@ -447,7 +447,7 @@ Use case ends.
 Extensions:
 
 * 1a. User provides no keywords.
-  * 1a1. PawPals displays the command usage message.
+  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
   * Use case ends.
 
 #### UC07 - View help
@@ -459,15 +459,15 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests help with the `help` command.
+1. User requests help.
 2. PawPals displays instructions for using the application and accessing the user guide.
 
 Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid command format.
-  * 1a1. PawPals displays the command usage message.
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
   * Use case ends.
 
 #### UC08 - Clear all records
@@ -479,7 +479,7 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests to clear the application data with the `clear` command.
+1. User requests to clear the application data.
 2. PawPals removes all clients, pets, and appointments.
 3. PawPals displays a confirmation message and an empty list.
 
@@ -487,8 +487,8 @@ Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid command format.
-  * 1a1. PawPals displays the command usage message and retains all records.
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input and retains all records.
   * Use case ends.
 
 #### UC09 - Exit PawPals
@@ -500,15 +500,15 @@ Preconditions: PawPals is running.
 
 MSS:
 
-1. User requests to exit with the `exit` command.
+1. User requests to exit PawPals.
 2. PawPals closes the application.
 
 Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid command format.
-  * 1a1. PawPals displays the command usage message.
+* 1a. User provides an invalid request.
+  * 1a1. PawPals displays an error message explaining the expected input.
   * Use case ends.
 
 #### UC10 - Auto-save data
@@ -520,7 +520,7 @@ Preconditions: PawPals is running and the data file is writable.
 
 MSS:
 
-1. User completes a command that changes clients, pets, or appointments.
+1. User completes an action that changes clients, pets, or appointments.
 2. PawPals saves the updated data automatically.
 3. PawPals keeps the saved data available for the next application launch.
 
