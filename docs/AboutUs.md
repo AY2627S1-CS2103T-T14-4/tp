@@ -13,7 +13,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Gabriel Lau Yi Jia
 
-<img src="images/frostwrath99.png.jpg" width="200px">
+<img src="images/frostwrath99.png" width="200px">
 
 [[homepage]()]
 [[github](https://github.com/Frostwrath99)]
