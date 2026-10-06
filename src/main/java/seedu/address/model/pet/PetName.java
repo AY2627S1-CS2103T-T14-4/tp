@@ -60,6 +60,9 @@ public class PetName {
                 && fullName.equals(otherName.fullName));
     }
 
+    /**
+     * Returns a hash code based on the pet name, consistent with {@link #equals(Object)}.
+     */
     @Override
     public int hashCode() {
         return fullName.hashCode();
