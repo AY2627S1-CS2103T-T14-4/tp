@@ -43,4 +43,50 @@ public class PetNameTest {
 
         assertEquals("Milo Jr", petName.fullName);
     }
+
+    @Test
+    public void isValidName_tooLong_returnsFalse() {
+        assertFalse(PetName.isValidName("A".repeat(41)));
+    }
+
+    @Test
+    public void toString_returnsFullName() {
+        PetName petName = new PetName("Milo");
+
+        assertEquals("Milo", petName.toString());
+    }
+
+    @Test
+    public void equals() {
+        PetName petName = new PetName("Milo");
+
+        // same object
+        assertTrue(petName.equals(petName));
+
+        // same value
+        assertTrue(petName.equals(new PetName("Milo")));
+
+        // different value
+        assertFalse(petName.equals(new PetName("Coco")));
+
+        // null
+        assertFalse(petName.equals(null));
+
+        // different type
+        assertFalse(petName.equals("Milo"));
+    }
+
+    @Test
+    public void hashCode_samePetName_sameHashCode() {
+        PetName first = new PetName("Milo");
+        PetName second = new PetName("Milo");
+
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
+    public void isValidName_lengthBoundary() {
+        assertTrue(PetName.isValidName("A".repeat(40)));
+        assertFalse(PetName.isValidName("A".repeat(41)));
+    }
 }
