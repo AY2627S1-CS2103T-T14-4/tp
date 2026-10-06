@@ -63,6 +63,9 @@ public class Breed {
                 && value.equals(otherBreed.value));
     }
 
+    /**
+     * Returns a hash code based on the value, consistent with {@link #equals(Object)}.
+     */
     @Override
     public int hashCode() {
         return value.hashCode();
