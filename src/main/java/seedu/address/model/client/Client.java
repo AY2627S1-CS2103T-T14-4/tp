@@ -62,7 +62,7 @@ public class Client {
     }
 
     /**
-     * Returns true if both clients have the same name.
+     * Returns true if both clients have the same normalized name and phone number.
      * This defines a weaker notion of equality between two clients.
      */
     public boolean isSameClient(Client otherClient) {
@@ -71,7 +71,8 @@ public class Client {
         }
 
         return otherClient != null
-                && otherClient.getName().equals(getName());
+                && otherClient.getName().normalized().equals(getName().normalized())
+                && otherClient.getPhone().equals(getPhone());
     }
 
     /**

@@ -3,6 +3,8 @@ package seedu.address.model.client;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a Client's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
@@ -36,6 +38,14 @@ public class Name {
      */
     public static boolean isValidName(String test) {
         return test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns a canonical form of this name for identity comparisons.
+     * Capitalisation and runs of whitespace are ignored.
+     */
+    public String normalized() {
+        return fullName.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
 
