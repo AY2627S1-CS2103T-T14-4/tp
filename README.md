@@ -36,3 +36,8 @@ Libraries used include
 ## Licence
 
 This project is distributed under the [MIT License](LICENSE).
+
+## AI Acknowledgement
+
+Codex (Luna Light) was used to support code exploration, implementation, testing,
+and documentation. All AI-assisted changes were reviewed by the project team.

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
@@ -54,6 +55,14 @@ public class UniqueClientListTest {
     public void add_duplicateClient_throwsDuplicateClientException() {
         uniqueClientList.add(ALICE);
         assertThrows(DuplicateClientException.class, () -> uniqueClientList.add(ALICE));
+    }
+
+    @Test
+    public void add_sameNameDifferentPhone_success() {
+        uniqueClientList.add(ALICE);
+        Client clientWithDifferentPhone = new ClientBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
+        uniqueClientList.add(clientWithDifferentPhone);
+        assertEquals(2, uniqueClientList.asUnmodifiableObservableList().size());
     }
 
     @Test
