@@ -4,9 +4,9 @@
   pageNav: 3
 ---
 
-# AB-3 User Guide
+# PawPals User Guide
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+PawPals is a **desktop application for managing clients, pets, and appointments, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). PawPals helps pet groomers manage their client records and schedules quickly.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,9 +18,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `.jar` file from the PawPals project releases page.
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for PawPals.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
@@ -29,13 +29,13 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all clients, their pets, and their appointments.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe`.
 
-   * `delc 3` : Deletes the 3rd contact shown in the current list.
+   * `delc 3` : Deletes the 3rd client shown in the current list.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all clients, pets, and appointments.
 
    * `exit` : Exits the app.
 
@@ -50,7 +50,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 **Notes about the command format:**<br>
 
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
+  For example, in `addc n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
@@ -69,18 +69,31 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Shows a message explaining how to access the PawPals help page.
 
 ![help message](images/helpMessage.png)
 
 Format: `help`
 
 
-### Adding a client: `add`
+### Adding a client: `addc`
 
-Adds a client to the address book.
+Adds a new client and their contact details.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`
+
+Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
+
+* `NAME` must contain 1 to 60 letters, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `PHONE` must contain exactly eight digits.
+* `EMAIL` must contain a non-empty local part, an `@` symbol, and a valid domain with at least one period. Leading and trailing spaces are removed.
+* `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
+
+Successful output: `New client added: Alice Tan`
+
+If the command fails, the corresponding validation message is displayed and no client is added.
+
+Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
 
 <box type="tip" seamless>
 
@@ -88,18 +101,70 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
+* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567`
+
+### Adding a pet: `addp`
+
+Adds a pet belonging to an existing client.
+
+Format: `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`
+
+Example: `addp c/1 n/Milo s/Dog b/Poodle`
+
+* `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
+* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
+
+Successful output: `New pet added: Milo`
+
+If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
+
+### Deleting a client: `delc`
+
+Removes an unwanted client record, all their pets, and all their appointments.
+
+Format: `delc CLIENT_INDEX`
+
+Example: `delc 2`
+
+* `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
+
+Successful output: `Deleted client: Ben Lim`
+
+The deleted client disappears from the client list, and the remaining clients are renumbered. If the command fails, no client, pet, or appointment is deleted.
+
+### Adding an appointment: `appt`
+
+Adds an appointment to an existing client. An appointment belongs to the client rather than to a specific pet, so it may cover one or more of the client's pets.
+
+Format: `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`
+
+Example: `appt c/1 d/12-12-2026 t/12:34`
+
+* `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
+* `d/DD-MM-YYYY` must be a valid future calendar date.
+* `t/HH:mm` must be a valid future time in 24-hour format.
+* The combined date and time must be strictly later than the current system date and time.
+
+Successful output: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
+
+An appointment with the same exact date and time for the same client is treated as a duplicate. If the command fails, no appointment is added.
 
 ### Listing all clients: `list`
 
-Shows a list of all clients in the address book.
+Shows an overview of all clients, their appointments, and their pets.
 
 Format: `list`
 
+Example: `list`
+
+Each client entry displays the client's phone number, address, email, pets, and appointments.
+
 ### Editing a client: `edit`
 
-Edits an existing client in the address book.
+Edits an existing client in PawPals.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
@@ -130,23 +195,9 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a client: `delc`
-
-Deletes the specified client from the address book.
-
-Format: `delc INDEX`
-
-* Deletes the client at the specified `INDEX`.
-* The index refers to the index number shown in the displayed client list.
-* The index **must be a positive integer** 1, 2, 3, ...
-
-Examples:
-* `list` followed by `delc 2` deletes the 2nd client in the address book.
-* `find Betsy` followed by `delc 1` deletes the 1st client in the results of the `find` command.
-
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all clients, pets, and appointments from PawPals.
 
 Format: `clear`
 
@@ -158,17 +209,17 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+PawPals automatically saves client, pet, and appointment data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+PawPals data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you run a command (PawPals saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
 ### Archiving data files `[coming in v2.0]`
@@ -180,7 +231,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install PawPals on the other computer and overwrite the data file it creates with the data file from your previous PawPals home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -195,9 +246,11 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
+**Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
 **Clear**  | `clear`
-**Delete client** | `delc INDEX`<br> e.g., `delc 3`
+**Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
+**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`<br> e.g., `appt c/1 d/12-12-2026 t/12:34`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
