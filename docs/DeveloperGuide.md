@@ -303,9 +303,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | pet groomer                                          | record grooming-related sensitivities                        | avoid unsuitable products or procedures                                                 |
 | `* *`    | pet groomer                                          | record a pet’s grooming preferences and special instructions | provide consistent service without relying on memory                                    |
 | `* * *`  | pet groomer                                          | view a summary of available commands                         | quickly learn or remember how to use the application                                    |
-| `* * *`  | pet groomer planning my schedule                     | schedule an appointment for a client                 | keep track of who I am grooming and when                                                |
+| `* * *`  | pet groomer planning my schedule                     | schedule an appointment for a client and pet                 | keep track of who I am grooming and when                                                |
 | `* * *`  | pet groomer                                          | view my upcoming appointments                                | plan my day efficiently                                                                 |
-| `* * *`  | pet groomer preparing for a visit                    | view an appointment’s date, time, client, pet and address   | arrive at the correct location prepared for the visit                                   |
+| `* * *`  | pet groomer preparing for a visit                    | view an appointment’s date, time, client, pet, and address   | arrive at the correct location prepared for the visit                                   |
 | `* *`    | pet groomer preparing to groom on-site               | view important pet notes before grooming                     | prepare to handle the pet appropriately                                                 |
 | `* *`    | pet groomer handling schedule adjustments            | update an appointment                                        | keep the appointment details accurate                                                   |
 | `* * *`  | pet groomer                                          | cancel an appointment                                        | keep my schedule up to date                                                             |
@@ -425,9 +425,9 @@ Use case ends.
 
 Extensions:
 
-* 2a. User provides an invalid date or time.
-  * 2a1. PawPals displays the corresponding date or time validation message.
-  * 2a2. User provides corrected details.
+* 2b. User provides an invalid date or time.
+  * 2b1. PawPals displays the corresponding date or time validation message.
+  * 2b2. User provides corrected details.
   * Use case resumes from step 3.
 * 3a. The appointment is not strictly in the future.
   * 3a1. PawPals informs the user that the appointment must be scheduled in the future.
@@ -572,7 +572,7 @@ Extensions:
 
 * **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have one or more pets.
 * **Pet**: An animal belonging to a client whose grooming-related information is managed in PawPals.
-* **Appointment**: A scheduled future grooming visit associated with a client, not a specific pet.
+* **Appointment**: A scheduled future grooming visit associated with a client.
 * **Grooming session**: A completed grooming service whose details and notes are recorded for future reference.
 * **Safety information**: Information about a pet that may affect how it should be handled or groomed, such as temperament, behavioural concerns, or grooming-related sensitivities.
 * **Client index**: A positive integer identifying a client in the currently displayed client list. It is used by commands that require the user to specify a particular client.
