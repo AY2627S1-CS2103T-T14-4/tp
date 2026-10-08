@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# PawPals Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -13,7 +13,14 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+This project is based on the
+[AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project
+created by the [SE-EDU initiative](https://se-education.org).
+
+Libraries used include
+[JavaFX](https://openjfx.io/),
+[Jackson](https://github.com/FasterXML/jackson), and
+[JUnit 5](https://github.com/junit-team/junit5).
 
 --------------------------------------------------------------------------------------------------------------------
 
