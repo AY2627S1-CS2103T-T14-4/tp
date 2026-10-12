@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -22,6 +23,9 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.NameContainsKeywordsPredicate;
 import seedu.address.testutil.ClientBuilder;
@@ -31,6 +35,14 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class AddressBookParserTest {
 
     private final AddressBookParser parser = new AddressBookParser();
+
+    @Test
+    public void parseCommand_appointment() throws Exception {
+        assertEquals(new AppointmentCommand(INDEX_FIRST_CLIENT,
+                new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("12:34"))),
+                parser.parseCommand("appt c/1 d/12-12-2026 t/12:34"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("appt c/1 d/31-02-2026 t/12:34"));
+    }
 
     @Test
     public void parseCommand_add() throws Exception {
