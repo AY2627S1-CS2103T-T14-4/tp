@@ -13,6 +13,9 @@ import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -120,5 +123,50 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a {@code String} into a {@code PetName}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given name is invalid.
+     */
+    public static PetName parsePetName(String name) throws ParseException {
+        requireNonNull(name);
+        String trimmedName = name.trim();
+        if (!PetName.isValidName(trimmedName)) {
+            throw new ParseException(PetName.MESSAGE_CONSTRAINTS);
+        }
+        return new PetName(trimmedName);
+    }
+
+    /**
+     * Parses a {@code String} into a {@code Species}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given species is invalid.
+     */
+    public static Species parseSpecies(String species) throws ParseException {
+        requireNonNull(species);
+        String trimmedSpecies = species.trim();
+        if (!Species.isValidSpecies(trimmedSpecies)) {
+            throw new ParseException(Species.MESSAGE_CONSTRAINTS);
+        }
+        return new Species(trimmedSpecies);
+    }
+
+    /**
+     * Parses a {@code String} into a {@code Breed}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given breed is invalid.
+     */
+    public static Breed parseBreed(String breed) throws ParseException {
+        requireNonNull(breed);
+        String trimmedBreed = breed.trim();
+        if (!Breed.isValidBreed(trimmedBreed)) {
+            throw new ParseException(Breed.MESSAGE_CONSTRAINTS);
+        }
+        return new Breed(trimmedBreed);
     }
 }

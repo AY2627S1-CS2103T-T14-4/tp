@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AddPetCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -24,6 +25,10 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.NameContainsKeywordsPredicate;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
 import seedu.address.testutil.EditClientDescriptorBuilder;
@@ -96,5 +101,14 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_unknownCommand_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
+    }
+
+    @Test
+    public void parseCommand_addPet() throws Exception {
+        Pet pet = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+
+        AddPetCommand command = (AddPetCommand) parser.parseCommand("addp c/1 n/Milo s/Dog b/Poodle");
+
+        assertEquals(new AddPetCommand(INDEX_FIRST_CLIENT, pet), command);
     }
 }
