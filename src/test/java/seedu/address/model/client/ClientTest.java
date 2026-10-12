@@ -164,6 +164,16 @@ public class ClientTest {
     }
 
     @Test
+    public void hashCode_equalClientsWithSamePets_returnsSameHashCode() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Client clientWithPet = new ClientBuilder(ALICE).build().withPet(milo);
+        Client equalClientWithPet = new ClientBuilder(clientWithPet).build();
+
+        assertEquals(clientWithPet, equalClientWithPet);
+        assertEquals(clientWithPet.hashCode(), equalClientWithPet.hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Client.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
