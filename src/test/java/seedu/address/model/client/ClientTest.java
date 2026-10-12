@@ -68,6 +68,18 @@ public class ClientTest {
     }
 
     @Test
+    public void withPet_addsMultipleDistinctPets() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+
+        Client client = new ClientBuilder(ALICE).build()
+                .withPet(milo)
+                .withPet(luna);
+
+        assertEquals(List.of(milo, luna), client.getPets());
+    }
+
+    @Test
     public void constructor_duplicatePets_throwsDuplicatePetException() {
         Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
         Pet sameName = new Pet(new PetName("mILO"), new Species("Cat"), new Breed("Persian"));
