@@ -24,6 +24,9 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.EditClientDescriptorBuilder;
@@ -34,6 +37,28 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class EditCommandTest {
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+    @Test
+    public void execute_editContactDetails_preservesAppointments() {
+        Appointment appointment = new Appointment(new AppointmentDate("08-10-2026"),
+                new AppointmentTime("09:05"), "Call on arrival");
+        Client original = model.getFilteredClientList().get(0);
+        Client withAppointment = original.withAppointment(appointment);
+        model.setClient(original, withAppointment);
+        showClientAtIndex(model, INDEX_FIRST_CLIENT);
+
+        Client editedClient = new ClientBuilder(withAppointment).withName(VALID_NAME_BOB)
+                .withPhone(VALID_PHONE_BOB).withEmail("updated@example.com").withAddress("Updated address")
+                .withTags(VALID_TAG_HUSBAND).build();
+        EditClientDescriptor descriptor = new EditClientDescriptorBuilder(editedClient).build();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setClient(withAppointment, editedClient);
+
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_CLIENT, descriptor), model,
+                String.format(EditCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)), expectedModel);
+        assertEquals(withAppointment.getAppointments(),
+                model.getAddressBook().getClientList().get(0).getAppointments());
+    }
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {

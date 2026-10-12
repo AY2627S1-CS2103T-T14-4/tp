@@ -12,11 +12,108 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BOB;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
 import seedu.address.testutil.ClientBuilder;
 
 public class ClientTest {
+
+    private final Appointment appointment = new Appointment(new AppointmentDate("08-10-2026"),
+            new AppointmentTime("09:05"), "First visit");
+
+    @Test
+    public void constructor_withoutAppointments_defaultsToEmptyList() {
+        assertTrue(ALICE.getAppointments().isEmpty());
+    }
+
+    @Test
+    public void constructor_appointments_defensivelyCopiesList() {
+        List<Appointment> appointments = new ArrayList<>(List.of(appointment));
+        Client client = new Client(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+                ALICE.getTags(), appointments);
+        appointments.clear();
+        assertEquals(List.of(appointment), client.getAppointments());
+        assertThrows(UnsupportedOperationException.class, () -> client.getAppointments().clear());
+    }
+
+    @Test
+    public void constructor_nullAppointments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Client(ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), null));
+        assertThrows(NullPointerException.class, () -> new Client(ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), Arrays.asList(appointment, null)));
+    }
+
+    @Test
+    public void constructor_duplicateDateTime_throwsDuplicateAppointmentException() {
+        Appointment differentDetails = new Appointment(appointment.getDate(), appointment.getTime(), "Other visit");
+        assertThrows(DuplicateAppointmentException.class, () -> new Client(ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), List.of(appointment, differentDetails)));
+    }
+
+    @Test
+    public void withAppointment_addsAppointmentsWithoutChangingOriginal() {
+        Appointment differentTime = new Appointment(appointment.getDate(), new AppointmentTime("10:05"));
+        Appointment differentDate = new Appointment(new AppointmentDate("09-10-2026"), appointment.getTime());
+        Client updated = ALICE.withAppointment(appointment).withAppointment(differentTime)
+                .withAppointment(differentDate);
+        assertTrue(ALICE.getAppointments().isEmpty());
+        assertEquals(List.of(appointment, differentTime, differentDate), updated.getAppointments());
+        assertTrue(ALICE.isSameClient(updated));
+        assertEquals(ALICE.getEmail(), updated.getEmail());
+        assertEquals(ALICE.getAddress(), updated.getAddress());
+        assertEquals(ALICE.getTags(), updated.getTags());
+    }
+
+    @Test
+    public void withAppointment_duplicateDateTime_throwsWithoutChangingClient() {
+        Client client = ALICE.withAppointment(appointment);
+        Appointment differentDetails = new Appointment(appointment.getDate(), appointment.getTime(), "Other visit");
+        assertThrows(DuplicateAppointmentException.class, () -> client.withAppointment(appointment));
+        assertThrows(DuplicateAppointmentException.class, () -> client.withAppointment(differentDetails));
+        assertEquals(List.of(appointment), client.getAppointments());
+    }
+
+    @Test
+    public void withAppointment_sameDateTimeForDifferentClients_succeeds() {
+        assertEquals(List.of(appointment), ALICE.withAppointment(appointment).getAppointments());
+        assertEquals(List.of(appointment), BOB.withAppointment(appointment).getAppointments());
+    }
+
+    @Test
+    public void appointmentOperations_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withAppointment(null));
+        assertThrows(NullPointerException.class, () -> ALICE.hasAppointment(null));
+    }
+
+    @Test
+    public void hasAppointment_comparesDateTimeIgnoringDetails() {
+        assertFalse(ALICE.hasAppointment(appointment));
+        Client client = ALICE.withAppointment(appointment);
+        assertTrue(client.hasAppointment(new Appointment(appointment.getDate(), appointment.getTime(), "Changed")));
+        assertFalse(client.hasAppointment(new Appointment(appointment.getDate(), new AppointmentTime("10:05"))));
+        assertFalse(client.hasAppointment(new Appointment(new AppointmentDate("09-10-2026"), appointment.getTime())));
+    }
+
+    @Test
+    public void equalityAndBuilder_includeAppointments() {
+        Client client = ALICE.withAppointment(appointment);
+        Client copy = new ClientBuilder(client).build();
+        assertEquals(client, copy);
+        assertEquals(client.hashCode(), copy.hashCode());
+        assertEquals(client, new ClientBuilder(ALICE).withAppointments(appointment).build());
+        assertFalse(ALICE.equals(client));
+        assertFalse(client.equals(ALICE.withAppointment(
+                new Appointment(appointment.getDate(), appointment.getTime(), "Changed"))));
+    }
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
@@ -97,7 +194,8 @@ public class ClientTest {
     @Test
     public void toStringMethod() {
         String expected = Client.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", appointments=" + ALICE.getAppointments() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
