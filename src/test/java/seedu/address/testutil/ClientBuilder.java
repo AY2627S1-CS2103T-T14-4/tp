@@ -1,10 +1,10 @@
 package seedu.address.testutil;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
@@ -29,6 +29,7 @@ public class ClientBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private List<Appointment> appointments;
     private List<Pet> pets;
 
     /**
@@ -40,7 +41,8 @@ public class ClientBuilder {
         email = new Email(DEFAULT_EMAIL);
         address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
-        pets = new ArrayList<>();
+        appointments = List.of();
+        pets = List.of();
     }
 
     /**
@@ -52,7 +54,19 @@ public class ClientBuilder {
         email = clientToCopy.getEmail();
         address = clientToCopy.getAddress();
         tags = new HashSet<>(clientToCopy.getTags());
-        pets = new ArrayList<>(clientToCopy.getPets());
+        appointments = List.copyOf(clientToCopy.getAppointments());
+        pets = List.copyOf(clientToCopy.getPets());
+    }
+
+    /**
+     * Replaces the pets to include in the client being built.
+     *
+     * @param pets the pets belonging to the client
+     * @return this builder for chaining
+     */
+    public ClientBuilder withPets(Pet... pets) {
+        this.pets = List.of(pets);
+        return this;
     }
 
     /**
@@ -96,9 +110,19 @@ public class ClientBuilder {
     }
 
     /**
-     * Builds a {@code Client} with the current details and pets.
+     * Sets the appointments of the client being built.
+     */
+    public ClientBuilder withAppointments(Appointment... appointments) {
+        this.appointments = List.of(appointments);
+        return this;
+    }
+
+    /**
+     * Builds a {@code Client} with the current details,
+     * pets, and appointments.
      */
     public Client build() {
-        return new Client(name, phone, email, address, tags, pets);
+        return new Client(name, phone, email, address, tags,
+                pets, appointments);
     }
 }
