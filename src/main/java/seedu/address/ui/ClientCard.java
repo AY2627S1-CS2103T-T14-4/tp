@@ -59,7 +59,11 @@ public class ClientCard extends UiPart<Region> {
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
         client.getAppointments().forEach(appointment -> {
-            Label label = new Label("Appointment: " + appointment.getDate() + " " + appointment.getTime());
+            String appointmentText = "Appointment: " + appointment.getDate() + " " + appointment.getTime();
+            if (!appointment.getDetails().isBlank()) {
+                appointmentText += " (" + appointment.getDetails() + ")";
+            }
+            Label label = new Label(appointmentText);
             label.getStyleClass().add("cell_small_label");
             appointments.getChildren().add(label);
         });
