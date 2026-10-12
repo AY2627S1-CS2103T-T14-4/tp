@@ -2,10 +2,12 @@ package seedu.address.model.client;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -73,27 +75,41 @@ public class Client {
         ensureAppointmentsAreUnique(this.appointments);
     }
 
+    /**
+     * Ensures that no two pets have the same name, ignoring case.
+     *
+     * @param pets the pets to check
+     * @throws DuplicatePetException if duplicate pet names are found
+     */
     private static void ensurePetsAreUnique(List<Pet> pets) {
-        for (int i = 0; i < pets.size(); i++) {
-            for (int j = i + 1; j < pets.size(); j++) {
-                if (pets.get(i).isSamePet(pets.get(j))) {
-                    throw new DuplicatePetException();
-                }
+        Set<String> petNames = new HashSet<>();
+
+        for (Pet pet : pets) {
+            String normalizedName = pet.getName().fullName.toLowerCase(Locale.ROOT);
+
+            if (!petNames.add(normalizedName)) {
+                throw new DuplicatePetException();
             }
         }
     }
 
     /**
-     * Checks that no two appointments have the same date and time.
+     * Ensures that no two appointments have the same date and time,
+     * regardless of their details.
      *
-     * @throws DuplicateAppointmentException if duplicate date/time values are found.
+     * @param appointments the appointments to check
+     * @throws DuplicateAppointmentException if duplicate date/time values are found
      */
     private static void ensureAppointmentsAreUnique(List<Appointment> appointments) {
-        for (int i = 0; i < appointments.size(); i++) {
-            for (int j = i + 1; j < appointments.size(); j++) {
-                if (appointments.get(i).hasSameDateTime(appointments.get(j))) {
-                    throw new DuplicateAppointmentException();
-                }
+        Set<LocalDateTime> appointmentSlots = new HashSet<>();
+
+        for (Appointment appointment : appointments) {
+            LocalDateTime slot = LocalDateTime.of(
+                    appointment.getDate().getValue(),
+                    appointment.getTime().getValue());
+
+            if (!appointmentSlots.add(slot)) {
+                throw new DuplicateAppointmentException();
             }
         }
     }
