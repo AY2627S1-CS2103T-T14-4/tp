@@ -31,7 +31,9 @@ public class Client {
     private final List<Appointment> appointments;
 
     /**
-     * Every field must be present and not null.
+     * Creates a client with no appointments, delegating field validation to the full constructor.
+     *
+     * @throws NullPointerException if any field is null.
      */
     public Client(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
         this(name, phone, email, address, tags, List.of());
