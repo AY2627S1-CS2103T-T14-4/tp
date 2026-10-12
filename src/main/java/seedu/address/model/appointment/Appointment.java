@@ -51,6 +51,16 @@ public final class Appointment {
     }
 
     /**
+     * Returns true if both appointments have the same date and time, regardless of details.
+     * This identity comparison is intended for appointments belonging to the same client.
+     */
+    public boolean hasSameDateTime(Appointment otherAppointment) {
+        return otherAppointment != null
+                && date.equals(otherAppointment.date)
+                && time.equals(otherAppointment.time);
+    }
+
+    /**
      * Returns true if both appointments have the same date, time, and details.
      */
     @Override
