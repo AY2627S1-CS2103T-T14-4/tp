@@ -98,7 +98,7 @@ public class AppointmentCommand extends Command {
 
     @Override
     public int hashCode() {
-        return Objects.hash(targetIndex, appointment);
+        return Objects.hash(targetIndex.getZeroBased(), appointment);
     }
 
     @Override

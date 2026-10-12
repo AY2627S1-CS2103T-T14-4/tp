@@ -132,6 +132,9 @@ public class AppointmentCommandTest {
         assertEquals(command, command);
         assertEquals(command, new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK));
         assertEquals(command.hashCode(), new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK).hashCode());
+        AppointmentCommand sameValueWithSeparateIndex = new AppointmentCommand(Index.fromOneBased(1), appointment);
+        assertEquals(command, sameValueWithSeparateIndex);
+        assertEquals(command.hashCode(), sameValueWithSeparateIndex.hashCode());
         assertNotEquals(command, new AppointmentCommand(INDEX_SECOND_CLIENT, appointment));
         assertNotEquals(command, new AppointmentCommand(INDEX_FIRST_CLIENT, createAppointment("14-12-2026", "00:00")));
         assertNotEquals(command, new AppointmentCommand(INDEX_FIRST_CLIENT,
