@@ -59,7 +59,7 @@ public class Client {
     private static void ensureAppointmentsAreUnique(List<Appointment> appointments) {
         for (int i = 0; i < appointments.size(); i++) {
             for (int j = i + 1; j < appointments.size(); j++) {
-                if (appointments.get(i).isSameAppointment(appointments.get(j))) {
+                if (appointments.get(i).hasSameDateTime(appointments.get(j))) {
                     throw new DuplicateAppointmentException();
                 }
             }
@@ -78,7 +78,7 @@ public class Client {
      */
     public boolean hasAppointment(Appointment appointment) {
         requireAllNonNull(appointment);
-        return appointments.stream().anyMatch(appointment::isSameAppointment);
+        return appointments.stream().anyMatch(appointment::hasSameDateTime);
     }
 
     /**

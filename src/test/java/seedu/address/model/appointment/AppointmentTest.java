@@ -17,15 +17,15 @@ public class AppointmentTest {
     private final Appointment appointment = new Appointment(date, time, "First visit; call on arrival.");
 
     @Test
-    public void isSameAppointment_comparesDateAndTimeOnly() {
+    public void hasSameDateTime_comparesDateAndTimeOnly() {
         Appointment original = new Appointment(new AppointmentDate("08-10-2026"),
                 new AppointmentTime("09:05"), "First visit");
-        assertTrue(original.isSameAppointment(original));
-        assertTrue(original.isSameAppointment(new Appointment(original.getDate(), original.getTime(), "Changed")));
-        assertFalse(original.isSameAppointment(null));
-        assertFalse(original.isSameAppointment(new Appointment(new AppointmentDate("09-10-2026"),
+        assertTrue(original.hasSameDateTime(original));
+        assertTrue(original.hasSameDateTime(new Appointment(original.getDate(), original.getTime(), "Changed")));
+        assertFalse(original.hasSameDateTime(null));
+        assertFalse(original.hasSameDateTime(new Appointment(new AppointmentDate("09-10-2026"),
                 original.getTime())));
-        assertFalse(original.isSameAppointment(new Appointment(original.getDate(), new AppointmentTime("10:05"))));
+        assertFalse(original.hasSameDateTime(new Appointment(original.getDate(), new AppointmentTime("10:05"))));
     }
 
     @Test
