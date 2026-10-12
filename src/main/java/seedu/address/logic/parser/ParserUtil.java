@@ -127,32 +127,38 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String} into a {@code PetName}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Leading, trailing, and repeated spaces are normalized.
      *
      * @throws ParseException if the given name is invalid.
      */
     public static PetName parsePetName(String name) throws ParseException {
         requireNonNull(name);
-        String trimmedName = name.trim();
-        if (!PetName.isValidName(trimmedName)) {
+
+        String normalizedName = name.trim().replaceAll(" {2,}", " ");
+
+        if (!PetName.isValidName(normalizedName)) {
             throw new ParseException(PetName.MESSAGE_CONSTRAINTS);
         }
-        return new PetName(trimmedName);
+
+        return new PetName(normalizedName);
     }
 
     /**
      * Parses a {@code String} into a {@code Species}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Leading, trailing, and repeated spaces are normalized.
      *
      * @throws ParseException if the given species is invalid.
      */
     public static Species parseSpecies(String species) throws ParseException {
         requireNonNull(species);
-        String trimmedSpecies = species.trim();
-        if (!Species.isValidSpecies(trimmedSpecies)) {
+
+        String normalizedSpecies = species.trim().replaceAll(" {2,}", " ");
+
+        if (!Species.isValidSpecies(normalizedSpecies)) {
             throw new ParseException(Species.MESSAGE_CONSTRAINTS);
         }
-        return new Species(trimmedSpecies);
+
+        return new Species(normalizedSpecies);
     }
 
     /**
