@@ -60,11 +60,11 @@ public class ClientTest {
     }
 
     @Test
-    public void withAppointment_addsAppointmentsWithoutChangingOriginal() {
+    public void copyWithAppointment_addsAppointmentsWithoutChangingOriginal() {
         Appointment differentTime = new Appointment(appointment.getDate(), new AppointmentTime("10:05"));
         Appointment differentDate = new Appointment(new AppointmentDate("09-10-2026"), appointment.getTime());
-        Client updated = ALICE.withAppointment(appointment).withAppointment(differentTime)
-                .withAppointment(differentDate);
+        Client updated = ALICE.copyWithAppointment(appointment).copyWithAppointment(differentTime)
+                .copyWithAppointment(differentDate);
         assertTrue(ALICE.getAppointments().isEmpty());
         assertEquals(List.of(appointment, differentTime, differentDate), updated.getAppointments());
         assertTrue(ALICE.isSameClient(updated));
@@ -74,30 +74,30 @@ public class ClientTest {
     }
 
     @Test
-    public void withAppointment_duplicateDateTime_throwsWithoutChangingClient() {
-        Client client = ALICE.withAppointment(appointment);
+    public void copyWithAppointment_duplicateDateTime_throwsWithoutChangingClient() {
+        Client client = ALICE.copyWithAppointment(appointment);
         Appointment differentDetails = new Appointment(appointment.getDate(), appointment.getTime(), "Other visit");
-        assertThrows(DuplicateAppointmentException.class, () -> client.withAppointment(appointment));
-        assertThrows(DuplicateAppointmentException.class, () -> client.withAppointment(differentDetails));
+        assertThrows(DuplicateAppointmentException.class, () -> client.copyWithAppointment(appointment));
+        assertThrows(DuplicateAppointmentException.class, () -> client.copyWithAppointment(differentDetails));
         assertEquals(List.of(appointment), client.getAppointments());
     }
 
     @Test
-    public void withAppointment_sameDateTimeForDifferentClients_succeeds() {
-        assertEquals(List.of(appointment), ALICE.withAppointment(appointment).getAppointments());
-        assertEquals(List.of(appointment), BOB.withAppointment(appointment).getAppointments());
+    public void copyWithAppointment_sameDateTimeForDifferentClients_succeeds() {
+        assertEquals(List.of(appointment), ALICE.copyWithAppointment(appointment).getAppointments());
+        assertEquals(List.of(appointment), BOB.copyWithAppointment(appointment).getAppointments());
     }
 
     @Test
     public void appointmentOperations_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> ALICE.withAppointment(null));
+        assertThrows(NullPointerException.class, () -> ALICE.copyWithAppointment(null));
         assertThrows(NullPointerException.class, () -> ALICE.hasAppointment(null));
     }
 
     @Test
     public void hasAppointment_comparesDateTimeIgnoringDetails() {
         assertFalse(ALICE.hasAppointment(appointment));
-        Client client = ALICE.withAppointment(appointment);
+        Client client = ALICE.copyWithAppointment(appointment);
         assertTrue(client.hasAppointment(new Appointment(appointment.getDate(), appointment.getTime(), "Changed")));
         assertFalse(client.hasAppointment(new Appointment(appointment.getDate(), new AppointmentTime("10:05"))));
         assertFalse(client.hasAppointment(new Appointment(new AppointmentDate("09-10-2026"), appointment.getTime())));
@@ -105,13 +105,13 @@ public class ClientTest {
 
     @Test
     public void equalityAndBuilder_includeAppointments() {
-        Client client = ALICE.withAppointment(appointment);
+        Client client = ALICE.copyWithAppointment(appointment);
         Client copy = new ClientBuilder(client).build();
         assertEquals(client, copy);
         assertEquals(client.hashCode(), copy.hashCode());
         assertEquals(client, new ClientBuilder(ALICE).withAppointments(appointment).build());
         assertFalse(ALICE.equals(client));
-        assertFalse(client.equals(ALICE.withAppointment(
+        assertFalse(client.equals(ALICE.copyWithAppointment(
                 new Appointment(appointment.getDate(), appointment.getTime(), "Changed"))));
     }
 

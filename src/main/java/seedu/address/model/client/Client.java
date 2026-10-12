@@ -86,7 +86,7 @@ public class Client {
      *
      * @throws DuplicateAppointmentException if the date and time already exist for this client.
      */
-    public Client withAppointment(Appointment appointment) {
+    public Client copyWithAppointment(Appointment appointment) {
         requireAllNonNull(appointment);
         if (hasAppointment(appointment)) {
             throw new DuplicateAppointmentException();

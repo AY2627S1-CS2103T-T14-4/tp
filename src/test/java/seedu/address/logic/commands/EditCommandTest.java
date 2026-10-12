@@ -43,7 +43,7 @@ public class EditCommandTest {
         Appointment appointment = new Appointment(new AppointmentDate("08-10-2026"),
                 new AppointmentTime("09:05"), "Call on arrival");
         Client original = model.getFilteredClientList().get(0);
-        Client withAppointment = original.withAppointment(appointment);
+        Client withAppointment = original.copyWithAppointment(appointment);
         model.setClient(original, withAppointment);
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
