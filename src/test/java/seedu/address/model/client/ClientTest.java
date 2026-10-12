@@ -68,6 +68,16 @@ public class ClientTest {
     }
 
     @Test
+    public void constructor_duplicatePets_throwsDuplicatePetException() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet sameName = new Pet(new PetName("mILO"), new Species("Cat"), new Breed("Persian"));
+
+        assertThrows(DuplicatePetException.class, () ->
+                new Client(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+                        ALICE.getTags(), List.of(milo, sameName)));
+    }
+
+    @Test
     public void isSameClient() {
         // same object -> returns true
         assertTrue(ALICE.isSameClient(ALICE));
