@@ -1,6 +1,8 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
@@ -92,5 +94,71 @@ public class AddPetCommandTest {
         AddPetCommand command = new AddPetCommand(INDEX_SECOND_CLIENT, milo);
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void constructor_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class,
+                () -> new AddPetCommand(null, milo));
+
+        assertThrows(NullPointerException.class,
+                () -> new AddPetCommand(INDEX_FIRST_CLIENT, null));
+    }
+
+    @Test
+    public void execute_duplicatePetDifferentCapitalization_throwsCommandException() {
+        Client clientWithPet = new ClientBuilder(ALICE).build().withPet(milo);
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addClient(clientWithPet);
+
+        Model modelWithPet = new ModelManager(addressBook, new UserPrefs());
+
+        Pet duplicatePet = new Pet(
+                new PetName("mILO"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, duplicatePet);
+
+        assertCommandFailure(command, modelWithPet, AddPetCommand.MESSAGE_DUPLICATE_PET);
+    }
+
+    @Test
+    public void execute_largeIndex_throwsCommandException() {
+        Index invalidIndex = Index.fromOneBased(999);
+        AddPetCommand command = new AddPetCommand(invalidIndex, milo);
+
+        assertCommandFailure(command, model,
+                Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void equals() {
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+
+        Pet luna = new Pet(
+                new PetName("Luna"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        // Same object
+        assertTrue(command.equals(command));
+
+        // Same index and pet
+        assertTrue(command.equals(
+                new AddPetCommand(INDEX_FIRST_CLIENT, milo)));
+
+        // Different client index
+        assertFalse(command.equals(
+                new AddPetCommand(INDEX_SECOND_CLIENT, milo)));
+
+        // Different pet
+        assertFalse(command.equals(
+                new AddPetCommand(INDEX_FIRST_CLIENT, luna)));
+
+        // Null and different object type
+        assertFalse(command.equals(null));
+        assertFalse(command.equals(new Object()));
     }
 }
