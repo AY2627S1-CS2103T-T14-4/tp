@@ -12,8 +12,15 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BOB;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
+import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.testutil.ClientBuilder;
 
 public class ClientTest {
@@ -22,6 +29,42 @@ public class ClientTest {
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Client client = new ClientBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> client.getTags().remove(0));
+    }
+
+    @Test
+    public void withPet_addsPetWithoutChangingOriginal() {
+        Client original = new ClientBuilder().build();
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+
+        Client updated = original.withPet(milo);
+
+        assertTrue(original.getPets().isEmpty());
+        assertEquals(List.of(milo), updated.getPets());
+    }
+
+    @Test
+    public void getPets_modifyList_throwsUnsupportedOperationException() {
+        Client client = new ClientBuilder().build().withPet(
+                new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle")));
+
+        assertThrows(UnsupportedOperationException.class, () -> client.getPets().clear());
+    }
+
+    @Test
+    public void withPet_duplicateNameForSameClient_throwsDuplicatePetException() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet sameName = new Pet(new PetName("mILO"), new Species("Cat"), new Breed("Persian"));
+        Client client = new ClientBuilder().build().withPet(milo);
+
+        assertThrows(DuplicatePetException.class, () -> client.withPet(sameName));
+    }
+
+    @Test
+    public void withPet_sameNameForDifferentClients_succeeds() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+
+        assertEquals(List.of(milo), new ClientBuilder(ALICE).build().withPet(milo).getPets());
+        assertEquals(List.of(milo), new ClientBuilder(BOB).build().withPet(milo).getPets());
     }
 
     @Test
@@ -92,12 +135,17 @@ public class ClientTest {
         // different tags -> returns false
         editedAlice = new ClientBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different pets -> returns false
+        editedAlice = ALICE.withPet(new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle")));
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
     public void toStringMethod() {
         String expected = Client.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", pets=" + ALICE.getPets() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
