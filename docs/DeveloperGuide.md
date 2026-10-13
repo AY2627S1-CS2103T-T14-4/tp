@@ -628,6 +628,53 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Adding appointments
+
+Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
+Launch it with `java -jar addressbook.jar`. Replace `FUTURE_DATE` below with a valid future date in
+`DD-MM-YYYY` format; do not type the placeholder literally.
+
+Set up two clients using the implemented `add` command:
+
+```text
+clear
+add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+```
+
+The separate client-add section of the User Guide currently uses `addc`; this revision's parser accepts `add`.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34` | Success names Alice Test; her card shows the date/time. Bob's card is unchanged. |
+| Duplicate for the same client | Repeat the previous command. | `This client already has an appointment at that date and time.` No extra appointment appears. |
+| Same slot for another client | `appt c/2 d/FUTURE_DATE t/12:34` | Bob gets the same date/time; Alice keeps hers. |
+| Invalid date | `appt c/1 d/31-04-2027 t/12:34` | Date-validation message; no data changes. |
+| Invalid time | `appt c/1 d/FUTURE_DATE t/24:00` | Time-validation message; no data changes. |
+| Missing field | `appt c/1 d/FUTURE_DATE` | Invalid-format message and usage instructions; no data changes. |
+| Repeated prefix | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34` | Duplicate-prefix message for `t/`, even though the values match. |
+| Invalid index | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment. | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
+| Past appointment | `appt c/1 d/01-01-2000 t/12:34` | Strictly-future message; no data changes. |
+| Same-day boundary | Use today's date with a time at least five minutes ahead, then with the current minute. | The future minute succeeds; the current minute is rejected. Use the computer's local time. |
+| Filtered indices | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`. |
+| Restart | Run `exit`, relaunch from the same folder, and run `list`. | Each appointment is still displayed under its original client. |
+| Edit preservation | `edit 2 p/93456789`, then restart. | Bob's phone changes, and all his appointments remain. |
+| Delete and clear | `delc 1`, restart; then `clear` and restart. | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments. |
+
+For stored details, close the app, add `"details": "Call on arrival"` to an appointment object in the
+disposable `data/addressbook.json`, and restart. Expect `(Call on arrival)` after its date/time.
+Empty or whitespace-only details must not add empty parentheses. The current `appt` command does not accept details.
+
+Additional disposable-file checks:
+
+* Remove a client's `appointments` property and restart: the client still loads, with no appointments.
+* Change a stored appointment to `29-02-2024` and restart: it still loads even though it is in the past.
+* Try an invalid stored date, invalid stored time, a null appointment entry, or two entries with the same date/time
+  and different details: storage rejects the invalid file. The current startup behavior logs a load warning and
+  starts with an empty address book. Keep the corrupted file disposable; executing a later command can overwrite it.
+
+Record completed checks and any remaining manual verification in the feature pull request.
+
 ### Saving data
 
 1. Dealing with missing/corrupted data files

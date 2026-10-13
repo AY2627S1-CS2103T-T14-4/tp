@@ -27,6 +27,7 @@ public final class AppointmentDate {
     /**
      * Constructs an {@code AppointmentDate} from a date in DD-MM-YYYY format.
      *
+     * @param date The calendar date, with a year from 0001 to 9999.
      * @throws NullPointerException if {@code date} is null.
      * @throws IllegalArgumentException if {@code date} is not a valid appointment date.
      */
@@ -36,6 +37,9 @@ public final class AppointmentDate {
 
     /**
      * Returns true if the string is a valid appointment date; returns false for null.
+     *
+     * @param test The date string to validate.
+     * @return Whether the string satisfies the format and calendar constraints.
      */
     public static boolean isValidDate(String test) {
         if (test == null) {
@@ -67,6 +71,8 @@ public final class AppointmentDate {
 
     /**
      * Returns the immutable calendar date for use in scheduling logic.
+     *
+     * @return The validated date; it need not be in the future.
      */
     public LocalDate getValue() {
         return value;

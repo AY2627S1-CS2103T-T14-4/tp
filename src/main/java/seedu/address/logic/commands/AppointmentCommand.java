@@ -40,6 +40,8 @@ public class AppointmentCommand extends Command {
      * Creates a command using the system clock and default time zone.
      * Whether the appointment is in the future is checked at execution.
      *
+     * @param targetIndex The client's index in the currently displayed list.
+     * @param appointment The appointment to add.
      * @throws NullPointerException if either argument is null; validation is delegated to the full constructor.
      */
     public AppointmentCommand(Index targetIndex, Appointment appointment) {
@@ -49,6 +51,9 @@ public class AppointmentCommand extends Command {
     /**
      * Creates a command using the supplied clock for execution-time validation.
      *
+     * @param targetIndex The client's index in the currently displayed list.
+     * @param appointment The appointment to add.
+     * @param clock The clock providing the current time and local time zone.
      * @throws NullPointerException if any argument is null.
      */
     AppointmentCommand(Index targetIndex, Appointment appointment, Clock clock) {
@@ -61,6 +66,8 @@ public class AppointmentCommand extends Command {
     /**
      * Adds the appointment while preserving the client's other data and the current list filter.
      *
+     * @param model The model containing the displayed clients.
+     * @return Feedback identifying the client and the added date/time.
      * @throws NullPointerException if {@code model} is null.
      * @throws CommandException if the displayed index is invalid, the appointment is not strictly
      *     in the future, or the client already has the same date/time slot.

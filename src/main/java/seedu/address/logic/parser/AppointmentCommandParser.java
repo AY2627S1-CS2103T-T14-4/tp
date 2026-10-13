@@ -23,6 +23,8 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
      * Parses exactly one client index, date and time in any order, with no preamble.
      * Validates date/time format here; the command checks whether it is in the future at execution.
      *
+     * @param args The arguments following the {@code appt} command word.
+     * @return A command targeting the supplied displayed client index.
      * @throws NullPointerException if {@code args} is null.
      * @throws ParseException if a required prefix is missing or repeated, the preamble is non-empty,
      *     or the client index, date or time is invalid.
