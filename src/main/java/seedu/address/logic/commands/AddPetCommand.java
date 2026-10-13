@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -78,5 +79,10 @@ public class AddPetCommand extends Command {
                 .add("clientIndex", clientIndex)
                 .add("petToAdd", petToAdd)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clientIndex.getZeroBased(), petToAdd);
     }
 }

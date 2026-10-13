@@ -1,8 +1,9 @@
 package seedu.address.logic.commands;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
@@ -10,6 +11,8 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +22,9 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
@@ -98,11 +104,8 @@ public class AddPetCommandTest {
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
-        assertThrows(NullPointerException.class,
-                () -> new AddPetCommand(null, milo));
-
-        assertThrows(NullPointerException.class,
-                () -> new AddPetCommand(INDEX_FIRST_CLIENT, null));
+        assertThrows(NullPointerException.class, () -> new AddPetCommand(null, milo));
+        assertThrows(NullPointerException.class, () -> new AddPetCommand(INDEX_FIRST_CLIENT, null));
     }
 
     @Test
@@ -161,4 +164,39 @@ public class AddPetCommandTest {
         assertFalse(command.equals(null));
         assertFalse(command.equals(new Object()));
     }
+
+
+    @Test
+    public void execute_clientWithAppointment_preservesAppointment() {
+        // Create a client with an existing appointment.
+        Client original = model.getFilteredClientList()
+                .get(INDEX_FIRST_CLIENT.getZeroBased());
+
+        Appointment appointment = new Appointment(
+                new AppointmentDate("01-01-2028"),
+                new AppointmentTime("09:05"),
+                "Vaccination");
+
+        Client clientWithAppointment = original.copyWithAppointment(appointment);
+        model.setClient(original, clientWithAppointment);
+
+        // Prepare the expected model after adding Milo.
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setClient(clientWithAppointment, clientWithAppointment.withPet(milo));
+
+        // Execute addp.
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+
+        assertCommandSuccess(command, model,
+                String.format(AddPetCommand.MESSAGE_SUCCESS, milo.getName()),
+                expectedModel);
+
+        // Verify that both the pet and existing appointment remain.
+        Client updatedClient = model.getFilteredClientList()
+                .get(INDEX_FIRST_CLIENT.getZeroBased());
+
+        assertEquals(List.of(milo), updatedClient.getPets());
+        assertEquals(List.of(appointment), updatedClient.getAppointments());
+    }
+
 }

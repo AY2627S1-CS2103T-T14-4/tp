@@ -2,7 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_BREED;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT_INDEX;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SPECIES;
 
@@ -24,17 +24,17 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     @Override
     public AddPetCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(
-                args, PREFIX_CLIENT_INDEX, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED);
+                args, PREFIX_CLIENT, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED);
 
-        if (!arePrefixesPresent(argMultimap, PREFIX_CLIENT_INDEX, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED)
+        if (!arePrefixesPresent(argMultimap, PREFIX_CLIENT, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED)
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddPetCommand.MESSAGE_USAGE));
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(
-                PREFIX_CLIENT_INDEX, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED);
+                PREFIX_CLIENT, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED);
 
-        Index clientIndex = ParserUtil.parseIndex(argMultimap.getValue(PREFIX_CLIENT_INDEX).get());
+        Index clientIndex = ParserUtil.parseIndex(argMultimap.getValue(PREFIX_CLIENT).get());
         PetName name = ParserUtil.parsePetName(argMultimap.getValue(PREFIX_NAME).get());
         Species species = ParserUtil.parseSpecies(argMultimap.getValue(PREFIX_SPECIES).get());
         Breed breed = ParserUtil.parseBreed(argMultimap.getValue(PREFIX_BREED).get());
