@@ -1,13 +1,16 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -26,6 +29,8 @@ public class ClientBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private List<Appointment> appointments;
+    private List<Pet> pets;
 
     /**
      * Creates a {@code ClientBuilder} with the default details.
@@ -36,10 +41,12 @@ public class ClientBuilder {
         email = new Email(DEFAULT_EMAIL);
         address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
+        appointments = List.of();
+        pets = List.of();
     }
 
     /**
-     * Initializes the ClientBuilder with the data of {@code clientToCopy}.
+     * Initializes the {@code ClientBuilder} with the data of {@code clientToCopy}.
      */
     public ClientBuilder(Client clientToCopy) {
         name = clientToCopy.getName();
@@ -47,6 +54,19 @@ public class ClientBuilder {
         email = clientToCopy.getEmail();
         address = clientToCopy.getAddress();
         tags = new HashSet<>(clientToCopy.getTags());
+        appointments = List.copyOf(clientToCopy.getAppointments());
+        pets = List.copyOf(clientToCopy.getPets());
+    }
+
+    /**
+     * Replaces the pets to include in the client being built.
+     *
+     * @param pets the pets belonging to the client
+     * @return this builder for chaining
+     */
+    public ClientBuilder withPets(Pet... pets) {
+        this.pets = List.of(pets);
+        return this;
     }
 
     /**
@@ -58,7 +78,7 @@ public class ClientBuilder {
     }
 
     /**
-     * Parses the {@code tags} into a {@code Set<Tag>} and sets it to the {@code Client} that we are building.
+     * Parses the {@code tags} and sets them on the {@code Client} that we are building.
      */
     public ClientBuilder withTags(String ... tags) {
         this.tags = SampleDataUtil.getTagSet(tags);
@@ -89,8 +109,20 @@ public class ClientBuilder {
         return this;
     }
 
-    public Client build() {
-        return new Client(name, phone, email, address, tags);
+    /**
+     * Sets the appointments of the client being built.
+     */
+    public ClientBuilder withAppointments(Appointment... appointments) {
+        this.appointments = List.of(appointments);
+        return this;
     }
 
+    /**
+     * Builds a {@code Client} with the current details,
+     * pets, and appointments.
+     */
+    public Client build() {
+        return new Client(name, phone, email, address, tags,
+                pets, appointments);
+    }
 }

@@ -17,6 +17,18 @@ public class AppointmentTest {
     private final Appointment appointment = new Appointment(date, time, "First visit; call on arrival.");
 
     @Test
+    public void hasSameDateTime_comparesDateAndTimeOnly() {
+        Appointment original = new Appointment(new AppointmentDate("08-10-2026"),
+                new AppointmentTime("09:05"), "First visit");
+        assertTrue(original.hasSameDateTime(original));
+        assertTrue(original.hasSameDateTime(new Appointment(original.getDate(), original.getTime(), "Changed")));
+        assertFalse(original.hasSameDateTime(null));
+        assertFalse(original.hasSameDateTime(new Appointment(new AppointmentDate("09-10-2026"),
+                original.getTime())));
+        assertFalse(original.hasSameDateTime(new Appointment(original.getDate(), new AppointmentTime("10:05"))));
+    }
+
+    @Test
     public void constructor_nullDate_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Appointment(null, time, "Details"));
     }

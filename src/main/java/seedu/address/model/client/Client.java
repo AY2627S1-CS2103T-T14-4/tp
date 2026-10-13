@@ -2,12 +2,19 @@ package seedu.address.model.client;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,17 +31,122 @@ public class Client {
     // Data fields
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
+    private final List<Appointment> appointments;
+    private final List<Pet> pets;
 
     /**
-     * Every field must be present and not null.
+     * Creates a client with no pets or appointments.
      */
-    public Client(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+    public Client(Name name, Phone phone, Email email,
+            Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, List.of(), List.of());
+    }
+
+    /**
+     * Creates a client with appointments but no pets.
+     */
+    public Client(Name name, Phone phone, Email email,
+            Address address, Set<Tag> tags,
+            List<Appointment> appointments) {
+        this(name, phone, email, address, tags, List.of(), appointments);
+    }
+
+    /**
+     * Creates a client with pets and appointments.
+     */
+    public Client(Name name, Phone phone, Email email,
+            Address address, Set<Tag> tags,
+            List<Pet> pets, List<Appointment> appointments) {
+
+        requireAllNonNull(name, phone, email, address, tags,
+                pets, appointments);
+
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+
+        this.pets = List.copyOf(pets);
+        this.appointments = List.copyOf(appointments);
+
+        ensurePetsAreUnique(this.pets);
+        ensureAppointmentsAreUnique(this.appointments);
+    }
+
+    /**
+     * Ensures that no two pets have the same name, ignoring case.
+     *
+     * @param pets the pets to check
+     * @throws DuplicatePetException if duplicate pet names are found
+     */
+    private static void ensurePetsAreUnique(List<Pet> pets) {
+        Set<String> petNames = new HashSet<>();
+
+        for (Pet pet : pets) {
+            String normalizedName = pet.getIdentityKey();
+
+            if (!petNames.add(normalizedName)) {
+                throw new DuplicatePetException();
+            }
+        }
+    }
+
+    /**
+     * Ensures that no two appointments have the same date and time,
+     * regardless of their details.
+     *
+     * @param appointments the appointments to check
+     * @throws DuplicateAppointmentException if duplicate date/time values are found
+     */
+    private static void ensureAppointmentsAreUnique(List<Appointment> appointments) {
+        Set<LocalDateTime> appointmentSlots = new HashSet<>();
+
+        for (Appointment appointment : appointments) {
+            LocalDateTime slot = LocalDateTime.of(
+                    appointment.getDate().getValue(),
+                    appointment.getTime().getValue());
+
+            if (!appointmentSlots.add(slot)) {
+                throw new DuplicateAppointmentException();
+            }
+        }
+    }
+
+    /**
+     * Returns this client's appointments as an immutable list.
+     */
+    public List<Appointment> getAppointments() {
+        return appointments;
+    }
+
+    /**
+     * Returns true if this client has an appointment with the same date and time.
+     */
+    public boolean hasAppointment(Appointment appointment) {
+        requireAllNonNull(appointment);
+        return appointments.stream().anyMatch(appointment::hasSameDateTime);
+    }
+
+    /**
+     * Returns a copy of this client with the appointment added,
+     * leaving this client unchanged.
+     *
+     * @throws DuplicateAppointmentException if the date and time
+     *         already exist for this client.
+     */
+    public Client copyWithAppointment(Appointment appointment) {
+        requireAllNonNull(appointment);
+
+        if (hasAppointment(appointment)) {
+            throw new DuplicateAppointmentException();
+        }
+
+        List<Appointment> updatedAppointments = new ArrayList<>(appointments);
+        updatedAppointments.add(appointment);
+
+        return new Client(name, phone, email, address, tags,
+                pets, updatedAppointments);
     }
 
     public Name getName() {
@@ -62,6 +174,45 @@ public class Client {
     }
 
     /**
+     * Returns this client's pets as an immutable list.
+     *
+     * @return an immutable list of this client's pets
+     */
+    public List<Pet> getPets() {
+        return pets;
+    }
+
+    /**
+     * Checks whether this client already has a pet with the same identity as {@code pet}.
+     *
+     * @param pet the pet to check
+     * @return true if this client already has an equivalent pet
+     */
+    public boolean hasPet(Pet pet) {
+        requireAllNonNull(pet);
+        return pets.stream().anyMatch(existingPet -> existingPet.isSamePet(pet));
+    }
+
+    /**
+     * Returns a new client with {@code pet} added, leaving this client unchanged.
+     *
+     * @param pet the pet to add
+     * @return a new client containing the pet
+     * @throws DuplicatePetException if this client already has a pet with the same identity
+     */
+    public Client withPet(Pet pet) {
+        requireAllNonNull(pet);
+        if (hasPet(pet)) {
+            throw new DuplicatePetException();
+        }
+
+        List<Pet> updatedPets = new ArrayList<>(pets);
+        updatedPets.add(pet);
+        return new Client(name, phone, email, address, tags,
+        updatedPets, appointments);
+    }
+
+    /**
      * Returns true if both clients have the same normalized name and phone number.
      * This defines a weaker notion of equality between two clients.
      */
@@ -76,8 +227,9 @@ public class Client {
     }
 
     /**
-     * Returns true if both clients have the same identity and data fields.
-     * This defines a stronger notion of equality between two clients.
+     * Returns true if both clients have the same identity and data fields,
+     * including their pets. This defines a stronger notion of equality between
+     * two clients.
      */
     @Override
     public boolean equals(Object other) {
@@ -94,13 +246,16 @@ public class Client {
                 && phone.equals(otherClient.phone)
                 && email.equals(otherClient.email)
                 && address.equals(otherClient.address)
-                && tags.equals(otherClient.tags);
+                && tags.equals(otherClient.tags)
+                && pets.equals(otherClient.pets)
+                && appointments.equals(otherClient.appointments);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, address, tags,
+        pets, appointments);
     }
 
     @Override
@@ -111,6 +266,8 @@ public class Client {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("pets", pets)
+                .add("appointments", appointments)
                 .toString();
     }
 
