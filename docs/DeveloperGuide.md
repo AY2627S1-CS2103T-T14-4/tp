@@ -294,7 +294,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | Priority | As a …                                               | I want to …                                                  | So that I can…                                                                          |
 |----------|------------------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | `* *`    | pet groomer using PawPals for the first time         | see the app populated with sample data                       | understand how client, pet, and appointment records are structured                      |
-| `*`      | pet groomer ready to start using PawPals for my work | purge the sample data                                        | start with a clean database for my actual business                                      |
+| `*`      | pet groomer ready to start using PawPals for my work | purge the sample data                                        | quickly start to populate PawPals with real business information                        |
 | `* * *`  | pet groomer onboarding a new client                  | add a new client                                             | keep their information for future visits                                                |
 | `* * *`  | pet groomer                                          | record a client’s contact details and home address           | refer to their contact and location information when needed                             |
 | `* * *`  | pet groomer                                          | add a pet belonging to a client                              | track distinct grooming needs and histories for different pets owned by the same client |
@@ -303,12 +303,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | pet groomer                                          | record grooming-related sensitivities                        | avoid unsuitable products or procedures                                                 |
 | `* *`    | pet groomer                                          | record a pet’s grooming preferences and special instructions | provide consistent service without relying on memory                                    |
 | `* * *`  | pet groomer                                          | view a summary of available commands                         | quickly learn or remember how to use the application                                    |
-| `* * *`  | pet groomer planning my schedule                     | schedule an appointment for a client and pet                 | keep track of who I am grooming and when                                                |
+| `* * *`  | pet groomer planning my schedule                     | schedule client appointments                                 | prepare for  subsequent pet grooming jobs                                               |
 | `* * *`  | pet groomer                                          | view my upcoming appointments                                | plan my day efficiently                                                                 |
 | `* * *`  | pet groomer preparing for a visit                    | view an appointment’s date, time, client, pet, and address   | arrive at the correct location prepared for the visit                                   |
 | `* *`    | pet groomer preparing to groom on-site               | view important pet notes before grooming                     | prepare to handle the pet appropriately                                                 |
 | `* *`    | pet groomer handling schedule adjustments            | update an appointment                                        | keep the appointment details accurate                                                   |
-| `* * *`  | pet groomer                                          | cancel an appointment                                        | keep my schedule up to date                                                             |
+| `* * *`  | pet groomer                                          | cancel an appointment                                        | prevent outdated information from accumulating in my schedule                           |
 | `* *`    | pet groomer scheduling an appointment                | identify conflicting appointment times                       | avoid double-booking myself                                                             |
 | `* *`    | pet groomer planning my workday                      | view appointments for a selected date                        | focus on that day’s visits                                                              |
 | `* *`    | pet groomer reviewing service history                | view a pet’s previous grooming sessions                      | provide consistent service during future visits                                         |
@@ -327,6 +327,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `*`      | pet groomer managing many appointments               | filter appointments by relevant criteria                     | focus on the appointments that matter at the moment                                     |
 | `* * *`  | pet groomer maintaining long-term records            | remove inactive client records                               | keep my client list relevant and manageable                                             |
 | `* * *`  | pet groomer maintaining long-term records            | remove pet records I no longer need                          | keep my pet records relevant and manageable                                             |
+| `* * *`  | pet groomer reviewing my client                      | list all client records with their contact details           | browse the people I serve                                                               |
+| `* * *`  | pet groomer finished with my records                 | exit PawPals                                                 | end my work session                                                                     |
+| `* *`    | pet groomer updating records between visits          | automatically save my changes                                | prevent accidental data loss                                                            |
 
 ### Use cases
 
