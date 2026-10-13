@@ -143,4 +143,15 @@ public class AddPetCommandParserTest {
                 " b/Poodle s/Dog n/Milo c/1",
                 new AddPetCommand(INDEX_FIRST_CLIENT, pet));
     }
+
+    @Test
+    public void parse_nonEmptyPreamble_throwsParseException() {
+        String expectedMessage = String.format(
+                MESSAGE_INVALID_COMMAND_FORMAT,
+                AddPetCommand.MESSAGE_USAGE);
+
+        assertParseFailure(parser,
+                " extra c/1 n/Milo s/Dog b/Poodle",
+                expectedMessage);
+    }
 }

@@ -199,4 +199,31 @@ public class AddPetCommandTest {
         assertEquals(List.of(appointment), updatedClient.getAppointments());
     }
 
+    @Test
+    public void toStringMethod() {
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+
+        String expected = AddPetCommand.class.getCanonicalName()
+                + "{clientIndex=" + INDEX_FIRST_CLIENT
+                + ", petToAdd=" + milo
+                + "}";
+
+        assertEquals(expected, command.toString());
+    }
+
+    @Test
+    public void hashCode_equalCommands_sameHashCode() {
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+
+        Pet equivalentPet = new Pet(
+                new PetName("Milo"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        AddPetCommand equivalentCommand =
+                new AddPetCommand(Index.fromOneBased(1), equivalentPet);
+
+        assertEquals(command, equivalentCommand);
+        assertEquals(command.hashCode(), equivalentCommand.hashCode());
+    }
 }
