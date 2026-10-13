@@ -611,6 +611,26 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Adding and persisting pets
+
+Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
+Launch it with `java -jar addressbook.jar`.
+
+Set up two clients using the implemented `add` command:
+
+```text
+clear
+add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Add a pet | `addp c/1 n/Milo s/Dog b/Poodle` | Success message appears and Alice's card shows `Pet: Milo (Dog, Poodle)`. Bob's card has no pet entry. |
+| Add a pet to another client | `addp c/2 n/Luna s/Cat b/Persian` | Luna appears under Bob. Alice still shows only Milo. |
+| Restart and reload | Run `exit`, relaunch from the same folder, and run `list`. | Milo remains under Alice and Luna remains under Bob. Client details are unchanged. |
+| Legacy client without pets | In a disposable `data/addressbook.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
+
 ### Deleting a client
 
 1. Deleting a client while all clients are being shown
