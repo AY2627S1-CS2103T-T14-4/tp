@@ -29,19 +29,6 @@ You can run tests in two ways.
 
 --------------------------------------------------------------------------------------------------------------------
 
-## Appointment release verification
-
-For appointment release checks, run the focused tests from the repository root:
-
-```text
-./gradlew test --tests 'seedu.address.logic.AppointmentIntegrationTest' --tests 'seedu.address.logic.commands.AppointmentCommandTest' --tests 'seedu.address.logic.parser.AppointmentCommandParserTest' --tests 'seedu.address.model.appointment.*' --tests 'seedu.address.storage.JsonAdaptedAppointmentTest' --tests 'seedu.address.storage.JsonAdaptedClientTest' --tests 'seedu.address.storage.JsonAddressBookStorageTest' --tests 'seedu.address.model.client.ClientTest' --tests 'seedu.address.logic.commands.EditCommandTest' --tests 'seedu.address.logic.parser.AddressBookParserTest'
-```
-
-On Windows, use `./gradlew.bat` instead of `./gradlew`. Then run `./gradlew check coverage javadoc shadowJar`
-and the repository checks (`bash .github/run-checks.sh`, using Git Bash on Windows).
-See the [manual appointment scenarios](DeveloperGuide.md#adding-appointments) for the expected results.
-Record completed checks and any remaining manual verification in the feature pull request.
-
 ## Types of tests
 
 This project has three types of tests:
