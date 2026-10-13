@@ -49,8 +49,8 @@ public class AppointmentIntegrationTest {
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
         logic = new LogicManager(model, storage);
-        logic.execute("add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road");
-        logic.execute("add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road");
+        logic.execute("addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road");
+        logic.execute("addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road");
     }
 
     @Test
