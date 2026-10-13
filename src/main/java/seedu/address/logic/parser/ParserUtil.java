@@ -163,16 +163,19 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String} into a {@code Breed}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Leading, trailing, and repeated spaces are normalized.
      *
      * @throws ParseException if the given breed is invalid.
      */
     public static Breed parseBreed(String breed) throws ParseException {
         requireNonNull(breed);
-        String trimmedBreed = breed.trim();
-        if (!Breed.isValidBreed(trimmedBreed)) {
+
+        String normalizedBreed = breed.trim().replaceAll(" {2,}", " ");
+
+        if (!Breed.isValidBreed(normalizedBreed)) {
             throw new ParseException(Breed.MESSAGE_CONSTRAINTS);
         }
-        return new Breed(trimmedBreed);
+
+        return new Breed(normalizedBreed);
     }
 }

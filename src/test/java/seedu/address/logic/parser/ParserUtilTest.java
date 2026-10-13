@@ -16,6 +16,7 @@ import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 import seedu.address.model.tag.Tag;
@@ -210,5 +211,14 @@ public class ParserUtilTest {
         Species expected = new Species("Golden Retriever");
 
         assertEquals(expected, ParserUtil.parseSpecies(input));
+    }
+
+    @Test
+    public void parseBreed_repeatedSpaces_returnsNormalizedBreed() throws Exception {
+        String input = "  Golden" + " ".repeat(45) + "Retriever  ";
+
+        Breed expected = new Breed("Golden Retriever");
+
+        assertEquals(expected, ParserUtil.parseBreed(input));
     }
 }
