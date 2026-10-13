@@ -103,11 +103,6 @@ For invalid parameters, PawPals displays the corresponding validation message an
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
 If a duplicate is detected, PawPals displays `This client already exists.` and does not add a client.
 
-<box type="tip" seamless>
-
-**Tip:** A client can have any number of tags, including zero.
-</box>
-
 Examples:
 * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/91234567`
