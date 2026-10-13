@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BENSON;
 import static seedu.address.testutil.TypicalClients.HOON;
 import static seedu.address.testutil.TypicalClients.IDA;
 import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
@@ -11,13 +12,19 @@ import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.client.Client;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +91,46 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_appointmentsRemainWithTheirClients() throws Exception {
+        Path filePath = testFolder.resolve("appointments.json");
+        Appointment pastAppointment = new Appointment(new AppointmentDate("29-02-2024"),
+                new AppointmentTime("09:05"), "Old visit");
+        Appointment futureAppointment = new Appointment(new AppointmentDate("01-01-2028"),
+                new AppointmentTime("12:30"));
+        Client alice = ALICE.copyWithAppointment(pastAppointment).copyWithAppointment(futureAppointment);
+        Client benson = BENSON.copyWithAppointment(pastAppointment);
+        AddressBook original = new AddressBook();
+        original.addClient(alice);
+        original.addClient(benson);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+        AddressBook restored = new AddressBook(storage.readAddressBook().get());
+        assertEquals(original, restored);
+        assertEquals(alice.getAppointments(), restored.getClientList().get(0).getAppointments());
+        assertEquals(benson.getAppointments(), restored.getClientList().get(1).getAppointments());
+    }
+
+    @Test
+    public void readAddressBook_invalidStoredAppointment_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("invalidAppointments.json");
+        List<List<JsonAdaptedAppointment>> invalidAppointments = List.of(
+                List.of(new JsonAdaptedAppointment("31-02-2026", "09:05", "")),
+                List.of(new JsonAdaptedAppointment("01-01-2028", "24:00", "")),
+                List.of(new JsonAdaptedAppointment("01-01-2028", "09:05", "First"),
+                        new JsonAdaptedAppointment("01-01-2028", "09:05", "Second")));
+
+        for (List<JsonAdaptedAppointment> appointments : invalidAppointments) {
+            JsonAdaptedClient client = new JsonAdaptedClient(ALICE.getName().toString(),
+                    ALICE.getPhone().toString(), ALICE.getEmail().toString(), ALICE.getAddress().toString(),
+                    List.of(), appointments);
+            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(List.of(client)), filePath);
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+            assertThrows(DataLoadingException.class, storage::readAddressBook);
+        }
     }
 
     @Test

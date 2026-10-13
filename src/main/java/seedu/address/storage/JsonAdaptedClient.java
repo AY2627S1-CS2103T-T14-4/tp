@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
@@ -29,14 +31,17 @@ class JsonAdaptedClient {
     private final String email;
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final List<JsonAdaptedAppointment> appointments = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonAdaptedClient} with the given client details.
+     * Constructs a {@code JsonAdaptedClient} from stored fields.
+     * A missing appointments property in an older data file means the client has no appointments.
      */
     @JsonCreator
     public JsonAdaptedClient(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("appointments") List<JsonAdaptedAppointment> appointments) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -44,6 +49,16 @@ class JsonAdaptedClient {
         if (tags != null) {
             this.tags.addAll(tags);
         }
+        if (appointments != null) {
+            this.appointments.addAll(appointments);
+        }
+    }
+
+    /**
+     * Creates an adapted client without appointments, as in older data files.
+     */
+    public JsonAdaptedClient(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
+        this(name, phone, email, address, tags, null);
     }
 
     /**
@@ -56,6 +71,9 @@ class JsonAdaptedClient {
         address = source.getAddress().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
+                .collect(Collectors.toList()));
+        appointments.addAll(source.getAppointments().stream()
+                .map(JsonAdaptedAppointment::new)
                 .collect(Collectors.toList()));
     }
 
@@ -103,7 +121,18 @@ class JsonAdaptedClient {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(clientTags);
-        return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        final List<Appointment> modelAppointments = new ArrayList<>();
+        for (JsonAdaptedAppointment appointment : appointments) {
+            if (appointment == null) {
+                throw new IllegalValueException("Appointment entry is missing!");
+            }
+            modelAppointments.add(appointment.toModelType());
+        }
+        try {
+            return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelAppointments);
+        } catch (DuplicateAppointmentException e) {
+            throw new IllegalValueException("Appointments list contains duplicate date/time slots.");
+        }
     }
 
 }
