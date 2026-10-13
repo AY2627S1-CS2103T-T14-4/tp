@@ -222,9 +222,9 @@ public class ClientTest {
         Client editedBob = new ClientBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
         assertTrue(BOB.isSameClient(editedBob));
 
-        // name has repeated/trailing spaces, same phone -> returns true
-        String nameWithTrailingSpaces = VALID_NAME_BOB.replace(" ", "  ") + " ";
-        editedBob = new ClientBuilder(BOB).withName(nameWithTrailingSpaces).build();
+        // name has repeated spaces, same phone -> returns true
+        String nameWithRepeatedSpaces = VALID_NAME_BOB.replace(" ", "  ");
+        editedBob = new ClientBuilder(BOB).withName(nameWithRepeatedSpaces).build();
         assertTrue(BOB.isSameClient(editedBob));
     }
 

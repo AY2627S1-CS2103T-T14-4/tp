@@ -12,13 +12,13 @@ import java.util.Locale;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Invalid name. Names should contain only letters, spaces, apostrophes and hyphens.";
 
     /*
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}](?:[\\p{L} '\\-]*[\\p{L}])?";
 
     public final String fullName;
 
@@ -37,7 +37,7 @@ public class Name {
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test.length() <= 60 && test.matches(VALIDATION_REGEX);
     }
 
     /**

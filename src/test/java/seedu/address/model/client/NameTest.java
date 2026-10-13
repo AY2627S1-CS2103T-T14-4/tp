@@ -27,15 +27,18 @@ public class NameTest {
         // invalid name
         assertFalse(Name.isValidName("")); // empty string
         assertFalse(Name.isValidName(" ")); // spaces only
-        assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
-        assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName("^")); // only non-letter characters
+        assertFalse(Name.isValidName("peter*")); // contains invalid characters
+        assertFalse(Name.isValidName("12345")); // digits are not allowed
+        assertFalse(Name.isValidName(" Peter")); // leading spaces are not allowed before parsing
+        assertFalse(Name.isValidName("Peter ")); // trailing spaces are not allowed before parsing
+        assertFalse(Name.isValidName("a".repeat(61))); // too long
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("12345")); // numbers only
-        assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
+        assertTrue(Name.isValidName("Peter O'Neil")); // apostrophe
+        assertTrue(Name.isValidName("Anne-Marie")); // hyphen
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
-        assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
     }
 
     @Test

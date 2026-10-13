@@ -46,11 +46,11 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        String trimmedName = name.trim();
-        if (!Name.isValidName(trimmedName)) {
+        String normalizedName = name.trim().replaceAll("\\s+", " ");
+        if (!Name.isValidName(normalizedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
-        return new Name(trimmedName);
+        return new Name(normalizedName);
     }
 
     /**
