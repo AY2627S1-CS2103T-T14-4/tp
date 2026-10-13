@@ -2,6 +2,7 @@ package seedu.address.model.pet;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Locale;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -43,6 +44,16 @@ public class Pet {
     }
 
     /**
+     * Returns the normalized identity key for this pet.
+     * Pet identity is determined by name, ignoring case.
+     *
+     * @return the case-normalized pet name
+     */
+    public String getIdentityKey() {
+        return name.fullName.toLowerCase(Locale.ROOT);
+    }
+
+    /**
      * Returns true if both pets have the same name, ignoring case.
      *
      * This method assumes that both pets belong to the same client.
@@ -54,7 +65,7 @@ public class Pet {
         }
 
         return otherPet != null
-                && otherPet.getName().fullName.equalsIgnoreCase(getName().fullName);
+                && getIdentityKey().equals(otherPet.getIdentityKey());
     }
 
     /**

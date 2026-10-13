@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -85,7 +84,7 @@ public class Client {
         Set<String> petNames = new HashSet<>();
 
         for (Pet pet : pets) {
-            String normalizedName = pet.getName().fullName.toLowerCase(Locale.ROOT);
+            String normalizedName = pet.getIdentityKey();
 
             if (!petNames.add(normalizedName)) {
                 throw new DuplicatePetException();
