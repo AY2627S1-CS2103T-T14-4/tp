@@ -39,8 +39,8 @@ For appointment release checks, run the focused tests from the repository root:
 
 On Windows, use `./gradlew.bat` instead of `./gradlew`. Then run `./gradlew check coverage javadoc shadowJar`
 and the repository checks (`bash .github/run-checks.sh`, using Git Bash on Windows).
-See the [manual appointment scenarios](DeveloperGuide.md#adding-appointments) and
-[verification record](AppointmentVerification.md) for the expected results and remaining checks.
+See the [manual appointment scenarios](DeveloperGuide.md#adding-appointments) for the expected results.
+Record completed checks and any remaining manual verification in the feature pull request.
 
 ## Types of tests
 

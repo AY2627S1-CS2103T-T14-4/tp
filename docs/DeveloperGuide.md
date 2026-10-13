@@ -670,8 +670,7 @@ Additional disposable-file checks:
   and different details: storage rejects the invalid file. The current startup behavior logs a load warning and
   starts with an empty address book. Keep the corrupted file disposable; executing a later command can overwrite it.
 
-See [Appointment verification](AppointmentVerification.md) for the checks executed for issue #83 and the
-remaining visual checklist.
+Record completed checks and any remaining manual verification in the feature pull request.
 
 ### Saving data
 
