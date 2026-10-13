@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BENSON;
 import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -21,6 +24,11 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
+import seedu.address.testutil.ClientBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code DeleteClientCommand}.
@@ -56,6 +64,24 @@ public class DeleteClientCommandIntegrationTest {
 
         assertEquals(originalSize - 1, model.getAddressBook().getClientList().size());
         assertFalse(model.getAddressBook().getClientList().contains(withAppointment));
+    }
+
+    @Test
+    public void execute_clientWithPetsAndAppointments_removesAssociatedData() throws Exception {
+        Pet pet = new Pet(new PetName("Milo"), new Species("Cat"), new Breed("Siamese"));
+        Appointment appointment = new Appointment(new AppointmentDate("01-01-2028"),
+                new AppointmentTime("09:05"));
+        Client clientToDelete = new ClientBuilder(ALICE).withPets(pet).withAppointments(appointment).build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addClient(clientToDelete);
+        addressBook.addClient(BENSON);
+        model = new ModelManager(addressBook, new UserPrefs());
+
+        new DeleteClientCommand(INDEX_FIRST_CLIENT).execute(model);
+
+        assertEquals(1, model.getAddressBook().getClientList().size());
+        assertFalse(model.getAddressBook().getClientList().contains(clientToDelete));
+        assertEquals(BENSON, model.getAddressBook().getClientList().get(0));
     }
 
     @Test
