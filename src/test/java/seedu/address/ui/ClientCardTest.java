@@ -16,7 +16,6 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
@@ -80,18 +79,14 @@ public class ClientCardTest {
         assertFalse(bobLabels.contains("Pet: Milo (Dog, Poodle)"));
     }
 
-    private List<String> getSmallLabelTexts(Region root) {
+    private List<String> getSmallLabelTexts(Node node) {
         List<String> labels = new ArrayList<>();
-        collectSmallLabelTexts(root, labels);
-        return labels;
-    }
-
-    private void collectSmallLabelTexts(Node node, List<String> labels) {
         if (node instanceof Label label && label.getStyleClass().contains("cell_small_label")) {
             labels.add(label.getText());
         }
         if (node instanceof Parent parent) {
-            parent.getChildrenUnmodifiable().forEach(child -> collectSmallLabelTexts(child, labels));
+            parent.getChildrenUnmodifiable().forEach(child -> labels.addAll(getSmallLabelTexts(child)));
         }
+        return labels;
     }
 }
