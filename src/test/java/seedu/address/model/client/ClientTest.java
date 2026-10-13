@@ -22,6 +22,11 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
+import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.testutil.ClientBuilder;
 
 public class ClientTest {
@@ -122,6 +127,77 @@ public class ClientTest {
     }
 
     @Test
+    public void withPet_addsPetWithoutChangingOriginal() {
+        Client original = new ClientBuilder().build();
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+
+        Client updated = original.withPet(milo);
+
+        assertTrue(original.getPets().isEmpty());
+        assertEquals(List.of(milo), updated.getPets());
+    }
+
+    @Test
+    public void getPets_modifyList_throwsUnsupportedOperationException() {
+        Client client = new ClientBuilder().build().withPet(
+                new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle")));
+
+        assertThrows(UnsupportedOperationException.class, () -> client.getPets().clear());
+    }
+
+    @Test
+    public void withPet_duplicateNameForSameClient_throwsDuplicatePetException() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet sameName = new Pet(new PetName("mILO"), new Species("Cat"), new Breed("Persian"));
+        Client client = new ClientBuilder().build().withPet(milo);
+
+        assertThrows(DuplicatePetException.class, () -> client.withPet(sameName));
+    }
+
+    @Test
+    public void withPet_sameNameForDifferentClients_succeeds() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+
+        assertEquals(List.of(milo), new ClientBuilder(ALICE).build().withPet(milo).getPets());
+        assertEquals(List.of(milo), new ClientBuilder(BOB).build().withPet(milo).getPets());
+    }
+
+    @Test
+    public void withPet_addsMultipleDistinctPets() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+
+        Client client = new ClientBuilder(ALICE).build()
+                .withPet(milo)
+                .withPet(luna);
+
+        assertEquals(List.of(milo, luna), client.getPets());
+    }
+
+    @Test
+    public void constructor_duplicatePets_throwsDuplicatePetException() {
+        Pet milo = new Pet(
+                new PetName("Milo"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        Pet sameName = new Pet(
+                new PetName("mILO"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        assertThrows(DuplicatePetException.class, () ->
+                new Client(
+                        ALICE.getName(),
+                        ALICE.getPhone(),
+                        ALICE.getEmail(),
+                        ALICE.getAddress(),
+                        ALICE.getTags(),
+                        List.of(milo, sameName),
+                        List.of()));
+    }
+
+    @Test
     public void isSameClient() {
         // same object -> returns true
         assertTrue(ALICE.isSameClient(ALICE));
@@ -189,13 +265,82 @@ public class ClientTest {
         // different tags -> returns false
         editedAlice = new ClientBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different pets -> returns false
+        editedAlice = ALICE.withPet(new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle")));
+        assertFalse(ALICE.equals(editedAlice));
+    }
+
+    @Test
+    public void hashCode_equalClientsWithSamePets_returnsSameHashCode() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Client clientWithPet = new ClientBuilder(ALICE).build().withPet(milo);
+        Client equalClientWithPet = new ClientBuilder(clientWithPet).build();
+
+        assertEquals(clientWithPet, equalClientWithPet);
+        assertEquals(clientWithPet.hashCode(), equalClientWithPet.hashCode());
     }
 
     @Test
     public void toStringMethod() {
-        String expected = Client.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
-                + ", appointments=" + ALICE.getAppointments() + "}";
+        String expected = Client.class.getCanonicalName()
+                + "{name=" + ALICE.getName()
+                + ", phone=" + ALICE.getPhone()
+                + ", email=" + ALICE.getEmail()
+                + ", address=" + ALICE.getAddress()
+                + ", tags=" + ALICE.getTags()
+                + ", pets=" + ALICE.getPets()
+                + ", appointments=" + ALICE.getAppointments()
+                + "}";
+
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void withPet_preservesAppointments() {
+        Pet milo = new Pet(
+                new PetName("Milo"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        Client original = ALICE.copyWithAppointment(appointment);
+        Client updated = original.withPet(milo);
+
+        assertEquals(List.of(milo), updated.getPets());
+        assertEquals(List.of(appointment), updated.getAppointments());
+        assertTrue(original.getPets().isEmpty());
+    }
+
+    @Test
+    public void copyWithAppointment_preservesPets() {
+        Pet milo = new Pet(
+                new PetName("Milo"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        Client original = ALICE.withPet(milo);
+        Client updated = original.copyWithAppointment(appointment);
+
+        assertEquals(List.of(milo), updated.getPets());
+        assertEquals(List.of(appointment), updated.getAppointments());
+        assertTrue(original.getAppointments().isEmpty());
+    }
+
+    @Test
+    public void builder_copyPreservesPetsAndAppointments() {
+        Pet milo = new Pet(
+                new PetName("Milo"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        Client original = ALICE.withPet(milo)
+                .copyWithAppointment(appointment);
+
+        Client copied = new ClientBuilder(original).build();
+
+        assertEquals(original, copied);
+        assertEquals(original.hashCode(), copied.hashCode());
+        assertEquals(List.of(milo), copied.getPets());
+        assertEquals(List.of(appointment), copied.getAppointments());
     }
 }
