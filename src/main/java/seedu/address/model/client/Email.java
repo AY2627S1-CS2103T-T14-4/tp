@@ -13,8 +13,8 @@ public class Email {
     public static final String MESSAGE_CONSTRAINTS = "Invalid email. Must contain exactly one \"@\" symbol, "
             + "with a non-empty local part before \"@\", and a valid domain after it. "
             + "The domain must contain at least one \".\".";
-    // alphanumeric and special characters
-    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
+    // Alphanumeric characters and special characters allowed in an email address.
+    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+";
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
             + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE

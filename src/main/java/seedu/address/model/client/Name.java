@@ -15,8 +15,8 @@ public class Name {
             "Invalid name. Names should contain only letters, spaces, apostrophes and hyphens.";
 
     /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
+     * The first character of the name must be a letter,
+     * otherwise punctuation-only or blank values become valid inputs.
      */
     public static final String VALIDATION_REGEX = "[\\p{L}](?:[\\p{L} '\\-]*[\\p{L}])?";
 
