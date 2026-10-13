@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -225,5 +226,74 @@ public class AddPetCommandTest {
 
         assertEquals(command, equivalentCommand);
         assertEquals(command.hashCode(), equivalentCommand.hashCode());
+    }
+
+    @Test
+    public void execute_samePetNameDifferentClients_success() {
+        AddPetCommand firstCommand = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+        AddPetCommand secondCommand = new AddPetCommand(INDEX_SECOND_CLIENT, milo);
+
+        Client firstClient = model.getFilteredClientList()
+                .get(INDEX_FIRST_CLIENT.getZeroBased());
+        Client secondClient = model.getFilteredClientList()
+                .get(INDEX_SECOND_CLIENT.getZeroBased());
+
+        assertEquals(List.of(), firstClient.getPets());
+        assertEquals(List.of(), secondClient.getPets());
+
+        assertDoesNotThrow(() -> firstCommand.execute(model));
+        assertDoesNotThrow(() -> secondCommand.execute(model));
+
+        assertEquals(List.of(milo), model.getFilteredClientList()
+                .get(INDEX_FIRST_CLIENT.getZeroBased()).getPets());
+        assertEquals(List.of(milo), model.getFilteredClientList()
+                .get(INDEX_SECOND_CLIENT.getZeroBased()).getPets());
+    }
+
+    @Test
+    public void execute_multipleDifferentPetsSameClient_success() {
+        Pet luna = new Pet(
+                new PetName("Luna"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        AddPetCommand firstCommand = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
+        AddPetCommand secondCommand = new AddPetCommand(INDEX_FIRST_CLIENT, luna);
+
+        assertDoesNotThrow(() -> firstCommand.execute(model));
+        assertDoesNotThrow(() -> secondCommand.execute(model));
+
+        Client updatedClient = model.getFilteredClientList()
+                .get(INDEX_FIRST_CLIENT.getZeroBased());
+
+        assertEquals(List.of(milo, luna), updatedClient.getPets());
+    }
+
+    @Test
+    public void execute_duplicatePetDifferentSpacing_throwsCommandException() {
+        Pet originalPet = new Pet(
+                new PetName("Mr Fluffy"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        Client clientWithPet = new ClientBuilder(ALICE)
+                .build()
+                .withPet(originalPet);
+
+        AddressBook addressBook = new AddressBook();
+        addressBook.addClient(clientWithPet);
+
+        Model modelWithPet = new ModelManager(addressBook, new UserPrefs());
+
+        // The parser normalizes repeated spaces before creating the pet.
+        Pet duplicatePet = new Pet(
+                new PetName("Mr Fluffy"),
+                new Species("Dog"),
+                new Breed("Poodle"));
+
+        AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, duplicatePet);
+
+        assertCommandFailure(command, modelWithPet,
+                AddPetCommand.MESSAGE_DUPLICATE_PET);
     }
 }

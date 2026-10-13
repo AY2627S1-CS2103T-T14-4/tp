@@ -154,4 +154,16 @@ public class AddPetCommandParserTest {
                 " extra c/1 n/Milo s/Dog b/Poodle",
                 expectedMessage);
     }
+
+    @Test
+    public void parse_repeatedPetNameSpaces_returnsNormalizedName() {
+        Pet pet = new Pet(
+                new PetName("Mr Fluffy"),
+                new Species("Cat"),
+                new Breed("Persian"));
+
+        assertParseSuccess(parser,
+                " c/1 n/Mr    Fluffy s/Cat b/Persian",
+                new AddPetCommand(INDEX_FIRST_CLIENT, pet));
+    }
 }
