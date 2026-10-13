@@ -43,6 +43,7 @@ public class Email {
         return test.length() >= 3 && test.length() <= 254
                 && test.matches(VALIDATION_REGEX)
                 && test.indexOf('@') == test.lastIndexOf('@')
+                && test.substring(test.indexOf('@') + 1).contains(".")
                 && !test.contains(" ");
     }
 
