@@ -20,6 +20,8 @@ public final class Appointment {
     /**
      * Constructs an {@code Appointment} without additional details.
      *
+     * @param date The validated calendar date.
+     * @param time The validated time of day.
      * @throws NullPointerException if either field is null.
      */
     public Appointment(AppointmentDate date, AppointmentTime time) {
@@ -29,6 +31,9 @@ public final class Appointment {
     /**
      * Constructs an {@code Appointment} with the given details, preserving the text as entered.
      *
+     * @param date The validated calendar date.
+     * @param time The validated time of day.
+     * @param details The optional notes; an empty string means no additional details.
      * @throws NullPointerException if any field is null.
      */
     public Appointment(AppointmentDate date, AppointmentTime time, String details) {
@@ -38,14 +43,29 @@ public final class Appointment {
         this.details = details;
     }
 
+    /**
+     * Returns the appointment's calendar date.
+     *
+     * @return The immutable date value.
+     */
     public AppointmentDate getDate() {
         return date;
     }
 
+    /**
+     * Returns the appointment's time of day.
+     *
+     * @return The immutable time value.
+     */
     public AppointmentTime getTime() {
         return time;
     }
 
+    /**
+     * Returns the appointment's notes as entered.
+     *
+     * @return The non-null details string, which may be empty.
+     */
     public String getDetails() {
         return details;
     }
@@ -53,6 +73,9 @@ public final class Appointment {
     /**
      * Returns true if both appointments have the same date and time, regardless of details.
      * This identity comparison is intended for appointments belonging to the same client.
+     *
+     * @param otherAppointment The appointment to compare, or null.
+     * @return Whether the date and time match; false for null. Details are ignored.
      */
     public boolean hasSameDateTime(Appointment otherAppointment) {
         return otherAppointment != null

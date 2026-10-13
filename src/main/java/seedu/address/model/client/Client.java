@@ -35,7 +35,14 @@ public class Client {
     private final List<Pet> pets;
 
     /**
-     * Creates a client with no pets or appointments.
+     * Creates a client with no pets or appointments, delegating validation to the full constructor.
+     *
+     * @param name The client's name.
+     * @param phone The client's phone number.
+     * @param email The client's email address.
+     * @param address The client's address.
+     * @param tags The client's tags.
+     * @throws NullPointerException if any argument is null.
      */
     public Client(Name name, Phone phone, Email email,
             Address address, Set<Tag> tags) {
@@ -43,7 +50,16 @@ public class Client {
     }
 
     /**
-     * Creates a client with appointments but no pets.
+     * Creates a client with appointments but no pets, delegating validation to the full constructor.
+     *
+     * @param name The client's name.
+     * @param phone The client's phone number.
+     * @param email The client's email address.
+     * @param address The client's address.
+     * @param tags The client's tags.
+     * @param appointments The appointments belonging to this client.
+     * @throws NullPointerException if any argument or appointment is null.
+     * @throws DuplicateAppointmentException if appointments share a date and time.
      */
     public Client(Name name, Phone phone, Email email,
             Address address, Set<Tag> tags,
@@ -52,7 +68,18 @@ public class Client {
     }
 
     /**
-     * Creates a client with pets and appointments.
+     * Creates a client with defensively copied pets and appointments.
+     *
+     * @param name The client's name.
+     * @param phone The client's phone number.
+     * @param email The client's email address.
+     * @param address The client's address.
+     * @param tags The client's tags.
+     * @param pets The pets belonging to this client.
+     * @param appointments The appointments belonging to this client.
+     * @throws NullPointerException if any argument, pet, or appointment is null.
+     * @throws DuplicatePetException if pets share an identity.
+     * @throws DuplicateAppointmentException if appointments share a date and time.
      */
     public Client(Name name, Phone phone, Email email,
             Address address, Set<Tag> tags,
@@ -115,6 +142,8 @@ public class Client {
 
     /**
      * Returns this client's appointments as an immutable list.
+     *
+     * @return The appointments belonging to this client, in insertion order.
      */
     public List<Appointment> getAppointments() {
         return appointments;
@@ -122,6 +151,10 @@ public class Client {
 
     /**
      * Returns true if this client has an appointment with the same date and time.
+     *
+     * @param appointment The appointment whose slot to check.
+     * @return Whether this client already has the date/time slot, regardless of details.
+     * @throws NullPointerException if {@code appointment} is null.
      */
     public boolean hasAppointment(Appointment appointment) {
         requireAllNonNull(appointment);
@@ -132,6 +165,9 @@ public class Client {
      * Returns a copy of this client with the appointment added,
      * leaving this client unchanged.
      *
+     * @param appointment The appointment to add.
+     * @return A new client preserving this client's other data and existing appointments.
+     * @throws NullPointerException if {@code appointment} is null.
      * @throws DuplicateAppointmentException if the date and time
      *         already exist for this client.
      */

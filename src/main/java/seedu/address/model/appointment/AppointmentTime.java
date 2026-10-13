@@ -25,6 +25,7 @@ public final class AppointmentTime {
     /**
      * Constructs an {@code AppointmentTime} from a time in 24-hour HH:mm format.
      *
+     * @param time The time of day, from 00:00 to 23:59.
      * @throws NullPointerException if {@code time} is null.
      * @throws IllegalArgumentException if {@code time} is not a valid appointment time.
      */
@@ -34,6 +35,9 @@ public final class AppointmentTime {
 
     /**
      * Returns true if the string is a valid appointment time; returns false for null.
+     *
+     * @param test The time string to validate.
+     * @return Whether the string satisfies the format and time-of-day constraints.
      */
     public static boolean isValidTime(String test) {
         if (test == null) {
@@ -60,6 +64,8 @@ public final class AppointmentTime {
 
     /**
      * Returns the immutable time of day for use in scheduling logic.
+     *
+     * @return The validated time, with seconds and nanoseconds set to zero.
      */
     public LocalTime getValue() {
         return value;
