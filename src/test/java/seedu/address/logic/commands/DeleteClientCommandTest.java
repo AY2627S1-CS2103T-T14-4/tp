@@ -17,6 +17,9 @@ import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 
 /**
@@ -39,6 +42,21 @@ public class DeleteClientCommandTest {
         expectedModel.deleteClient(clientToDelete);
 
         assertCommandSuccess(deleteClientCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_clientWithAppointment_removesOnlySelectedClient() throws Exception {
+        Client original = model.getFilteredClientList().get(0);
+        Appointment appointment = new Appointment(new AppointmentDate("01-01-2028"),
+                new AppointmentTime("09:05"));
+        Client withAppointment = original.copyWithAppointment(appointment);
+        model.setClient(original, withAppointment);
+        int originalSize = model.getAddressBook().getClientList().size();
+
+        new DeleteClientCommand(INDEX_FIRST_CLIENT).execute(model);
+
+        assertEquals(originalSize - 1, model.getAddressBook().getClientList().size());
+        assertFalse(model.getAddressBook().getClientList().contains(withAppointment));
     }
 
     @Test

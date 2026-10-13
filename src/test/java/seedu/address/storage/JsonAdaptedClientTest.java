@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
@@ -36,6 +39,34 @@ public class JsonAdaptedClientTest {
     public void toModelType_validClientDetails_returnsClient() throws Exception {
         JsonAdaptedClient client = new JsonAdaptedClient(BENSON);
         assertEquals(BENSON, client.toModelType());
+    }
+
+    @Test
+    public void toModelType_appointmentsBelongToClient() throws Exception {
+        Appointment appointment = new Appointment(new AppointmentDate("01-01-2025"),
+                new AppointmentTime("09:05"), "Grooming");
+        JsonAdaptedClient client = new JsonAdaptedClient(BENSON.copyWithAppointment(appointment));
+        assertEquals(BENSON.copyWithAppointment(appointment), client.toModelType());
+    }
+
+    @Test
+    public void toModelType_duplicateAppointmentSlots_throwsIllegalValueException() {
+        List<JsonAdaptedAppointment> appointments = List.of(
+                new JsonAdaptedAppointment("01-01-2025", "09:05", "First"),
+                new JsonAdaptedAppointment("01-01-2025", "09:05", "Different details"));
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, appointments);
+        assertThrows(IllegalValueException.class, "Appointments list contains duplicate date/time slots.",
+                client::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullAppointmentEntry_throwsIllegalValueException() {
+        List<JsonAdaptedAppointment> appointments = new ArrayList<>();
+        appointments.add(null);
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, appointments);
+        assertThrows(IllegalValueException.class, "Appointment entry is missing!", client::toModelType);
     }
 
     @Test

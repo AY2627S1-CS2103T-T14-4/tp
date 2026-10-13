@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.model.client.Client;
 
 /**
@@ -40,6 +41,8 @@ public class ClientCard extends UiPart<Region> {
     private Label email;
     @FXML
     private FlowPane tags;
+    @FXML
+    private VBox appointments;
 
     /**
      * Creates a {@code ClientCard} with the given {@code Client} and index to display.
@@ -55,5 +58,14 @@ public class ClientCard extends UiPart<Region> {
         client.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        client.getAppointments().forEach(appointment -> {
+            String appointmentText = "Appointment: " + appointment.getDate() + " " + appointment.getTime();
+            if (!appointment.getDetails().isBlank()) {
+                appointmentText += " (" + appointment.getDetails() + ")";
+            }
+            Label label = new Label(appointmentText);
+            label.getStyleClass().add("cell_small_label");
+            appointments.getChildren().add(label);
+        });
     }
 }
