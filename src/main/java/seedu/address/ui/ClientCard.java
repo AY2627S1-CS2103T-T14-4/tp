@@ -42,6 +42,8 @@ public class ClientCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
+    private VBox pets;
+    @FXML
     private VBox appointments;
 
     /**
@@ -58,6 +60,12 @@ public class ClientCard extends UiPart<Region> {
         client.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        client.getPets().forEach(pet -> {
+            String petText = "Pet: " + pet.getName() + " (" + pet.getSpecies() + ", " + pet.getBreed() + ")";
+            Label label = new Label(petText);
+            label.getStyleClass().add("cell_small_label");
+            pets.getChildren().add(label);
+        });
         client.getAppointments().forEach(appointment -> {
             String appointmentText = "Appointment: " + appointment.getDate() + " " + appointment.getTime();
             if (!appointment.getDetails().isBlank()) {
