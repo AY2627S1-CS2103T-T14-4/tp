@@ -12,9 +12,14 @@ import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -28,12 +33,18 @@ import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.StorageManager;
 import seedu.address.testutil.ClientBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code DeleteClientCommand}.
  */
 public class DeleteClientCommandIntegrationTest {
+
+    @TempDir
+    public Path testFolder;
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
@@ -120,6 +131,31 @@ public class DeleteClientCommandIntegrationTest {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(outOfBoundIndex);
 
         assertCommandFailure(deleteClientCommand, model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_afterFind_deletesClientAtFilteredIndex() throws Exception {
+        AddressBook addressBook = new AddressBook();
+        addressBook.addClient(ALICE);
+        addressBook.addClient(BENSON);
+        model = new ModelManager(addressBook, new UserPrefs());
+        LogicManager logic = new LogicManager(model, createStorage());
+
+        logic.execute("find Benson");
+        assertEquals(List.of(BENSON), model.getFilteredClientList());
+
+        logic.execute("delc 1");
+
+        assertEquals(List.of(ALICE), model.getAddressBook().getClientList());
+        assertTrue(model.getFilteredClientList().isEmpty());
+    }
+
+    private StorageManager createStorage() {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(testFolder.resolve("addressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(testFolder.resolve("userPrefs.json"));
+        return new StorageManager(addressBookStorage, userPrefsStorage);
     }
 
     /**
