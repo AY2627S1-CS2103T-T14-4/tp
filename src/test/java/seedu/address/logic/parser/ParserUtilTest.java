@@ -16,6 +16,9 @@ import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -190,5 +193,32 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parsePetName_repeatedSpaces_returnsNormalizedName() throws Exception {
+        String input = "  Mi" + " ".repeat(45) + "lo  ";
+
+        PetName expected = new PetName("Mi lo");
+
+        assertEquals(expected, ParserUtil.parsePetName(input));
+    }
+
+    @Test
+    public void parseSpecies_repeatedSpaces_returnsNormalizedSpecies() throws Exception {
+        String input = "  Golden" + " ".repeat(45) + "Retriever  ";
+
+        Species expected = new Species("Golden Retriever");
+
+        assertEquals(expected, ParserUtil.parseSpecies(input));
+    }
+
+    @Test
+    public void parseBreed_repeatedSpaces_returnsNormalizedBreed() throws Exception {
+        String input = "  Golden" + " ".repeat(45) + "Retriever  ";
+
+        Breed expected = new Breed("Golden Retriever");
+
+        assertEquals(expected, ParserUtil.parseBreed(input));
     }
 }
