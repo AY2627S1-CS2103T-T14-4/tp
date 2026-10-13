@@ -64,7 +64,7 @@ public class DeleteClientCommandIntegrationTest {
 
     @Test
     public void execute_clientWithAppointment_removesOnlySelectedClient() throws Exception {
-        Client original = model.getFilteredClientList().get(0);
+        Client original = model.getFilteredClientList().getFirst();
         Appointment appointment = new Appointment(new AppointmentDate("01-01-2028"),
                 new AppointmentTime("09:05"));
         Client withAppointment = original.copyWithAppointment(appointment);
@@ -92,7 +92,7 @@ public class DeleteClientCommandIntegrationTest {
 
         assertEquals(1, model.getAddressBook().getClientList().size());
         assertFalse(model.getAddressBook().getClientList().contains(clientToDelete));
-        assertEquals(BENSON, model.getAddressBook().getClientList().get(0));
+        assertEquals(BENSON, model.getAddressBook().getClientList().getFirst());
     }
 
     @Test
@@ -148,6 +148,26 @@ public class DeleteClientCommandIntegrationTest {
 
         assertEquals(List.of(ALICE), model.getAddressBook().getClientList());
         assertTrue(model.getFilteredClientList().isEmpty());
+    }
+
+    @Test
+    public void execute_afterReload_deletedClientRemainsAbsent() throws Exception {
+        AddressBook addressBook = new AddressBook();
+        addressBook.addClient(ALICE);
+        addressBook.addClient(BENSON);
+        model = new ModelManager(addressBook, new UserPrefs());
+        LogicManager logic = new LogicManager(model, createStorage());
+
+        logic.execute("delc 1");
+        assertEquals(List.of(BENSON), model.getAddressBook().getClientList());
+
+        StorageManager restartedStorage = createStorage();
+        Model restartedModel = new ModelManager(restartedStorage.readAddressBook().orElseThrow(), new UserPrefs());
+        LogicManager restartedLogic = new LogicManager(restartedModel, restartedStorage);
+        restartedLogic.execute("list");
+
+        assertEquals(List.of(BENSON), restartedModel.getAddressBook().getClientList());
+        assertFalse(restartedModel.getAddressBook().getClientList().contains(ALICE));
     }
 
     private StorageManager createStorage() {
