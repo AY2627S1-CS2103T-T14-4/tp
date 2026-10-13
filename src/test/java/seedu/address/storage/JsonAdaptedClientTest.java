@@ -19,6 +19,10 @@ import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 
 public class JsonAdaptedClientTest {
     private static final String INVALID_NAME = "R@chel";
@@ -34,6 +38,7 @@ public class JsonAdaptedClientTest {
     private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
             .map(JsonAdaptedTag::new)
             .collect(Collectors.toList());
+    private static final Pet MILO = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
 
     @Test
     public void toModelType_validClientDetails_returnsClient() throws Exception {
@@ -47,6 +52,38 @@ public class JsonAdaptedClientTest {
                 new AppointmentTime("09:05"), "Grooming");
         JsonAdaptedClient client = new JsonAdaptedClient(BENSON.copyWithAppointment(appointment));
         assertEquals(BENSON.copyWithAppointment(appointment), client.toModelType());
+    }
+
+    @Test
+    public void toModelType_petsBelongToClient() throws Exception {
+        JsonAdaptedClient client = new JsonAdaptedClient(BENSON.withPet(MILO));
+        assertEquals(BENSON.withPet(MILO), client.toModelType());
+    }
+
+    @Test
+    public void toModelType_missingPets_defaultsToEmpty() throws Exception {
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of());
+        assertEquals(BENSON, client.toModelType());
+    }
+
+    @Test
+    public void toModelType_nullPetEntry_throwsIllegalValueException() {
+        List<JsonAdaptedPet> pets = new ArrayList<>();
+        pets.add(null);
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, pets, List.of());
+        assertThrows(IllegalValueException.class, "Pet entry is missing!", client::toModelType);
+    }
+
+    @Test
+    public void toModelType_duplicatePetNames_throwsIllegalValueException() {
+        List<JsonAdaptedPet> pets = List.of(
+                new JsonAdaptedPet("Milo", "Dog", "Poodle"),
+                new JsonAdaptedPet("mILO", "Cat", "Persian"));
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, pets, List.of());
+        assertThrows(IllegalValueException.class, "Pets list contains duplicate pet names.", client::toModelType);
     }
 
     @Test

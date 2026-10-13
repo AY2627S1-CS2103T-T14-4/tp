@@ -30,6 +30,8 @@ public class JsonSerializableAddressBookTest {
         assertEquals(addressBookFromFile, typicalClientsAddressBook);
         assertTrue(addressBookFromFile.getClientList().stream()
                 .allMatch(client -> client.getAppointments().isEmpty()));
+        assertTrue(addressBookFromFile.getClientList().stream()
+                .allMatch(client -> client.getPets().isEmpty()));
     }
 
     @Test

@@ -25,6 +25,10 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -112,6 +116,39 @@ public class JsonAddressBookStorageTest {
         assertEquals(original, restored);
         assertEquals(alice.getAppointments(), restored.getClientList().get(0).getAppointments());
         assertEquals(benson.getAppointments(), restored.getClientList().get(1).getAppointments());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_petsRemainWithTheirClients() throws Exception {
+        Path filePath = testFolder.resolve("pets.json");
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Client alice = ALICE.withPet(milo);
+        Client benson = BENSON.withPet(milo).withPet(luna);
+        AddressBook original = new AddressBook();
+        original.addClient(alice);
+        original.addClient(benson);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+        AddressBook restored = new AddressBook(storage.readAddressBook().get());
+
+        assertEquals(original, restored);
+        assertEquals(alice.getPets(), restored.getClientList().get(0).getPets());
+        assertEquals(benson.getPets(), restored.getClientList().get(1).getPets());
+    }
+
+    @Test
+    public void readAddressBook_invalidStoredPet_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("invalidPets.json");
+        List<JsonAdaptedPet> invalidPets = List.of(new JsonAdaptedPet("Milo", null, "Poodle"));
+        JsonAdaptedClient client = new JsonAdaptedClient(ALICE.getName().toString(),
+                ALICE.getPhone().toString(), ALICE.getEmail().toString(), ALICE.getAddress().toString(),
+                List.of(), invalidPets, List.of());
+        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(List.of(client)), filePath);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
     }
 
     @Test
