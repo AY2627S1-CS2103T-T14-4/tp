@@ -84,16 +84,24 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`
 
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
 
-* `NAME` must contain 1 to 60 letters, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `PHONE` must contain exactly eight digits.
-* `EMAIL` must contain a non-empty local part, an `@` symbol, and a valid domain with at least one period. Leading and trailing spaces are removed.
+* `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `PHONE` must contain exactly eight digits without spaces.
+* `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol, a non-empty local part, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 
 Successful output: `New client added: Alice Tan`
 
-If the command fails, the corresponding validation message is displayed and no client is added.
+If the command format is incorrect, PawPals displays: `Invalid command format. Usage: addc n/NAME p/PHONE e/EMAIL a/ADDRESS`.
+
+For invalid parameters, PawPals displays the corresponding validation message and does not add a client:
+
+* Invalid name: `Invalid name. Names should contain only letters, spaces, apostrophes and hyphens.`
+* Invalid phone: `Invalid phone number. Enter exactly 8 digits.`
+* Invalid email: `Invalid email. Must contain exactly one "@" symbol, with a non-empty local part before "@", and a valid domain after it. The domain must contain at least one ".".`
+* Invalid address: `Invalid address. Address must not be empty.`
 
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
+If a duplicate is detected, PawPals displays `This client already exists.` and does not add a client.
 
 <box type="tip" seamless>
 
@@ -102,7 +110,7 @@ Clients with the same name and phone number, ignoring name capitalisation and re
 
 Examples:
 * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567`
+* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/91234567`
 
 ### Adding a pet: `addp`
 
