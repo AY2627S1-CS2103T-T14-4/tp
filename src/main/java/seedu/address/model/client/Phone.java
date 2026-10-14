@@ -10,7 +10,8 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Phone {
 
 
-    public static final String MESSAGE_CONSTRAINTS = "Invalid phone number. Enter 3 to 15 digits.";
+    public static final String MESSAGE_CONSTRAINTS =
+            "Phone numbers should only contain digits, and should be between 3 and 15 digits long.";
     public static final String VALIDATION_REGEX = "\\d{3,15}";
     public final String value;
 

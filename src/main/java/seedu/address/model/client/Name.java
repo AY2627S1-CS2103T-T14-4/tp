@@ -12,8 +12,8 @@ import java.util.Locale;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Invalid name. Names should be 1 to 60 characters long and contain only letters, spaces, "
-            + "apostrophes and hyphens.";
+            "Names should contain only letters, spaces, apostrophes and hyphens, and should be between 1 and 60 "
+            + "characters long.";
 
     /*
      * The first character of the name must be a letter,

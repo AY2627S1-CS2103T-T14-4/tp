@@ -95,10 +95,10 @@ If the command format is incorrect, PawPals displays: `Invalid command format. U
 
 For invalid parameters, PawPals displays the corresponding validation message and does not add a client:
 
-* Invalid name: `Invalid name. Names should contain only letters, spaces, apostrophes and hyphens.`
-* Invalid phone: `Invalid phone number. Enter 3 to 15 digits.`
-* Invalid email: `Invalid email. Must contain exactly one "@" symbol, with a non-empty local part before "@", and a valid domain after it. The domain must contain at least one ".".`
-* Invalid address: `Invalid address. Address must not be empty.`
+* Invalid name: `Names should contain only letters, spaces, apostrophes and hyphens, and should be between 1 and 60 characters long.`
+* Invalid phone: `Phone numbers should only contain digits, and should be between 3 and 15 digits long.`
+* Invalid email: `Emails should be 3 to 254 characters long, contain exactly one "@" symbol with text before it, have a valid domain containing at least one ".", and should not contain spaces.`
+* Invalid address: `Addresses should be between 1 and 200 characters long, and should not be blank.`
 
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
 If a duplicate is detected, PawPals displays `This client already exists.` and does not add a client.
