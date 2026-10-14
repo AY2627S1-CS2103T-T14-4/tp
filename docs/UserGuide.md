@@ -85,7 +85,7 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
 
 * `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `PHONE` must contain exactly eight digits without spaces.
+* `PHONE` must contain 3 to 15 digits without spaces.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol, a non-empty local part, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 
@@ -96,7 +96,7 @@ If the command format is incorrect, PawPals displays: `Invalid command format. U
 For invalid parameters, PawPals displays the corresponding validation message and does not add a client:
 
 * Invalid name: `Invalid name. Names should contain only letters, spaces, apostrophes and hyphens.`
-* Invalid phone: `Invalid phone number. Enter exactly 8 digits.`
+* Invalid phone: `Invalid phone number. Enter 3 to 15 digits.`
 * Invalid email: `Invalid email. Must contain exactly one "@" symbol, with a non-empty local part before "@", and a valid domain after it. The domain must contain at least one ".".`
 * Invalid address: `Invalid address. Address must not be empty.`
 
