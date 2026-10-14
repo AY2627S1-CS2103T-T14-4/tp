@@ -117,9 +117,12 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
 * `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
 
 Successful output: `New pet added: Milo`
+
+After a successful command, the pet appears under the selected client's card in the format
+`Pet: Milo (Dog, Poodle)`. The pet is saved as part of that client and remains available after restarting PawPals.
 
 If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
 
@@ -182,7 +185,8 @@ Format: `list`
 
 Example: `list`
 
-Each client entry displays the client's phone number, address, email, pets, and appointments.
+Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
+under its client with its name, species, and breed. Clients without pets continue to display without a pet entry.
 
 ### Editing a client: `edit`
 
@@ -231,7 +235,8 @@ Format: `exit`
 
 ### Saving the data
 
-PawPals automatically saves client, pet, and appointment data after every command. You do not need to save manually.
+PawPals automatically saves client, pet, and appointment data after every command. Pets are saved under their
+owning client and remain available after restarting PawPals. You do not need to save manually.
 
 ### Editing the data file
 

@@ -17,6 +17,8 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -31,6 +33,7 @@ class JsonAdaptedClient {
     private final String email;
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final List<JsonAdaptedPet> pets = new ArrayList<>();
     private final List<JsonAdaptedAppointment> appointments = new ArrayList<>();
 
     /**
@@ -41,6 +44,7 @@ class JsonAdaptedClient {
     public JsonAdaptedClient(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("pets") List<JsonAdaptedPet> pets,
             @JsonProperty("appointments") List<JsonAdaptedAppointment> appointments) {
         this.name = name;
         this.phone = phone;
@@ -48,6 +52,9 @@ class JsonAdaptedClient {
         this.address = address;
         if (tags != null) {
             this.tags.addAll(tags);
+        }
+        if (pets != null) {
+            this.pets.addAll(pets);
         }
         if (appointments != null) {
             this.appointments.addAll(appointments);
@@ -58,7 +65,15 @@ class JsonAdaptedClient {
      * Creates an adapted client without appointments, as in older data files.
      */
     public JsonAdaptedClient(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null);
+        this(name, phone, email, address, tags, null, null);
+    }
+
+    /**
+     * Creates an adapted client without pets, as in older data files.
+     */
+    public JsonAdaptedClient(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedAppointment> appointments) {
+        this(name, phone, email, address, tags, null, appointments);
     }
 
     /**
@@ -71,6 +86,9 @@ class JsonAdaptedClient {
         address = source.getAddress().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
+                .collect(Collectors.toList()));
+        pets.addAll(source.getPets().stream()
+                .map(JsonAdaptedPet::new)
                 .collect(Collectors.toList()));
         appointments.addAll(source.getAppointments().stream()
                 .map(JsonAdaptedAppointment::new)
@@ -121,6 +139,13 @@ class JsonAdaptedClient {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(clientTags);
+        final List<Pet> modelPets = new ArrayList<>();
+        for (JsonAdaptedPet pet : pets) {
+            if (pet == null) {
+                throw new IllegalValueException("Pet entry is missing!");
+            }
+            modelPets.add(pet.toModelType());
+        }
         final List<Appointment> modelAppointments = new ArrayList<>();
         for (JsonAdaptedAppointment appointment : appointments) {
             if (appointment == null) {
@@ -129,7 +154,10 @@ class JsonAdaptedClient {
             modelAppointments.add(appointment.toModelType());
         }
         try {
-            return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelAppointments);
+            return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags,
+                    modelPets, modelAppointments);
+        } catch (DuplicatePetException e) {
+            throw new IllegalValueException("Pets list contains duplicate pet names.");
         } catch (DuplicateAppointmentException e) {
             throw new IllegalValueException("Appointments list contains duplicate date/time slots.");
         }

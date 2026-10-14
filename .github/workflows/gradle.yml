@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
+    timeout-minutes: 15
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
@@ -15,7 +16,7 @@ jobs:
 
       - name: Run repository-wide tests
         if: runner.os == 'Linux'
-        working-directory:  ${{ github.workspace }}/.github
+        working-directory: ${{ github.workspace }}/.github
         run: ./run-checks.sh
 
       - name: Validate Gradle Wrapper
@@ -28,8 +29,13 @@ jobs:
           java-version: '25'
           java-package: jdk+fx
 
-      - name: Build and check with Gradle
-        run: ./gradlew check coverage
+      - name: Build and check with Gradle on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./gradlew check coverage --info --console=plain
+
+      - name: Build and check with Gradle on non-Linux
+        if: runner.os != 'Linux'
+        run: ./gradlew check coverage --info --console=plain
 
       - name: Upload coverage reports to Codecov
         if: runner.os == 'Linux'
