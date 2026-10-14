@@ -29,10 +29,16 @@ jobs:
           java-version: '25'
           java-package: jdk+fx
 
-      - name: Diagnose ClientCardTest on Linux
+      - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
-        run: timeout 120s ./gradlew test --tests "seedu.address.ui.ClientCardTest" --info --console=plain
+        run: xvfb-run -a ./gradlew check coverage --info --console=plain
 
-      - name: Build and check with Gradle
+      - name: Build and check with Gradle on non-Linux
         if: runner.os != 'Linux'
         run: ./gradlew check coverage --info --console=plain
+
+      - name: Upload coverage reports to Codecov
+        if: runner.os == 'Linux'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
