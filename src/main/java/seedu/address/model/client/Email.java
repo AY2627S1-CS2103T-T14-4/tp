@@ -9,8 +9,9 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Email {
 
-    public static final String MESSAGE_CONSTRAINTS = "Invalid email. Must contain exactly one \"@\" symbol, "
-            + "with a non-empty local part before \"@\", and a valid domain after it. "
+    public static final String MESSAGE_CONSTRAINTS = "Invalid email. Email addresses should be 3 to 254 characters, "
+            + "contain exactly one \"@\" symbol, with a non-empty local part before \"@\", "
+            + "and a valid domain after it. "
             + "The domain must contain at least one \".\".";
     public static final String VALIDATION_REGEX;
 
