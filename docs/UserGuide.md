@@ -86,22 +86,13 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
 
 * `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `PHONE` must contain 3 to 15 digits without spaces.
-* `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol, a non-empty local part, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
+* `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 
 Successful output: `New client added: Alice Tan`
 
-If the command format is incorrect, PawPals displays: `Invalid command format. Usage: addc n/NAME p/PHONE e/EMAIL a/ADDRESS`.
-
-For invalid parameters, PawPals displays the corresponding validation message and does not add a client:
-
-* Invalid name: `Names should contain only letters, spaces, apostrophes and hyphens, and should be between 1 and 60 characters long.`
-* Invalid phone: `Phone numbers should only contain digits, and should be between 3 and 15 digits long.`
-* Invalid email: `Emails should be 3 to 254 characters long, contain exactly one "@" symbol with text before it, have a valid domain containing at least one ".", and should not contain spaces.`
-* Invalid address: `Addresses should be between 1 and 200 characters long, and should not be blank.`
-
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
-If a duplicate is detected, PawPals displays `This client already exists.` and does not add a client.
+If the command fails because of invalid input or a duplicate client, no client is added.
 
 Examples:
 * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
