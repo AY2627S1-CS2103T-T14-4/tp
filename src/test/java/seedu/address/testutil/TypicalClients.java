@@ -35,17 +35,17 @@ public class TypicalClients {
             .withEmail("heinz@example.com").withAddress("wall street").build();
     public static final Client DANIEL = new ClientBuilder().withName("Daniel Meier").withPhone("87652533")
             .withEmail("cornelia@example.com").withAddress("10th street").withTags("friends").build();
-    public static final Client ELLE = new ClientBuilder().withName("Elle Meyer").withPhone("9482224")
+    public static final Client ELLE = new ClientBuilder().withName("Elle Meyer").withPhone("09482224")
             .withEmail("werner@example.com").withAddress("michegan ave").build();
-    public static final Client FIONA = new ClientBuilder().withName("Fiona Kunz").withPhone("9482427")
+    public static final Client FIONA = new ClientBuilder().withName("Fiona Kunz").withPhone("09482427")
             .withEmail("lydia@example.com").withAddress("little tokyo").build();
-    public static final Client GEORGE = new ClientBuilder().withName("George Best").withPhone("9482442")
+    public static final Client GEORGE = new ClientBuilder().withName("George Best").withPhone("09482442")
             .withEmail("anna@example.com").withAddress("4th street").build();
 
     // Manually added
-    public static final Client HOON = new ClientBuilder().withName("Hoon Meier").withPhone("8482424")
+    public static final Client HOON = new ClientBuilder().withName("Hoon Meier").withPhone("08482424")
             .withEmail("stefan@example.com").withAddress("little india").build();
-    public static final Client IDA = new ClientBuilder().withName("Ida Mueller").withPhone("8482131")
+    public static final Client IDA = new ClientBuilder().withName("Ida Mueller").withPhone("08482131")
             .withEmail("hans@example.com").withAddress("chicago ave").build();
 
     // Manually added - Client's details found in {@code CommandTestUtil}

@@ -80,29 +80,20 @@ Format: `help`
 
 Adds a new client and their contact details.
 
-Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`
+Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 
-Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
+Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/regular t/vip`
 
-* `NAME` must contain 1 to 60 letters, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `PHONE` must contain exactly eight digits.
-* `EMAIL` must contain a non-empty local part, an `@` symbol, and a valid domain with at least one period. Leading and trailing spaces are removed.
+* `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `PHONE` must contain 3 to 15 digits without spaces.
+* `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
+* `TAG` is optional, may be added more than once, and must contain only letters and numbers.
 
 Successful output: `New client added: Alice Tan`
 
-If the command fails, the corresponding validation message is displayed and no client is added.
-
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
-
-<box type="tip" seamless>
-
-**Tip:** A client can have any number of tags, including zero.
-</box>
-
-Examples:
-* `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567`
+If the command fails because of invalid input or a duplicate client, no client is added.
 
 ### Adding a pet: `addp`
 
@@ -273,7 +264,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
+**Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
