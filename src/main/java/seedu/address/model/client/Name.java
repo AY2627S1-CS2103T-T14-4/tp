@@ -6,7 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.Locale;
 
 /**
- * Represents a Client's name in the address book.
+ * Represents a Client's name in the PawPals data.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
  */
 public class Name {

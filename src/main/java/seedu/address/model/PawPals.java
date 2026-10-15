@@ -13,16 +13,16 @@ import seedu.address.model.client.UniqueClientList;
  * Wraps all data at the address-book level.
  * Duplicates are not allowed (by .isSameClient comparison).
  */
-public class AddressBook implements ReadOnlyAddressBook {
+public class PawPals implements ReadOnlyPawPals {
 
     private final UniqueClientList clients = new UniqueClientList();
 
-    public AddressBook() {}
+    public PawPals() {}
 
     /**
-     * Creates an AddressBook using the Clients in the {@code toBeCopied}
+     * Creates an PawPals using the Clients in the {@code toBeCopied}
      */
-    public AddressBook(ReadOnlyAddressBook toBeCopied) {
+    public PawPals(ReadOnlyPawPals toBeCopied) {
         this();
         resetData(toBeCopied);
     }
@@ -38,9 +38,9 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Resets the existing data of this {@code AddressBook} with {@code newData}.
+     * Resets the existing data of this {@code PawPals} with {@code newData}.
      */
-    public void resetData(ReadOnlyAddressBook newData) {
+    public void resetData(ReadOnlyPawPals newData) {
         requireNonNull(newData);
 
         setClients(newData.getClientList());
@@ -49,7 +49,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     //// client-level operations
 
     /**
-     * Returns true if a client with the same identity as {@code client} exists in the address book.
+     * Returns true if a client with the same identity as {@code client} exists in the PawPals data.
      */
     public boolean hasClient(Client client) {
         requireNonNull(client);
@@ -57,8 +57,8 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Adds a client to the address book.
-     * The client must not already exist in the address book.
+     * Adds a client to the PawPals data.
+     * The client must not already exist in the PawPals data.
      */
     public void addClient(Client p) {
         clients.add(p);
@@ -66,8 +66,8 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     /**
      * Replaces the given client {@code target} in the list with {@code editedClient}.
-     * {@code target} must exist in the address book.
-     * The client identity of {@code editedClient} must not be the same as another existing client in the address book.
+     * {@code target} must exist in the PawPals data.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the PawPals data.
      */
     public void setClient(Client target, Client editedClient) {
         requireNonNull(editedClient);
@@ -76,8 +76,8 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Removes {@code key} from this {@code AddressBook}.
-     * {@code key} must exist in the address book.
+     * Removes {@code key} from this {@code PawPals}.
+     * {@code key} must exist in the PawPals data.
      */
     public void removeClient(Client key) {
         clients.remove(key);
@@ -104,11 +104,11 @@ public class AddressBook implements ReadOnlyAddressBook {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof AddressBook otherAddressBook)) {
+        if (!(other instanceof PawPals otherPawPals)) {
             return false;
         }
 
-        return clients.equals(otherAddressBook.clients);
+        return clients.equals(otherPawPals.clients);
     }
 
     @Override

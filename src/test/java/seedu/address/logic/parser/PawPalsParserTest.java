@@ -37,9 +37,9 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
-public class AddressBookParserTest {
+public class PawPalsParserTest {
 
-    private final AddressBookParser parser = new AddressBookParser();
+    private final PawPalsParser parser = new PawPalsParser();
 
     @Test
     public void parseCommand_appointment() throws Exception {

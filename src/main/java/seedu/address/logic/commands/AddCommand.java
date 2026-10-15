@@ -13,7 +13,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.Client;
 
 /**
- * Adds a client to the address book.
+ * Adds a client to the PawPals data.
  */
 public class AddCommand extends Command {
 
@@ -21,7 +21,7 @@ public class AddCommand extends Command {
     public static final String MESSAGE_INVALID_FORMAT =
             "Invalid command format. Usage: addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a client to the address book. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a client to the PawPals data. "
             + "Parameters: "
             + PREFIX_NAME + "NAME "
             + PREFIX_PHONE + "PHONE "

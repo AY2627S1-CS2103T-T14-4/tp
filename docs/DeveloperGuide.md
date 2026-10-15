@@ -14,7 +14,7 @@
 ## **Acknowledgements**
 
 This project is based on the
-[AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project
+[PawPals-Level3](https://github.com/se-edu/addressbook-level3) project
 created by the [SE-EDU initiative](https://se-education.org).
 
 Libraries used include
@@ -109,7 +109,7 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
+1. When `Logic` is called upon to execute a command, the command is passed to an `PawPalsParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a client).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
@@ -120,7 +120,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* When called upon to parse a user command, the `PawPalsParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `PawPalsParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteClientCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
@@ -131,7 +131,7 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Client` objects (which are contained in a `UniqueClientList` object).
+* stores the PawPals data data i.e., all `Client` objects (which are contained in a `UniqueClientList` object).
 * stores the `Client` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Client>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -139,7 +139,7 @@ The `Model` component,
 
 <box type="info" seamless>
 
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Client` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Client` holding its own `Tag` objects.<br>
+**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `PawPals`, and each `Client` references tags from that list. This lets `PawPals` maintain one `Tag` object per unique tag instead of each `Client` holding its own `Tag` objects.<br>
 
 <puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
 </box>
@@ -152,8 +152,8 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* can save both PawPals data data and user preference data in JSON format, and read them back into corresponding objects.
+* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonPawPalsStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -170,41 +170,41 @@ This section describes some noteworthy details on how certain features are imple
 
 #### Proposed Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The proposed undo/redo mechanism is facilitated by `VersionedPawPals`. It extends `PawPals` with an undo/redo history, stored internally as an `pawPalsStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
+* `VersionedPawPals#commit()` -- Saves the current PawPals data state in its history.
+* `VersionedPawPals#undo()` -- Restores the previous PawPals data state from its history.
+* `VersionedPawPals#redo()` -- Restores a previously undone PawPals data state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitPawPals()`, `Model#undoPawPals()` and `Model#redoPawPals()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+Step 1. The user launches the application for the first time. The `VersionedPawPals` will be initialized with the initial PawPals data state, and the `currentStatePointer` pointing to that single PawPals data state.
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delc 5` command to delete the 5th client in the address book. The `delc` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delc 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delc 5` command to delete the 5th client in the PawPals data. The `delc` command calls `Model#commitPawPals()`, causing the modified state of the PawPals data after the `delc 5` command executes to be saved in the `pawPalsStateList`, and the `currentStatePointer` is shifted to the newly inserted PawPals data state.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `addc n/David …​` to add a new client. The `addc` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `addc n/David …​` to add a new client. The `addc` command also calls `Model#commitPawPals()`, causing another modified PawPals data state to be saved into the `pawPalsStateList`.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
 <box type="info" seamless>
 
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+**Note:** If a command fails its execution, it will not call `Model#commitPawPals()`, so the PawPals data state will not be saved into the `pawPalsStateList`.
 </box>
 
-Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoPawPals()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous PawPals data state, and restores the PawPals data to that state.
 
 <puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
 
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
+**Note:** If the `currentStatePointer` is at index 0, pointing to the initial PawPals state, then there are no previous PawPals states to restore. The `undo` command uses `Model#canUndoPawPals()` to check if this is the case. If so, it will return an error to the user rather
 than attempting to perform the undo.
 </box>
 
@@ -221,18 +221,18 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 <puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoPawPals()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the PawPals data to that state.
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+**Note:** If the `currentStatePointer` is at index `pawPalsStateList.size() - 1`, pointing to the latest PawPals data state, then there are no undone PawPals states to restore. The `redo` command uses `Model#canRedoPawPals()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 </box>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. Commands that do not modify the PawPals data, such as `list`, will usually not call `Model#commitPawPals()`, `Model#undoPawPals()` or `Model#redoPawPals()`. Thus, the `pawPalsStateList` remains unchanged.
 
 <puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `addc n/David …` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, which calls `Model#commitPawPals()`. Since the `currentStatePointer` is not pointing at the end of the `pawPalsStateList`, all PawPals data states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `addc n/David …` command. This is the behavior that most modern desktop applications follow.
 
 <puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
 
@@ -244,7 +244,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 **Aspect: How undo & redo execute:**
 
-* **Alternative 1 (current choice):** Saves the entire address book.
+* **Alternative 1 (current choice):** Saves the entire PawPals data.
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
@@ -614,7 +614,7 @@ testers are expected to do more *exploratory* testing.
 ### Adding and persisting pets
 
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
-Launch it with `java -jar addressbook.jar`.
+Launch it with `java -jar pawpals.jar`.
 
 Set up two clients using the implemented `add` command:
 
@@ -629,7 +629,7 @@ add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 | Add a pet | `addp c/1 n/Milo s/Dog b/Poodle` | Success message appears and Alice's card shows `Pet: Milo (Dog, Poodle)`. Bob's card has no pet entry. |
 | Add a pet to another client | `addp c/2 n/Luna s/Cat b/Persian` | Luna appears under Bob. Alice still shows only Milo. |
 | Restart and reload | Run `exit`, relaunch from the same folder, and run `list`. | Milo remains under Alice and Luna remains under Bob. Client details are unchanged. |
-| Legacy client without pets | In a disposable `data/addressbook.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
+| Legacy client without pets | In a disposable `data/pawpals.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
 
 ### Deleting a client
 
@@ -651,7 +651,7 @@ add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ### Adding appointments
 
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
-Launch it with `java -jar addressbook.jar`. Replace `FUTURE_DATE` below with a valid future date in
+Launch it with `java -jar pawpals.jar`. Replace `FUTURE_DATE` below with a valid future date in
 `DD-MM-YYYY` format; do not type the placeholder literally.
 
 Set up two clients using the implemented `addc` command:
@@ -682,7 +682,7 @@ The separate client-add section of the User Guide also uses `addc`.
 | Delete and clear | `delc 1`, restart; then `clear` and restart. | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments. |
 
 For stored details, close the app, add `"details": "Call on arrival"` to an appointment object in the
-disposable `data/addressbook.json`, and restart. Expect `(Call on arrival)` after its date/time.
+disposable `data/pawpals.json`, and restart. Expect `(Call on arrival)` after its date/time.
 Empty or whitespace-only details must not add empty parentheses. The current `appt` command does not accept details.
 
 Additional disposable-file checks:
@@ -691,7 +691,7 @@ Additional disposable-file checks:
 * Change a stored appointment to `29-02-2024` and restart: it still loads even though it is in the past.
 * Try an invalid stored date, invalid stored time, a null appointment entry, or two entries with the same date/time
   and different details: storage rejects the invalid file. The current startup behavior logs a load warning and
-  starts with an empty address book. Keep the corrupted file disposable; executing a later command can overwrite it.
+  starts with an empty PawPals data. Keep the corrupted file disposable; executing a later command can overwrite it.
 
 Record completed checks and any remaining manual verification in the feature pull request.
 

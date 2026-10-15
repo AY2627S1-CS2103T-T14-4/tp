@@ -18,14 +18,14 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.PawPals;
+import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonPawPalsStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
@@ -45,8 +45,8 @@ public class AppointmentIntegrationTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("addressBook.json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+        dataFile = temporaryFolder.resolve("pawPals.json");
+        StorageManager storage = new StorageManager(new JsonPawPalsStorage(dataFile),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
         logic = new LogicManager(model, storage);
         logic.execute("addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road");
@@ -58,10 +58,10 @@ public class AppointmentIntegrationTest {
         String feedback = logic.execute(appointmentCommand(1)).getFeedbackToUser();
 
         assertEquals("Added appointment: Alice Test d/" + futureDate + " t/12:34", feedback);
-        ReadOnlyAddressBook saved = readSavedAddressBook();
+        ReadOnlyPawPals saved = readSavedPawPals();
         assertEquals(List.of(appointment), saved.getClientList().get(0).getAppointments());
         assertTrue(saved.getClientList().get(1).getAppointments().isEmpty());
-        assertEquals(model.getAddressBook(), saved);
+        assertEquals(model.getPawPals(), saved);
     }
 
     @Test
@@ -69,14 +69,14 @@ public class AppointmentIntegrationTest {
         logic.execute(appointmentCommand(1));
         logic.execute(appointmentCommand(2));
 
-        ReadOnlyAddressBook saved = readSavedAddressBook();
+        ReadOnlyPawPals saved = readSavedPawPals();
         assertEquals(List.of(appointment), saved.getClientList().get(0).getAppointments());
         assertEquals(List.of(appointment), saved.getClientList().get(1).getAppointments());
     }
 
     @Test
     public void execute_invalidAppointments_preservesModelAndSavedFile() throws Exception {
-        ReadOnlyAddressBook original = new AddressBook(model.getAddressBook());
+        ReadOnlyPawPals original = new PawPals(model.getPawPals());
         String savedJson = Files.readString(dataFile);
         for (String input : new String[] {"appt c/1 d/" + futureDate,
             "appt c/0 d/" + futureDate + " t/12:34",
@@ -86,12 +86,12 @@ public class AppointmentIntegrationTest {
             appointmentCommand(1) + " d/" + futureDate,
             appointmentCommand(1) + " t/12:34"}) {
             assertThrows(ParseException.class, () -> logic.execute(input));
-            assertEquals(original, model.getAddressBook());
+            assertEquals(original, model.getPawPals());
             assertEquals(savedJson, Files.readString(dataFile));
         }
         for (String input : new String[] {appointmentCommand(3), "appt c/1 d/01-01-2000 t/12:34"}) {
             assertThrows(CommandException.class, () -> logic.execute(input));
-            assertEquals(original, model.getAddressBook());
+            assertEquals(original, model.getPawPals());
             assertEquals(savedJson, Files.readString(dataFile));
         }
     }
@@ -99,13 +99,13 @@ public class AppointmentIntegrationTest {
     @Test
     public void execute_duplicateAppointment_preservesModelAndSavedFile() throws Exception {
         logic.execute(appointmentCommand(1));
-        ReadOnlyAddressBook original = new AddressBook(model.getAddressBook());
+        ReadOnlyPawPals original = new PawPals(model.getPawPals());
         String savedJson = Files.readString(dataFile);
 
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(appointmentCommand(1)));
 
         assertEquals(AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT, exception.getMessage());
-        assertEquals(original, model.getAddressBook());
+        assertEquals(original, model.getPawPals());
         assertEquals(savedJson, Files.readString(dataFile));
     }
 
@@ -116,13 +116,13 @@ public class AppointmentIntegrationTest {
 
         assertEquals(1, logic.getFilteredClientList().size());
         assertEquals("Bob Test", logic.getFilteredClientList().get(0).getName().fullName);
-        ReadOnlyAddressBook saved = readSavedAddressBook();
+        ReadOnlyPawPals saved = readSavedPawPals();
         assertTrue(saved.getClientList().get(0).getAppointments().isEmpty());
         assertEquals(List.of(appointment), saved.getClientList().get(1).getAppointments());
         String savedJson = Files.readString(dataFile);
         assertThrows(CommandException.class, () -> logic.execute(appointmentCommand(2)));
         assertEquals(savedJson, Files.readString(dataFile));
-        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, model.getPawPals());
     }
 
     @Test
@@ -130,7 +130,7 @@ public class AppointmentIntegrationTest {
         logic.execute(appointmentCommand(1));
         logic.execute("edit 1 p/93456789");
 
-        ReadOnlyAddressBook saved = readSavedAddressBook();
+        ReadOnlyPawPals saved = readSavedPawPals();
         assertEquals("93456789", saved.getClientList().get(0).getPhone().value);
         assertEquals(List.of(appointment), saved.getClientList().get(0).getAppointments());
     }
@@ -141,22 +141,22 @@ public class AppointmentIntegrationTest {
         logic.execute(appointmentCommand(2));
         logic.execute("delc 1");
 
-        ReadOnlyAddressBook afterDelete = readSavedAddressBook();
+        ReadOnlyPawPals afterDelete = readSavedPawPals();
         assertEquals(1, afterDelete.getClientList().size());
         assertEquals("Bob Test", afterDelete.getClientList().get(0).getName().fullName);
         assertEquals(List.of(appointment), afterDelete.getClientList().get(0).getAppointments());
 
         logic.execute("clear");
-        assertTrue(readSavedAddressBook().getClientList().isEmpty());
-        assertTrue(model.getAddressBook().getClientList().isEmpty());
+        assertTrue(readSavedPawPals().getClientList().isEmpty());
+        assertTrue(model.getPawPals().getClientList().isEmpty());
     }
 
     @Test
     public void execute_saveFailure_reportsErrorAndRetainsAppointmentInMemory() throws Exception {
         String savedJson = Files.readString(dataFile);
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(dataFile) {
+        JsonPawPalsStorage failingStorage = new JsonPawPalsStorage(dataFile) {
             @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+            public void savePawPals(ReadOnlyPawPals pawPals) throws IOException {
                 throw new IOException("Simulated save failure");
             }
         };
@@ -168,7 +168,7 @@ public class AppointmentIntegrationTest {
 
         assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
                 exception.getMessage());
-        assertEquals(List.of(appointment), model.getAddressBook().getClientList().get(0).getAppointments());
+        assertEquals(List.of(appointment), model.getPawPals().getClientList().get(0).getAppointments());
         assertEquals(savedJson, Files.readString(dataFile));
     }
 
@@ -176,7 +176,7 @@ public class AppointmentIntegrationTest {
         return "appt c/" + displayedIndex + " d/" + futureDate + " t/12:34";
     }
 
-    private ReadOnlyAddressBook readSavedAddressBook() throws Exception {
-        return new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+    private ReadOnlyPawPals readSavedPawPals() throws Exception {
+        return new JsonPawPalsStorage(dataFile).readPawPals().orElseThrow();
     }
 }

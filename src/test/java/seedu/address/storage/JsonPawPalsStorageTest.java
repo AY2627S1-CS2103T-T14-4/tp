@@ -7,7 +7,7 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 import static seedu.address.testutil.TypicalClients.HOON;
 import static seedu.address.testutil.TypicalClients.IDA;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,8 +19,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.JsonUtil;
-import seedu.address.model.AddressBook;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.PawPals;
+import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
@@ -30,19 +30,19 @@ import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 
-public class JsonAddressBookStorageTest {
-    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
+public class JsonPawPalsStorageTest {
+    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonPawPalsStorageTest");
 
     @TempDir
     public Path testFolder;
 
     @Test
-    public void readAddressBook_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> readAddressBook(null));
+    public void readPawPals_nullFilePath_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> readPawPals(null));
     }
 
-    private java.util.Optional<ReadOnlyAddressBook> readAddressBook(String filePath) throws Exception {
-        return new JsonAddressBookStorage(Paths.get(filePath)).readAddressBook(addToTestDataPathIfNotNull(filePath));
+    private java.util.Optional<ReadOnlyPawPals> readPawPals(String filePath) throws Exception {
+        return new JsonPawPalsStorage(Paths.get(filePath)).readPawPals(addToTestDataPathIfNotNull(filePath));
     }
 
     private Path addToTestDataPathIfNotNull(String prefsFileInTestDataFolder) {
@@ -53,52 +53,52 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void read_missingFile_emptyResult() throws Exception {
-        assertFalse(readAddressBook("NonExistentFile.json").isPresent());
+        assertFalse(readPawPals("NonExistentFile.json").isPresent());
     }
 
     @Test
     public void read_notJsonFormat_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readAddressBook("notJsonFormatAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readPawPals("notJsonFormatPawPals.json"));
     }
 
     @Test
-    public void readAddressBook_invalidClientAddressBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readAddressBook("invalidClientAddressBook.json"));
+    public void readPawPals_invalidClientPawPals_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readPawPals("invalidClientPawPals.json"));
     }
 
     @Test
-    public void readAddressBook_invalidAndValidClientAddressBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readAddressBook("invalidAndValidClientAddressBook.json"));
+    public void readPawPals_invalidAndValidClientPawPals_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readPawPals("invalidAndValidClientPawPals.json"));
     }
 
     @Test
-    public void readAndSaveAddressBook_allInOrder_success() throws Exception {
-        Path filePath = testFolder.resolve("TempAddressBook.json");
-        AddressBook original = getTypicalAddressBook();
-        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+    public void readAndSavePawPals_allInOrder_success() throws Exception {
+        Path filePath = testFolder.resolve("TempPawPals.json");
+        PawPals original = getTypicalPawPals();
+        JsonPawPalsStorage jsonPawPalsStorage = new JsonPawPalsStorage(filePath);
 
         // Save in new file and read back
-        jsonAddressBookStorage.saveAddressBook(original, filePath);
-        ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
-        assertEquals(original, new AddressBook(readBack));
+        jsonPawPalsStorage.savePawPals(original, filePath);
+        ReadOnlyPawPals readBack = jsonPawPalsStorage.readPawPals(filePath).get();
+        assertEquals(original, new PawPals(readBack));
 
         // Modify data, overwrite existing file, and read back
         original.addClient(HOON);
         original.removeClient(ALICE);
-        jsonAddressBookStorage.saveAddressBook(original, filePath);
-        readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
-        assertEquals(original, new AddressBook(readBack));
+        jsonPawPalsStorage.savePawPals(original, filePath);
+        readBack = jsonPawPalsStorage.readPawPals(filePath).get();
+        assertEquals(original, new PawPals(readBack));
 
         // Save and read without specifying file path
         original.addClient(IDA);
-        jsonAddressBookStorage.saveAddressBook(original); // file path not specified
-        readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
-        assertEquals(original, new AddressBook(readBack));
+        jsonPawPalsStorage.savePawPals(original); // file path not specified
+        readBack = jsonPawPalsStorage.readPawPals().get(); // file path not specified
+        assertEquals(original, new PawPals(readBack));
 
     }
 
     @Test
-    public void readAndSaveAddressBook_appointmentsRemainWithTheirClients() throws Exception {
+    public void readAndSavePawPals_appointmentsRemainWithTheirClients() throws Exception {
         Path filePath = testFolder.resolve("appointments.json");
         Appointment pastAppointment = new Appointment(new AppointmentDate("29-02-2024"),
                 new AppointmentTime("09:05"), "Old visit");
@@ -106,32 +106,32 @@ public class JsonAddressBookStorageTest {
                 new AppointmentTime("12:30"));
         Client alice = ALICE.copyWithAppointment(pastAppointment).copyWithAppointment(futureAppointment);
         Client benson = BENSON.copyWithAppointment(pastAppointment);
-        AddressBook original = new AddressBook();
+        PawPals original = new PawPals();
         original.addClient(alice);
         original.addClient(benson);
 
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
-        storage.saveAddressBook(original);
-        AddressBook restored = new AddressBook(storage.readAddressBook().get());
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(filePath);
+        storage.savePawPals(original);
+        PawPals restored = new PawPals(storage.readPawPals().get());
         assertEquals(original, restored);
         assertEquals(alice.getAppointments(), restored.getClientList().get(0).getAppointments());
         assertEquals(benson.getAppointments(), restored.getClientList().get(1).getAppointments());
     }
 
     @Test
-    public void readAndSaveAddressBook_petsRemainWithTheirClients() throws Exception {
+    public void readAndSavePawPals_petsRemainWithTheirClients() throws Exception {
         Path filePath = testFolder.resolve("pets.json");
         Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
         Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
         Client alice = ALICE.withPet(milo);
         Client benson = BENSON.withPet(milo).withPet(luna);
-        AddressBook original = new AddressBook();
+        PawPals original = new PawPals();
         original.addClient(alice);
         original.addClient(benson);
 
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
-        storage.saveAddressBook(original);
-        AddressBook restored = new AddressBook(storage.readAddressBook().get());
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(filePath);
+        storage.savePawPals(original);
+        PawPals restored = new PawPals(storage.readPawPals().get());
 
         assertEquals(original, restored);
         assertEquals(alice.getPets(), restored.getClientList().get(0).getPets());
@@ -139,20 +139,20 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
-    public void readAddressBook_invalidStoredPet_throwsDataLoadingException() throws Exception {
+    public void readPawPals_invalidStoredPet_throwsDataLoadingException() throws Exception {
         Path filePath = testFolder.resolve("invalidPets.json");
         List<JsonAdaptedPet> invalidPets = List.of(new JsonAdaptedPet("Milo", null, "Poodle"));
         JsonAdaptedClient client = new JsonAdaptedClient(ALICE.getName().toString(),
                 ALICE.getPhone().toString(), ALICE.getEmail().toString(), ALICE.getAddress().toString(),
                 List.of(), invalidPets, List.of());
-        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(List.of(client)), filePath);
+        JsonUtil.saveJsonFile(new JsonSerializablePawPals(List.of(client)), filePath);
 
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
-        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(filePath);
+        assertThrows(DataLoadingException.class, storage::readPawPals);
     }
 
     @Test
-    public void readAddressBook_invalidStoredAppointment_throwsDataLoadingException() throws Exception {
+    public void readPawPals_invalidStoredAppointment_throwsDataLoadingException() throws Exception {
         Path filePath = testFolder.resolve("invalidAppointments.json");
         List<List<JsonAdaptedAppointment>> invalidAppointments = List.of(
                 List.of(new JsonAdaptedAppointment("31-02-2026", "09:05", "")),
@@ -164,31 +164,31 @@ public class JsonAddressBookStorageTest {
             JsonAdaptedClient client = new JsonAdaptedClient(ALICE.getName().toString(),
                     ALICE.getPhone().toString(), ALICE.getEmail().toString(), ALICE.getAddress().toString(),
                     List.of(), appointments);
-            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(List.of(client)), filePath);
-            JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
-            assertThrows(DataLoadingException.class, storage::readAddressBook);
+            JsonUtil.saveJsonFile(new JsonSerializablePawPals(List.of(client)), filePath);
+            JsonPawPalsStorage storage = new JsonPawPalsStorage(filePath);
+            assertThrows(DataLoadingException.class, storage::readPawPals);
         }
     }
 
     @Test
-    public void saveAddressBook_nullAddressBook_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveAddressBook(null, "SomeFile.json"));
+    public void savePawPals_nullPawPals_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> savePawPals(null, "SomeFile.json"));
     }
 
     /**
-     * Saves {@code addressBook} at the specified {@code filePath}.
+     * Saves {@code pawPals} at the specified {@code filePath}.
      */
-    private void saveAddressBook(ReadOnlyAddressBook addressBook, String filePath) {
+    private void savePawPals(ReadOnlyPawPals pawPals, String filePath) {
         try {
-            new JsonAddressBookStorage(Paths.get(filePath))
-                    .saveAddressBook(addressBook, addToTestDataPathIfNotNull(filePath));
+            new JsonPawPalsStorage(Paths.get(filePath))
+                    .savePawPals(pawPals, addToTestDataPathIfNotNull(filePath));
         } catch (IOException ioe) {
             throw new AssertionError("There should not be an error writing to the file.", ioe);
         }
     }
 
     @Test
-    public void saveAddressBook_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveAddressBook(new AddressBook(), null));
+    public void savePawPals_nullFilePath_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> savePawPals(new PawPals(), null));
     }
 }
