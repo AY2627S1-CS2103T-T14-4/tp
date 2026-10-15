@@ -80,7 +80,7 @@ Format: `help`
 
 Adds a new client and their contact details.
 
-Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS`
+Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
 
@@ -88,6 +88,7 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road`
 * `PHONE` must contain 3 to 15 digits without spaces.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
+* `TAG` is optional and may be added more than once.
 
 Successful output: `New client added: Alice Tan`
 
@@ -96,7 +97,7 @@ If the command fails because of invalid input or a duplicate client, no client i
 
 Examples:
 * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/91234567`
+* `addc n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/91234567 t/friend t/vip`
 
 ### Adding a pet: `addp`
 
