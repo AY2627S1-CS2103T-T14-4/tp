@@ -245,7 +245,7 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.add(pet);
         return new Client(name, phone, email, address, tags,
-        updatedPets, appointments);
+                updatedPets, appointments);
     }
 
     /**
@@ -291,7 +291,7 @@ public class Client {
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(name, phone, email, address, tags,
-        pets, appointments);
+                pets, appointments);
     }
 
     @Override
