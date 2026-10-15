@@ -22,7 +22,7 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 1. Copy the file to the folder you want to use as the _home folder_ for PawPals.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar pawpals.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample client data.<br>
    ![Ui](images/Ui.png)
 
@@ -61,6 +61,8 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
+
+* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `t/` means **time**, not tag.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
