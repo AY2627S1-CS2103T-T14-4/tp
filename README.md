@@ -25,7 +25,7 @@
 ## Acknowledgements
 
 This project is based on the
-[PawPals-Level3](https://github.com/se-edu/addressbook-level3) project
+[AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project
 created by the [SE-EDU initiative](https://se-education.org).
 
 Libraries used include
