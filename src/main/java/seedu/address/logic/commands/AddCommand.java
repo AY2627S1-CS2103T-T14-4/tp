@@ -19,7 +19,7 @@ public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "addc";
     public static final String MESSAGE_INVALID_FORMAT =
-            "Invalid command format. Usage: addc n/NAME p/PHONE e/EMAIL a/ADDRESS";
+            "Invalid command format. Usage: addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a client to the address book. "
             + "Parameters: "

@@ -634,15 +634,15 @@ Use a disposable copy of the JAR in an empty folder so these tests do not affect
 Launch it with `java -jar addressbook.jar`. Replace `FUTURE_DATE` below with a valid future date in
 `DD-MM-YYYY` format; do not type the placeholder literally.
 
-Set up two clients using the implemented `add` command:
+Set up two clients using the implemented `addc` command:
 
 ```text
 clear
-add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
-add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
 
-The separate client-add section of the User Guide currently uses `addc`; this revision's parser accepts `add`.
+The separate client-add section of the User Guide also uses `addc`.
 
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |

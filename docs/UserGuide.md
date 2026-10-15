@@ -88,7 +88,7 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/r
 * `PHONE` must contain 3 to 15 digits without spaces.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
-* `TAG` is optional and may be added more than once.
+* `TAG` is optional, may be added more than once, and must contain only letters and numbers.
 
 Successful output: `New client added: Alice Tan`
 
