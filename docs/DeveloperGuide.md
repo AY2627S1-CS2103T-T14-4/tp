@@ -188,7 +188,7 @@ Step 2. The user executes `delc 5` command to delete the 5th client in the addre
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `add n/David …​` to add a new client. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `addc n/David …​` to add a new client. The `addc` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
@@ -232,7 +232,7 @@ Step 5. The user then decides to execute the command `list`. Commands that do no
 
 <puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `addc n/David …` command. This is the behavior that most modern desktop applications follow.
 
 <puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
 
@@ -654,15 +654,15 @@ Use a disposable copy of the JAR in an empty folder so these tests do not affect
 Launch it with `java -jar addressbook.jar`. Replace `FUTURE_DATE` below with a valid future date in
 `DD-MM-YYYY` format; do not type the placeholder literally.
 
-Set up two clients using the implemented `add` command:
+Set up two clients using the implemented `addc` command:
 
 ```text
 clear
-add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
-add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
 
-The separate client-add section of the User Guide currently uses `addc`; this revision's parser accepts `add`.
+The separate client-add section of the User Guide also uses `addc`.
 
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
