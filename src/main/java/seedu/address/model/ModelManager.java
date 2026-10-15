@@ -13,30 +13,30 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.client.Client;
 
 /**
- * Represents the in-memory model of the address book data.
+ * Represents the in-memory model of the PawPals data data.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
+    private final PawPals pawPals;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
 
     /**
-     * Initializes a ModelManager with the given addressBook and userPrefs.
+     * Initializes a ModelManager with the given pawPals and userPrefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+    public ModelManager(ReadOnlyPawPals pawPals, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(pawPals, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing with client data: " + pawPals + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
+        this.pawPals = new PawPals(pawPals);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredClients = new FilteredList<>(this.addressBook.getClientList());
+        filteredClients = new FilteredList<>(this.pawPals.getClientList());
     }
 
     public ModelManager() {
-        this(new AddressBook(), new UserPrefs());
+        this(new PawPals(), new UserPrefs());
     }
 
     //=========== UserPrefs ==================================================================================
@@ -57,32 +57,32 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
-    //=========== AddressBook ================================================================================
+    //=========== PawPals ================================================================================
 
     @Override
-    public void setAddressBook(ReadOnlyAddressBook addressBook) {
-        this.addressBook.resetData(addressBook);
+    public void setPawPals(ReadOnlyPawPals pawPals) {
+        this.pawPals.resetData(pawPals);
     }
 
     @Override
-    public ReadOnlyAddressBook getAddressBook() {
-        return addressBook;
+    public ReadOnlyPawPals getPawPals() {
+        return pawPals;
     }
 
     @Override
     public boolean hasClient(Client client) {
         requireNonNull(client);
-        return addressBook.hasClient(client);
+        return pawPals.hasClient(client);
     }
 
     @Override
     public void deleteClient(Client target) {
-        addressBook.removeClient(target);
+        pawPals.removeClient(target);
     }
 
     @Override
     public void addClient(Client client) {
-        addressBook.addClient(client);
+        pawPals.addClient(client);
         updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
@@ -90,14 +90,14 @@ public class ModelManager implements Model {
     public void setClient(Client target, Client editedClient) {
         requireAllNonNull(target, editedClient);
 
-        addressBook.setClient(target, editedClient);
+        pawPals.setClient(target, editedClient);
     }
 
     //=========== Filtered Client List Accessors =============================================================
 
     /**
      * Returns an unmodifiable view of the list of {@code Client} backed by the internal list of
-     * {@code addressBook}
+     * {@code pawPals}
      */
     @Override
     public ObservableList<Client> getFilteredClientList() {
@@ -121,7 +121,7 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return addressBook.equals(otherModelManager.addressBook)
+        return pawPals.equals(otherModelManager.pawPals)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredClients.equals(otherModelManager.filteredClients);
     }

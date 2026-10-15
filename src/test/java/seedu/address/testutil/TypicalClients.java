@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import seedu.address.model.AddressBook;
+import seedu.address.model.PawPals;
 import seedu.address.model.client.Client;
 
 /**
@@ -60,10 +60,10 @@ public class TypicalClients {
     private TypicalClients() {} // prevents instantiation
 
     /**
-     * Returns an {@code AddressBook} with all the typical clients.
+     * Returns an {@code PawPals} with all the typical clients.
      */
-    public static AddressBook getTypicalAddressBook() {
-        AddressBook ab = new AddressBook();
+    public static PawPals getTypicalPawPals() {
+        PawPals ab = new PawPals();
         for (Client client : getTypicalClients()) {
             ab.addClient(client);
         }

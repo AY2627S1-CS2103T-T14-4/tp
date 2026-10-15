@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
@@ -30,7 +30,7 @@ import seedu.address.model.client.Client;
 public class AppointmentCommandTest {
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-12-12T04:00:00Z"),
             ZoneId.of("Asia/Singapore"));
-    private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private final Model model = new ModelManager(getTypicalPawPals(), new UserPrefs());
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
@@ -65,7 +65,7 @@ public class AppointmentCommandTest {
         Client withoutAppointments = model.getFilteredClientList().get(0);
         Client original = withoutAppointments.copyWithAppointment(createAppointment("14-12-2026", "14:00"));
         model.setClient(withoutAppointments, original);
-        Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expected = new ModelManager(model.getPawPals(), new UserPrefs());
         expected.setClient(original, original.copyWithAppointment(appointment));
         assertCommandSuccess(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
                 String.format(AppointmentCommand.MESSAGE_SUCCESS, original.getName(),
@@ -81,7 +81,7 @@ public class AppointmentCommandTest {
         new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK).execute(model);
         assertEquals(selected.copyWithAppointment(appointment), model.getFilteredClientList().get(0));
         assertEquals(1, model.getFilteredClientList().size());
-        assertEquals(untouched, model.getAddressBook().getClientList().get(0));
+        assertEquals(untouched, model.getPawPals().getClientList().get(0));
     }
 
     @Test

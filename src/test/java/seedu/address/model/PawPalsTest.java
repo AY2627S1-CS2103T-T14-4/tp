@@ -7,7 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,25 +20,25 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.testutil.ClientBuilder;
 
-public class AddressBookTest {
+public class PawPalsTest {
 
-    private final AddressBook addressBook = new AddressBook();
+    private final PawPals pawPals = new PawPals();
 
     @Test
     public void constructor() {
-        assertEquals(List.of(), addressBook.getClientList());
+        assertEquals(List.of(), pawPals.getClientList());
     }
 
     @Test
     public void resetData_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> addressBook.resetData(null));
+        assertThrows(NullPointerException.class, () -> pawPals.resetData(null));
     }
 
     @Test
-    public void resetData_withValidReadOnlyAddressBook_replacesData() {
-        AddressBook newData = getTypicalAddressBook();
-        addressBook.resetData(newData);
-        assertEquals(newData, addressBook);
+    public void resetData_withValidReadOnlyPawPals_replacesData() {
+        PawPals newData = getTypicalPawPals();
+        pawPals.resetData(newData);
+        assertEquals(newData, pawPals);
     }
 
     @Test
@@ -47,53 +47,53 @@ public class AddressBookTest {
         Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
         List<Client> newClients = List.of(ALICE, editedAlice);
-        AddressBookStub newData = new AddressBookStub(newClients);
+        PawPalsStub newData = new PawPalsStub(newClients);
 
-        assertThrows(DuplicateClientException.class, () -> addressBook.resetData(newData));
+        assertThrows(DuplicateClientException.class, () -> pawPals.resetData(newData));
     }
 
     @Test
     public void hasClient_nullClient_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> addressBook.hasClient(null));
+        assertThrows(NullPointerException.class, () -> pawPals.hasClient(null));
     }
 
     @Test
-    public void hasClient_clientNotInAddressBook_returnsFalse() {
-        assertFalse(addressBook.hasClient(ALICE));
+    public void hasClient_clientNotInPawPals_returnsFalse() {
+        assertFalse(pawPals.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientInAddressBook_returnsTrue() {
-        addressBook.addClient(ALICE);
-        assertTrue(addressBook.hasClient(ALICE));
+    public void hasClient_clientInPawPals_returnsTrue() {
+        pawPals.addClient(ALICE);
+        assertTrue(pawPals.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientWithSameIdentityFieldsInAddressBook_returnsTrue() {
-        addressBook.addClient(ALICE);
+    public void hasClient_clientWithSameIdentityFieldsInPawPals_returnsTrue() {
+        pawPals.addClient(ALICE);
         Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
-        assertTrue(addressBook.hasClient(editedAlice));
+        assertTrue(pawPals.hasClient(editedAlice));
     }
 
     @Test
     public void getClientList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> addressBook.getClientList().remove(0));
+        assertThrows(UnsupportedOperationException.class, () -> pawPals.getClientList().remove(0));
     }
 
     @Test
     public void toStringMethod() {
-        String expected = AddressBook.class.getCanonicalName() + "{clients=" + addressBook.getClientList() + "}";
-        assertEquals(expected, addressBook.toString());
+        String expected = PawPals.class.getCanonicalName() + "{clients=" + pawPals.getClientList() + "}";
+        assertEquals(expected, pawPals.toString());
     }
 
     /**
-     * A stub ReadOnlyAddressBook whose clients list can violate interface constraints.
+     * A stub ReadOnlyPawPals whose clients list can violate interface constraints.
      */
-    private static class AddressBookStub implements ReadOnlyAddressBook {
+    private static class PawPalsStub implements ReadOnlyPawPals {
         private final ObservableList<Client> clients = FXCollections.observableArrayList();
 
-        AddressBookStub(Collection<Client> clients) {
+        PawPalsStub(Collection<Client> clients) {
             this.clients.setAll(clients);
         }
 

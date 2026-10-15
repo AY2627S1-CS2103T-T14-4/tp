@@ -240,7 +240,7 @@ owning client and remain available after restarting PawPals. You do not need to 
 
 ### Editing the data file
 
-PawPals data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+PawPals data is saved automatically as a JSON file `[JAR file location]/data/pawpals.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 

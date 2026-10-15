@@ -9,7 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
 import static seedu.address.testutil.TypicalClients.ALICE;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.PawPals;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -35,14 +35,14 @@ import seedu.address.testutil.ClientBuilder;
 
 public class AddPetCommandTest {
 
-    private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private final Model model = new ModelManager(getTypicalPawPals(), new UserPrefs());
 
     private final Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
 
     @Test
     public void execute_validIndex_success() {
         Client targetClient = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getPawPals(), new UserPrefs());
         Client expectedUpdatedClient = targetClient.withPet(milo);
         expectedModel.setClient(targetClient, expectedUpdatedClient);
 
@@ -56,9 +56,9 @@ public class AddPetCommandTest {
     @Test
     public void execute_duplicatePet_throwsCommandException() {
         Client clientWithPet = new ClientBuilder(ALICE).build().withPet(milo);
-        AddressBook addressBook = new AddressBook();
-        addressBook.addClient(clientWithPet);
-        Model modelWithPet = new ModelManager(addressBook, new UserPrefs());
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(clientWithPet);
+        Model modelWithPet = new ModelManager(pawPals, new UserPrefs());
 
         AddPetCommand command = new AddPetCommand(INDEX_FIRST_CLIENT, milo);
 
@@ -78,7 +78,7 @@ public class AddPetCommandTest {
         showClientAtIndex(model, INDEX_SECOND_CLIENT);
         Client targetClient = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
 
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getPawPals(), new UserPrefs());
         showClientAtIndex(expectedModel, INDEX_SECOND_CLIENT);
         Client expectedTarget = expectedModel.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
         expectedModel.setClient(expectedTarget, expectedTarget.withPet(milo));
@@ -88,7 +88,7 @@ public class AddPetCommandTest {
         assertCommandSuccess(command, model,
                 String.format(AddPetCommand.MESSAGE_SUCCESS, milo.getName()),
                 expectedModel);
-        assertTrue(model.getAddressBook().getClientList().contains(targetClient.withPet(milo)));
+        assertTrue(model.getPawPals().getClientList().contains(targetClient.withPet(milo)));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class AddPetCommandTest {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
         // The second index exists in the full list, but not in the one-client filtered list.
-        assertTrue(INDEX_SECOND_CLIENT.getZeroBased() < model.getAddressBook().getClientList().size());
+        assertTrue(INDEX_SECOND_CLIENT.getZeroBased() < model.getPawPals().getClientList().size());
 
         AddPetCommand command = new AddPetCommand(INDEX_SECOND_CLIENT, milo);
 
@@ -113,10 +113,10 @@ public class AddPetCommandTest {
     public void execute_duplicatePetDifferentCapitalization_throwsCommandException() {
         Client clientWithPet = new ClientBuilder(ALICE).build().withPet(milo);
 
-        AddressBook addressBook = new AddressBook();
-        addressBook.addClient(clientWithPet);
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(clientWithPet);
 
-        Model modelWithPet = new ModelManager(addressBook, new UserPrefs());
+        Model modelWithPet = new ModelManager(pawPals, new UserPrefs());
 
         Pet duplicatePet = new Pet(
                 new PetName("mILO"),
@@ -182,7 +182,7 @@ public class AddPetCommandTest {
         model.setClient(original, clientWithAppointment);
 
         // Prepare the expected model after adding Milo.
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getPawPals(), new UserPrefs());
         expectedModel.setClient(clientWithAppointment, clientWithAppointment.withPet(milo));
 
         // Execute addp.
@@ -280,10 +280,10 @@ public class AddPetCommandTest {
                 .build()
                 .withPet(originalPet);
 
-        AddressBook addressBook = new AddressBook();
-        addressBook.addClient(clientWithPet);
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(clientWithPet);
 
-        Model modelWithPet = new ModelManager(addressBook, new UserPrefs());
+        Model modelWithPet = new ModelManager(pawPals, new UserPrefs());
 
         // The parser normalizes repeated spaces before creating the pet.
         Pet duplicatePet = new Pet(

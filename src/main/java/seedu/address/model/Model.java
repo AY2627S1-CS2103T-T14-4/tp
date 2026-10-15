@@ -29,34 +29,34 @@ public interface Model {
     void setGuiSettings(GuiSettings guiSettings);
 
     /**
-     * Replaces address book data with the data in {@code addressBook}.
+     * Replaces PawPals data data with the data in {@code pawPals}.
      */
-    void setAddressBook(ReadOnlyAddressBook addressBook);
+    void setPawPals(ReadOnlyPawPals pawPals);
 
-    /** Returns the AddressBook */
-    ReadOnlyAddressBook getAddressBook();
+    /** Returns the PawPals */
+    ReadOnlyPawPals getPawPals();
 
     /**
-     * Returns true if a client with the same identity as {@code client} exists in the address book.
+     * Returns true if a client with the same identity as {@code client} exists in the PawPals data.
      */
     boolean hasClient(Client client);
 
     /**
      * Deletes the given client.
-     * The client must exist in the address book.
+     * The client must exist in the PawPals data.
      */
     void deleteClient(Client target);
 
     /**
      * Adds the given client.
-     * {@code client} must not already exist in the address book.
+     * {@code client} must not already exist in the PawPals data.
      */
     void addClient(Client client);
 
     /**
      * Replaces the given client {@code target} with {@code editedClient}.
-     * {@code target} must exist in the address book.
-     * The client identity of {@code editedClient} must not be the same as another existing client in the address book.
+     * {@code target} must exist in the PawPals data.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the PawPals data.
      */
     void setClient(Client target, Client editedClient);
 
