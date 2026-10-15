@@ -10,11 +10,11 @@
 
 ## Key features
 
-- Maintain searchable client contact and records.
-- Associate multiple pets with each client.
-- Record pet details and grooming preferences.
-- Organise upcoming grooming appointments.
-- Keep important grooming and safety information readily accessible.
+- Add and manage client contact records, with duplicate detection by name and phone.
+- Associate multiple pets (name, species, breed) with each client.
+- Schedule future appointments for a client, with duplicate-slot detection per client.
+- Delete a client together with all their pets and appointments.
+- Find clients by name and work directly from the filtered list.
 
 ## Documentation
 

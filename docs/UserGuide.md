@@ -18,12 +18,12 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from the PawPals project releases page.
+1. Download the latest `pawpals.jar` file from the [PawPals releases page](https://github.com/AY2627S1-CS2103T-T14-4/tp/releases).
 
 1. Copy the file to the folder you want to use as the _home folder_ for PawPals.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar pawpals.jar`.<br>
+   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample client data.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -32,6 +32,10 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
    * `list` : Lists all clients, their pets, and their appointments.
 
    * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe`.
+
+   * `addp c/1 n/Milo s/Dog b/Poodle` : Adds a pet named `Milo` to the 1st client shown.
+
+   * `appt c/1 d/12-12-2026 t/14:00` : Adds an appointment for the 1st client shown.
 
    * `delc 3` : Deletes the 3rd client shown in the current list.
 
@@ -57,6 +61,8 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
+
+* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `t/` means **time**, not tag.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -127,7 +133,10 @@ Example: `delc 2`
 
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 
-Successful output: `Deleted client: Ben Lim`
+Successful output, if the selected client is Ben Lim:<br>
+`Deleted client: Ben Lim; Phone: 91234567; Email: benlim@example.com; Address: 10 Dover Road; Tags: `
+
+The message lists the deleted client's details so you can confirm the right client was removed.
 
 The deleted client disappears from the client list, and the remaining clients are renumbered. If the command fails, no client, pet, or appointment is deleted.
 
@@ -270,6 +279,7 @@ Action     | Format, Examples
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`<br> e.g., `appt c/1 d/12-12-2026 t/12:34`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Help**   | `help`
