@@ -3,20 +3,49 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 
 public class JsonAdaptedPetTest {
     private static final Pet MILO = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+    private static final Pet MILO_WITH_NOTES = MILO
+            .withNote(NoteType.PREF, new PetNote("Quiet handling"))
+            .withNote(NoteType.SENS, new PetNote("Sensitive paws"))
+            .withNote(NoteType.TEMP, new PetNote("Anxious around dryers"));
 
     @Test
     public void toModelType_validPetDetails_returnsPet() throws Exception {
         assertEquals(MILO, new JsonAdaptedPet(MILO).toModelType());
+    }
+
+    @Test
+    public void toModelType_petWithNotes_returnsPetWithNotes() throws Exception {
+        assertEquals(MILO_WITH_NOTES, new JsonAdaptedPet(MILO_WITH_NOTES).toModelType());
+    }
+
+    @Test
+    public void toModelType_missingNotes_returnsPetWithoutNotes() throws Exception {
+        assertEquals(MILO, new JsonAdaptedPet("Milo", "Dog", "Poodle").toModelType());
+    }
+
+    @Test
+    public void toModelType_invalidNotes_throwsIllegalValueException() {
+        JsonAdaptedPet invalidType = new JsonAdaptedPet("Milo", "Dog", "Poodle",
+                Map.of("unknown", "Some note"));
+        JsonAdaptedPet invalidValue = new JsonAdaptedPet("Milo", "Dog", "Poodle",
+                Map.of("pref", " "));
+
+        assertThrows(IllegalValueException.class, NoteType.MESSAGE_CONSTRAINTS, invalidType::toModelType);
+        assertThrows(IllegalValueException.class, PetNote.MESSAGE_CONSTRAINTS, invalidValue::toModelType);
     }
 
     @Test
