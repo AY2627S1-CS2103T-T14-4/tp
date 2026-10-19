@@ -11,8 +11,8 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 
 /**

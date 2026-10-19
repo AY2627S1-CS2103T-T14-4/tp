@@ -65,17 +65,17 @@ public class PetTest {
         notes.put(NoteType.TEMP, new PetNote("Anxious"));
 
         assertEquals(Map.of(NoteType.SENS, new PetNote("Sensitive paws")), pet.getNotes());
-        assertThrows(UnsupportedOperationException.class,
-                () -> pet.getNotes().put(NoteType.TEMP, new PetNote("Anxious")));
+        assertThrows(UnsupportedOperationException.class, () ->
+                pet.getNotes().put(NoteType.TEMP, new PetNote("Anxious")));
     }
 
     @Test
     public void noteOperations_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> milo.getNote(null));
-        assertThrows(NullPointerException.class,
-                () -> milo.withNote(null, new PetNote("Quiet handling")));
-        assertThrows(NullPointerException.class,
-                () -> milo.withNote(NoteType.PREF, null));
+        assertThrows(NullPointerException.class, () ->
+                milo.withNote(null, new PetNote("Quiet handling")));
+        assertThrows(NullPointerException.class, () ->
+                milo.withNote(NoteType.PREF, null));
         assertThrows(NullPointerException.class, () -> milo.withoutNote(null));
     }
 
