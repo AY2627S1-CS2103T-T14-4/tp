@@ -402,6 +402,7 @@ public class ClientTest {
 
         assertEquals(appointment, client.getAppointment(appointment.getDate(), appointment.getTime()).get());
         assertTrue(client.getAppointment(appointment.getDate(), new AppointmentTime("10:00")).isEmpty());
+        assertTrue(client.getAppointment(new AppointmentDate("09-10-2026"), appointment.getTime()).isEmpty());
     }
 
     @Test
