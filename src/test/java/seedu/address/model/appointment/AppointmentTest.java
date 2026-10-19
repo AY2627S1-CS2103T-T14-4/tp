@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -109,14 +110,14 @@ public class AppointmentTest {
     @Test
     public void toString_includesDateTimeAndDetails() {
         String expected = Appointment.class.getCanonicalName()
-                + "{date=08-10-2026, time=09:05, details=First visit; call on arrival., pets=[]}";
+                + "{date=08-10-2026, time=09:05, endTime=, details=First visit; call on arrival., pets=[]}";
         assertEquals(expected, appointment.toString());
     }
 
     @Test
     public void toString_withoutDetails_includesDateAndTime() {
         String expected = Appointment.class.getCanonicalName()
-                + "{date=08-10-2026, time=09:05, details=, pets=[]}";
+                + "{date=08-10-2026, time=09:05, endTime=, details=, pets=[]}";
         assertEquals(expected, new Appointment(date, time).toString());
     }
     @Test
@@ -180,5 +181,125 @@ public class AppointmentTest {
         assertTrue(withMilo.hasSameDateTime(withLuna));
         assertEquals(withMilo, appointment.withPetNames(Set.of(new PetName("Milo"))));
         assertEquals(withMilo.hashCode(), appointment.withPetNames(Set.of(new PetName("Milo"))).hashCode());
+    }
+
+    /**
+     * Returns an appointment on 08-10-2026 from {@code start} to {@code end}, or with no end time if
+     * {@code end} is null.
+     */
+    private static Appointment slot(String start, String end) {
+        Optional<AppointmentTime> endTime = Optional.ofNullable(end).map(AppointmentTime::new);
+        return new Appointment(new AppointmentDate("08-10-2026"), new AppointmentTime(start), endTime, "", Set.of());
+    }
+
+    @Test
+    public void constructor_withoutEndTime_hasNoEndTime() {
+        assertTrue(appointment.getEndTime().isEmpty());
+        assertTrue(new Appointment(date, time, "", Set.of()).getEndTime().isEmpty());
+    }
+
+    @Test
+    public void constructor_withEndTime_storesEndTime() {
+        assertEquals(Optional.of(new AppointmentTime("15:30")), slot("14:00", "15:30").getEndTime());
+    }
+
+    @Test
+    public void constructor_endTimeNotAfterStart_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Appointment.MESSAGE_END_NOT_AFTER_START, () ->
+                slot("14:00", "14:00"));
+        assertThrows(IllegalArgumentException.class, Appointment.MESSAGE_END_NOT_AFTER_START, () ->
+                slot("14:00", "13:59"));
+    }
+
+    @Test
+    public void constructor_nullEndTime_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Appointment(date, time, null, "", Set.of()));
+    }
+
+    @Test
+    public void isValidEndTime() {
+        AppointmentTime start = new AppointmentTime("14:00");
+        assertTrue(Appointment.isValidEndTime(start, new AppointmentTime("14:01")));
+        assertTrue(Appointment.isValidEndTime(start, new AppointmentTime("23:59")));
+        assertFalse(Appointment.isValidEndTime(start, start));
+        assertFalse(Appointment.isValidEndTime(start, new AppointmentTime("09:00")));
+        assertThrows(NullPointerException.class, () -> Appointment.isValidEndTime(null, start));
+    }
+
+    @Test
+    public void withEndTime_setsEndTimeAndKeepsOtherFields() {
+        Appointment linked = appointment.withPetNames(Set.of(new PetName("Milo")));
+        Appointment withEnd = linked.withEndTime(new AppointmentTime("10:00"));
+
+        assertEquals(Optional.of(new AppointmentTime("10:00")), withEnd.getEndTime());
+        assertTrue(withEnd.hasSameDateTime(linked));
+        assertEquals(linked.getDetails(), withEnd.getDetails());
+        assertEquals(linked.getPetNames(), withEnd.getPetNames());
+        assertTrue(linked.getEndTime().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> linked.withEndTime(new AppointmentTime("09:00")));
+        assertThrows(NullPointerException.class, () -> linked.withEndTime(null));
+    }
+
+    @Test
+    public void withPetNames_keepsEndTime() {
+        Appointment linked = slot("14:00", "15:30").withPetNames(Set.of(new PetName("Milo")));
+        assertEquals(Optional.of(new AppointmentTime("15:30")), linked.getEndTime());
+    }
+
+    @Test
+    public void overlaps_timeRanges() {
+        Appointment twoToThree = slot("14:00", "15:00");
+
+        assertTrue(twoToThree.overlaps(twoToThree));
+        assertTrue(twoToThree.overlaps(slot("14:30", "15:30")));
+        assertTrue(slot("14:30", "15:30").overlaps(twoToThree));
+        assertTrue(twoToThree.overlaps(slot("13:00", "16:00")));
+        assertTrue(twoToThree.overlaps(slot("14:15", "14:45")));
+
+        // touching ranges do not overlap
+        assertFalse(twoToThree.overlaps(slot("15:00", "16:00")));
+        assertFalse(slot("13:00", "14:00").overlaps(twoToThree));
+    }
+
+    @Test
+    public void overlaps_withoutEndTime_treatedAsSingleMoment() {
+        Appointment twoToThree = slot("14:00", "15:00");
+
+        assertTrue(slot("14:00", null).overlaps(slot("14:00", null)));
+        assertFalse(slot("14:00", null).overlaps(slot("14:01", null)));
+        assertTrue(slot("14:00", null).overlaps(twoToThree));
+        assertTrue(twoToThree.overlaps(slot("14:30", null)));
+        assertFalse(twoToThree.overlaps(slot("15:00", null)));
+        assertFalse(slot("13:59", null).overlaps(twoToThree));
+        assertTrue(slot("23:59", null).overlaps(slot("23:59", null)));
+    }
+
+    @Test
+    public void overlaps_differentDate_returnsFalse() {
+        Appointment otherDay = new Appointment(new AppointmentDate("09-10-2026"), new AppointmentTime("14:00"),
+                Optional.of(new AppointmentTime("15:00")), "", Set.of());
+        assertFalse(slot("14:00", "15:00").overlaps(otherDay));
+    }
+
+    @Test
+    public void overlaps_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> appointment.overlaps(null));
+    }
+
+    @Test
+    public void equals_differentEndTime_returnsFalse() {
+        Appointment withEnd = slot("14:00", "15:00");
+
+        assertFalse(withEnd.equals(slot("14:00", "15:30")));
+        assertFalse(withEnd.equals(slot("14:00", null)));
+        assertTrue(withEnd.equals(slot("14:00", "15:00")));
+        assertEquals(withEnd.hashCode(), slot("14:00", "15:00").hashCode());
+    }
+
+    @Test
+    public void toString_withEndTime_includesEndTime() {
+        String expected = Appointment.class.getCanonicalName()
+                + "{date=08-10-2026, time=14:00, endTime=15:30, details=, pets=[]}";
+        assertEquals(expected, slot("14:00", "15:30").toString());
     }
 }
