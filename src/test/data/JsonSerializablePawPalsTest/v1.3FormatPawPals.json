@@ -1,0 +1,36 @@
+{
+  "_comment": "PawPals data file in the v1.3 format: pets have no notes, and appointments have no end time or linked pets. Newer versions must still load it.",
+  "clients" : [ {
+    "name" : "Alice Tan",
+    "phone" : "91234567",
+    "email" : "alice@example.com",
+    "address" : "Blk 123 Clementi Ave 3, #04-56",
+    "tags" : [ "regular" ],
+    "pets" : [ {
+      "name" : "Milo",
+      "species" : "Dog",
+      "breed" : "Toy Poodle"
+    }, {
+      "name" : "Luna",
+      "species" : "Cat",
+      "breed" : "Persian"
+    } ],
+    "appointments" : [ {
+      "date" : "12-12-2026",
+      "time" : "14:00",
+      "details" : "Full groom for Milo"
+    }, {
+      "date" : "13-12-2026",
+      "time" : "09:30",
+      "details" : ""
+    } ]
+  }, {
+    "name" : "Ben Lim",
+    "phone" : "98765432",
+    "email" : "ben@example.com",
+    "address" : "10 Tampines Street 11, #02-01",
+    "tags" : [ ],
+    "pets" : [ ],
+    "appointments" : [ ]
+  } ]
+}
