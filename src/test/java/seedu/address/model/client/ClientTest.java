@@ -21,12 +21,14 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
+import seedu.address.model.pet.exceptions.PetNotFoundException;
 import seedu.address.testutil.ClientBuilder;
 
 public class ClientTest {
@@ -342,5 +344,106 @@ public class ClientTest {
         assertEquals(original.hashCode(), copied.hashCode());
         assertEquals(List.of(milo), copied.getPets());
         assertEquals(List.of(appointment), copied.getAppointments());
+    }
+    @Test
+    public void getPet_matchesNameIgnoringCase() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Client client = new ClientBuilder().build().withPet(milo);
+
+        assertEquals(milo, client.getPet(new PetName("mILO")).get());
+        assertTrue(client.getPet(new PetName("Luna")).isEmpty());
+    }
+
+    @Test
+    public void withPetReplaced_replacesInPlaceWithoutChangingOriginal() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Pet editedMilo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Toy Poodle"));
+        Client original = new ClientBuilder().build().withPet(milo).withPet(luna);
+
+        Client updated = original.withPetReplaced(new PetName("milo"), editedMilo);
+
+        assertEquals(List.of(editedMilo, luna), updated.getPets());
+        assertEquals(List.of(milo, luna), original.getPets());
+    }
+
+    @Test
+    public void withPetReplaced_renameToOtherPetsName_throwsDuplicatePetException() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Pet renamedToLuna = new Pet(new PetName("LUNA"), new Species("Dog"), new Breed("Poodle"));
+        Client client = new ClientBuilder().build().withPet(milo).withPet(luna);
+
+        assertThrows(DuplicatePetException.class, () -> client.withPetReplaced(new PetName("Milo"), renamedToLuna));
+    }
+
+    @Test
+    public void withPetReplaced_missingPet_throwsPetNotFoundException() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Client client = new ClientBuilder().build();
+
+        assertThrows(PetNotFoundException.class, () -> client.withPetReplaced(new PetName("Milo"), milo));
+    }
+
+    @Test
+    public void withoutPet_removesOnlyThatPet() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Client original = new ClientBuilder().build().withPet(milo).withPet(luna);
+
+        assertEquals(List.of(luna), original.withoutPet(new PetName("MILO")).getPets());
+        assertEquals(List.of(milo, luna), original.getPets());
+        assertThrows(PetNotFoundException.class, () -> original.withoutPet(new PetName("Rex")));
+    }
+
+    @Test
+    public void getAppointment_matchesDateAndTime() {
+        Client client = new ClientBuilder().build().copyWithAppointment(appointment);
+
+        assertEquals(appointment, client.getAppointment(appointment.getDate(), appointment.getTime()).get());
+        assertTrue(client.getAppointment(appointment.getDate(), new AppointmentTime("10:00")).isEmpty());
+    }
+
+    @Test
+    public void withAppointmentReplaced_movesAppointmentWithoutChangingOriginal() {
+        Client original = new ClientBuilder().build().copyWithAppointment(appointment);
+        Appointment moved = new Appointment(appointment.getDate(), new AppointmentTime("16:00"),
+                appointment.getDetails());
+
+        Client updated = original.withAppointmentReplaced(appointment.getDate(), appointment.getTime(), moved);
+
+        assertEquals(List.of(moved), updated.getAppointments());
+        assertEquals(List.of(appointment), original.getAppointments());
+    }
+
+    @Test
+    public void withAppointmentReplaced_intoOccupiedSlot_throwsDuplicateAppointmentException() {
+        Appointment other = new Appointment(appointment.getDate(), new AppointmentTime("16:00"));
+        Client client = new ClientBuilder().build().copyWithAppointment(appointment).copyWithAppointment(other);
+        Appointment movedOntoOther = new Appointment(other.getDate(), other.getTime(), "Moved");
+
+        assertThrows(DuplicateAppointmentException.class, () ->
+                client.withAppointmentReplaced(appointment.getDate(), appointment.getTime(), movedOntoOther));
+    }
+
+    @Test
+    public void withAppointmentReplaced_missingAppointment_throwsAppointmentNotFoundException() {
+        Client client = new ClientBuilder().build();
+
+        assertThrows(AppointmentNotFoundException.class, () ->
+                client.withAppointmentReplaced(appointment.getDate(), appointment.getTime(), appointment));
+    }
+
+    @Test
+    public void withoutAppointment_removesOnlyThatAppointment() {
+        Appointment other = new Appointment(appointment.getDate(), new AppointmentTime("16:00"));
+        Client original = new ClientBuilder().build().copyWithAppointment(appointment).copyWithAppointment(other);
+
+        Client updated = original.withoutAppointment(appointment.getDate(), appointment.getTime());
+
+        assertEquals(List.of(other), updated.getAppointments());
+        assertEquals(List.of(appointment, other), original.getAppointments());
+        assertThrows(AppointmentNotFoundException.class, () ->
+                updated.withoutAppointment(appointment.getDate(), appointment.getTime()));
     }
 }
