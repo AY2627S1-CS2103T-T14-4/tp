@@ -259,6 +259,10 @@ public class AppointmentTest {
         // touching ranges do not overlap
         assertFalse(twoToThree.overlaps(slot("15:00", "16:00")));
         assertFalse(slot("13:00", "14:00").overlaps(twoToThree));
+
+        // one appointment starts after the other has ended
+        assertFalse(slot("16:00", "17:00").overlaps(twoToThree));
+        assertFalse(twoToThree.overlaps(slot("11:00", "12:00")));
     }
 
     @Test
@@ -267,6 +271,7 @@ public class AppointmentTest {
 
         assertTrue(slot("14:00", null).overlaps(slot("14:00", null)));
         assertFalse(slot("14:00", null).overlaps(slot("14:01", null)));
+        assertFalse(slot("14:01", null).overlaps(slot("14:00", null)));
         assertTrue(slot("14:00", null).overlaps(twoToThree));
         assertTrue(twoToThree.overlaps(slot("14:30", null)));
         assertFalse(twoToThree.overlaps(slot("15:00", null)));
