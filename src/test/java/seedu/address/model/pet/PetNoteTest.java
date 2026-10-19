@@ -26,6 +26,11 @@ public class PetNoteTest {
     }
 
     @Test
+    public void toString_returnsValue() {
+        assertEquals("No perfume", new PetNote(" No perfume ").toString());
+    }
+
+    @Test
     public void isValidNote() {
         // invalid
         assertFalse(PetNote.isValidNote(null));

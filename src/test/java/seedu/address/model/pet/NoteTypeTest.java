@@ -46,4 +46,13 @@ public class NoteTypeTest {
         assertTrue(NoteType.SENS.isSafety());
         assertTrue(NoteType.TEMP.isSafety());
     }
+    @Test
+    public void getKeywordAndDisplayName() {
+        assertEquals("pref", NoteType.PREF.getKeyword());
+        assertEquals("sens", NoteType.SENS.getKeyword());
+        assertEquals("temp", NoteType.TEMP.getKeyword());
+        assertEquals("preference", NoteType.PREF.getDisplayName());
+        assertEquals("sensitivity", NoteType.SENS.getDisplayName());
+        assertEquals("temperament", NoteType.TEMP.getDisplayName());
+    }
 }
