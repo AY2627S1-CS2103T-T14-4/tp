@@ -2,8 +2,12 @@ package seedu.address.model.pet;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -19,16 +23,31 @@ public class Pet {
     // Data fields
     private final Species species;
     private final Breed breed;
+    private final Map<NoteType, PetNote> notes;
 
     /**
      * Every field must be present and not null.
      */
     public Pet(PetName name, Species species, Breed breed) {
+        this(name, species, breed, Collections.emptyMap());
+    }
+
+    /**
+     * Every field must be present and not null. The notes map is defensively copied.
+     */
+    public Pet(PetName name, Species species, Breed breed, Map<NoteType, PetNote> notes) {
         requireAllNonNull(name, species, breed);
+        requireAllNonNull(notes);
 
         this.name = name;
         this.species = species;
         this.breed = breed;
+        EnumMap<NoteType, PetNote> copiedNotes = new EnumMap<>(NoteType.class);
+        notes.forEach((type, note) -> {
+            requireAllNonNull(type, note);
+            copiedNotes.put(type, note);
+        });
+        this.notes = Collections.unmodifiableMap(copiedNotes);
     }
 
     public PetName getName() {
@@ -41,6 +60,42 @@ public class Pet {
 
     public Breed getBreed() {
         return breed;
+    }
+
+    /**
+     * Returns this pet's notes keyed by note type.
+     */
+    public Map<NoteType, PetNote> getNotes() {
+        return notes;
+    }
+
+    /**
+     * Returns this pet's note of the given type, if one exists.
+     */
+    public Optional<PetNote> getNote(NoteType type) {
+        return Optional.ofNullable(notes.get(Objects.requireNonNull(type)));
+    }
+
+    /**
+     * Returns a copy of this pet with the note of the given type added or replaced.
+     */
+    public Pet withNote(NoteType type, PetNote note) {
+        requireAllNonNull(type, note);
+        EnumMap<NoteType, PetNote> updatedNotes = new EnumMap<>(NoteType.class);
+        updatedNotes.putAll(notes);
+        updatedNotes.put(type, note);
+        return new Pet(name, species, breed, updatedNotes);
+    }
+
+    /**
+     * Returns a copy of this pet without the note of the given type.
+     */
+    public Pet withoutNote(NoteType type) {
+        requireAllNonNull(type);
+        EnumMap<NoteType, PetNote> updatedNotes = new EnumMap<>(NoteType.class);
+        updatedNotes.putAll(notes);
+        updatedNotes.remove(type);
+        return new Pet(name, species, breed, updatedNotes);
     }
 
     /**
@@ -85,7 +140,8 @@ public class Pet {
 
         return name.equals(otherPet.name)
                 && species.equals(otherPet.species)
-                && breed.equals(otherPet.breed);
+                && breed.equals(otherPet.breed)
+                && notes.equals(otherPet.notes);
     }
 
     /**
@@ -93,7 +149,7 @@ public class Pet {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(name, species, breed);
+        return Objects.hash(name, species, breed, notes);
     }
 
     @Override
@@ -102,6 +158,7 @@ public class Pet {
                 .add("name", name)
                 .add("species", species)
                 .add("breed", breed)
+                .add("notes", notes)
                 .toString();
     }
 }

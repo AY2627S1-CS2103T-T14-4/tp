@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
 public class PetTest {
@@ -37,6 +39,44 @@ public class PetTest {
         assertEquals(new PetName("Milo"), milo.getName());
         assertEquals(new Species("Dog"), milo.getSpecies());
         assertEquals(new Breed("Poodle"), milo.getBreed());
+        assertTrue(milo.getNotes().isEmpty());
+    }
+
+    @Test
+    public void noteOperations_addReplaceAndClearNote() {
+        Pet withPreference = milo.withNote(NoteType.PREF, new PetNote("Quiet handling"));
+        assertEquals(new PetNote("Quiet handling"), withPreference.getNote(NoteType.PREF).orElseThrow());
+
+        Pet withReplacement = withPreference.withNote(NoteType.PREF, new PetNote("Short sessions"));
+        assertEquals(new PetNote("Short sessions"), withReplacement.getNote(NoteType.PREF).orElseThrow());
+        assertEquals(1, withReplacement.getNotes().size());
+
+        Pet cleared = withReplacement.withoutNote(NoteType.PREF);
+        assertTrue(cleared.getNote(NoteType.PREF).isEmpty());
+        assertTrue(cleared.getNotes().isEmpty());
+    }
+
+    @Test
+    public void constructor_notesAreDefensivelyCopied() {
+        Map<NoteType, PetNote> notes = new java.util.EnumMap<>(NoteType.class);
+        notes.put(NoteType.SENS, new PetNote("Sensitive paws"));
+        Pet pet = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"), notes);
+
+        notes.put(NoteType.TEMP, new PetNote("Anxious"));
+
+        assertEquals(Map.of(NoteType.SENS, new PetNote("Sensitive paws")), pet.getNotes());
+        assertThrows(UnsupportedOperationException.class,
+                () -> pet.getNotes().put(NoteType.TEMP, new PetNote("Anxious")));
+    }
+
+    @Test
+    public void noteOperations_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> milo.getNote(null));
+        assertThrows(NullPointerException.class,
+                () -> milo.withNote(null, new PetNote("Quiet handling")));
+        assertThrows(NullPointerException.class,
+                () -> milo.withNote(NoteType.PREF, null));
+        assertThrows(NullPointerException.class, () -> milo.withoutNote(null));
     }
 
     @Test
@@ -114,6 +154,9 @@ public class PetTest {
                 new Species("Dog"),
                 new Breed("Labrador"));
         assertFalse(milo.equals(differentBreed));
+
+        Pet differentNotes = milo.withNote(NoteType.PREF, new PetNote("Quiet handling"));
+        assertFalse(milo.equals(differentNotes));
     }
 
     @Test
@@ -132,6 +175,7 @@ public class PetTest {
                 + "{name=" + milo.getName()
                 + ", species=" + milo.getSpecies()
                 + ", breed=" + milo.getBreed()
+                + ", notes={}"
                 + "}";
 
         assertEquals(expected, milo.toString());
