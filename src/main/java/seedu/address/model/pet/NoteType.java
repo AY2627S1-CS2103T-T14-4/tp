@@ -2,7 +2,9 @@ package seedu.address.model.pet;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Represents the kind of note that can be recorded for a {@link Pet}.
@@ -50,16 +52,7 @@ public enum NoteType {
      * Returns true if {@code test} is a valid note type keyword, ignoring case and surrounding spaces.
      */
     public static boolean isValidKeyword(String test) {
-        if (test == null) {
-            return false;
-        }
-        String normalized = test.trim().toLowerCase(Locale.ROOT);
-        for (NoteType type : values()) {
-            if (type.keyword.equals(normalized)) {
-                return true;
-            }
-        }
-        return false;
+        return test != null && findByKeyword(test).isPresent();
     }
 
     /**
@@ -69,12 +62,13 @@ public enum NoteType {
      */
     public static NoteType fromKeyword(String keyword) {
         requireNonNull(keyword);
+        return findByKeyword(keyword).orElseThrow(() -> new IllegalArgumentException(MESSAGE_CONSTRAINTS));
+    }
+
+    private static Optional<NoteType> findByKeyword(String keyword) {
         String normalized = keyword.trim().toLowerCase(Locale.ROOT);
-        for (NoteType type : values()) {
-            if (type.keyword.equals(normalized)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException(MESSAGE_CONSTRAINTS);
+        return Arrays.stream(values())
+                .filter(type -> type.keyword.equals(normalized))
+                .findFirst();
     }
 }
