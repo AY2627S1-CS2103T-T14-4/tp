@@ -2,20 +2,26 @@ package seedu.address.model.appointment;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.pet.PetName;
 
 /**
- * Represents an appointment's date, time, and free-text details.
+ * Represents an appointment's date, time, free-text details and the pets it covers.
  * Guarantees: immutable; all fields are non-null and date and time values are validated.
  * An empty details string represents an appointment with no additional details.
+ * An empty set of pet names means the appointment is not linked to specific pets.
  */
 public final class Appointment {
 
     private final AppointmentDate date;
     private final AppointmentTime time;
     private final String details;
+    private final Set<PetName> petNames;
 
     /**
      * Constructs an {@code Appointment} without additional details.
@@ -37,10 +43,25 @@ public final class Appointment {
      * @throws NullPointerException if any field is null.
      */
     public Appointment(AppointmentDate date, AppointmentTime time, String details) {
-        requireAllNonNull(date, time, details);
+        this(date, time, details, Set.of());
+    }
+
+    /**
+     * Constructs an {@code Appointment} linked to the given pets, keeping their order.
+     *
+     * @param date The validated calendar date.
+     * @param time The validated time of day.
+     * @param details The optional notes; an empty string means no additional details.
+     * @param petNames The names of the pets this appointment covers; may be empty.
+     * @throws NullPointerException if any field or pet name is null.
+     */
+    public Appointment(AppointmentDate date, AppointmentTime time, String details, Set<PetName> petNames) {
+        requireAllNonNull(date, time, details, petNames);
+        petNames.forEach(Objects::requireNonNull);
         this.date = date;
         this.time = time;
         this.details = details;
+        this.petNames = Collections.unmodifiableSet(new LinkedHashSet<>(petNames));
     }
 
     /**
@@ -71,6 +92,25 @@ public final class Appointment {
     }
 
     /**
+     * Returns the names of the pets this appointment covers, in the order they were given.
+     *
+     * @return An unmodifiable set, which is empty if the appointment is not linked to specific pets.
+     */
+    public Set<PetName> getPetNames() {
+        return petNames;
+    }
+
+    /**
+     * Returns a copy of this appointment linked to the given pets instead of its current ones.
+     *
+     * @param newPetNames The names of the pets the copy covers; may be empty.
+     * @return A new appointment with the same date, time and details.
+     */
+    public Appointment withPetNames(Set<PetName> newPetNames) {
+        return new Appointment(date, time, details, newPetNames);
+    }
+
+    /**
      * Returns true if both appointments have the same date and time, regardless of details.
      * This identity comparison is intended for appointments belonging to the same client.
      *
@@ -84,7 +124,7 @@ public final class Appointment {
     }
 
     /**
-     * Returns true if both appointments have the same date, time, and details.
+     * Returns true if both appointments have the same date, time, details and linked pets.
      */
     @Override
     public boolean equals(Object other) {
@@ -96,12 +136,13 @@ public final class Appointment {
         }
         return date.equals(otherAppointment.date)
                 && time.equals(otherAppointment.time)
-                && details.equals(otherAppointment.details);
+                && details.equals(otherAppointment.details)
+                && petNames.equals(otherAppointment.petNames);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, time, details);
+        return Objects.hash(date, time, details, petNames);
     }
 
     @Override
@@ -110,6 +151,7 @@ public final class Appointment {
                 .add("date", date)
                 .add("time", time)
                 .add("details", details)
+                .add("pets", petNames)
                 .toString();
     }
 }

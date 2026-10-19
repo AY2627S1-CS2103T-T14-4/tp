@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+
+import seedu.address.model.pet.PetName;
 
 public class AppointmentTest {
 
@@ -105,14 +109,76 @@ public class AppointmentTest {
     @Test
     public void toString_includesDateTimeAndDetails() {
         String expected = Appointment.class.getCanonicalName()
-                + "{date=08-10-2026, time=09:05, details=First visit; call on arrival.}";
+                + "{date=08-10-2026, time=09:05, details=First visit; call on arrival., pets=[]}";
         assertEquals(expected, appointment.toString());
     }
 
     @Test
     public void toString_withoutDetails_includesDateAndTime() {
         String expected = Appointment.class.getCanonicalName()
-                + "{date=08-10-2026, time=09:05, details=}";
+                + "{date=08-10-2026, time=09:05, details=, pets=[]}";
         assertEquals(expected, new Appointment(date, time).toString());
+    }
+    @Test
+    public void constructor_withoutPets_hasNoLinkedPets() {
+        assertTrue(appointment.getPetNames().isEmpty());
+        assertTrue(new Appointment(date, time).getPetNames().isEmpty());
+    }
+
+    @Test
+    public void constructor_nullPetNames_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Appointment(date, time, "", null));
+    }
+
+    @Test
+    public void constructor_nullPetName_throwsNullPointerException() {
+        Set<PetName> petNames = new HashSet<>();
+        petNames.add(null);
+        assertThrows(NullPointerException.class, () -> new Appointment(date, time, "", petNames));
+    }
+
+    @Test
+    public void getPetNames_keepsGivenOrder() {
+        Set<PetName> petNames = new LinkedHashSet<>(List.of(new PetName("Milo"), new PetName("Luna")));
+        Appointment linked = new Appointment(date, time, "", petNames);
+
+        assertEquals(List.of(new PetName("Milo"), new PetName("Luna")), List.copyOf(linked.getPetNames()));
+    }
+
+    @Test
+    public void getPetNames_modifySet_throwsUnsupportedOperationException() {
+        Appointment linked = new Appointment(date, time, "", Set.of(new PetName("Milo")));
+        assertThrows(UnsupportedOperationException.class, () -> linked.getPetNames().add(new PetName("Luna")));
+    }
+
+    @Test
+    public void constructor_laterChangesToGivenSet_doNotAffectAppointment() {
+        Set<PetName> petNames = new HashSet<>(Set.of(new PetName("Milo")));
+        Appointment linked = new Appointment(date, time, "", petNames);
+        petNames.add(new PetName("Luna"));
+
+        assertEquals(Set.of(new PetName("Milo")), linked.getPetNames());
+    }
+
+    @Test
+    public void withPetNames_replacesPetsAndKeepsOtherFields() {
+        Appointment linked = appointment.withPetNames(Set.of(new PetName("Milo")));
+
+        assertEquals(Set.of(new PetName("Milo")), linked.getPetNames());
+        assertTrue(linked.hasSameDateTime(appointment));
+        assertEquals(appointment.getDetails(), linked.getDetails());
+        assertTrue(appointment.getPetNames().isEmpty());
+    }
+
+    @Test
+    public void equals_differentPets_returnsFalse() {
+        Appointment withMilo = appointment.withPetNames(Set.of(new PetName("Milo")));
+        Appointment withLuna = appointment.withPetNames(Set.of(new PetName("Luna")));
+
+        assertFalse(withMilo.equals(withLuna));
+        assertFalse(withMilo.equals(appointment));
+        assertTrue(withMilo.hasSameDateTime(withLuna));
+        assertEquals(withMilo, appointment.withPetNames(Set.of(new PetName("Milo"))));
+        assertEquals(withMilo.hashCode(), appointment.withPetNames(Set.of(new PetName("Milo"))).hashCode());
     }
 }

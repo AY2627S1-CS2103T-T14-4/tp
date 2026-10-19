@@ -1,7 +1,13 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +15,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.pet.PetName;
 
 public class JsonAdaptedAppointmentTest {
     @Test
@@ -40,5 +47,30 @@ public class JsonAdaptedAppointmentTest {
         assertThrows(IllegalValueException.class, String.format(JsonAdaptedAppointment.MISSING_FIELD_MESSAGE_FORMAT,
                         AppointmentTime.class.getSimpleName()), missingTime::toModelType);
         assertThrows(IllegalValueException.class, AppointmentTime.MESSAGE_CONSTRAINTS, invalidTime::toModelType);
+    }
+    @Test
+    public void toModelType_linkedPets_preservesPetsInOrder() throws Exception {
+        Set<PetName> petNames = new LinkedHashSet<>(List.of(new PetName("Milo"), new PetName("Luna")));
+        Appointment original = new Appointment(new AppointmentDate("29-02-2024"),
+                new AppointmentTime("09:05"), "", petNames);
+        assertEquals(original, new JsonAdaptedAppointment(original).toModelType());
+    }
+
+    @Test
+    public void toModelType_missingPets_returnsAppointmentWithoutPets() throws Exception {
+        // Appointments saved by v1.3 have no pets field at all
+        JsonAdaptedAppointment legacy = new JsonAdaptedAppointment("01-01-2025", "00:00", "", null);
+        assertTrue(legacy.toModelType().getPetNames().isEmpty());
+    }
+
+    @Test
+    public void toModelType_invalidPetName_throwsIllegalValueException() {
+        JsonAdaptedAppointment blankPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "", List.of(" "));
+        JsonAdaptedAppointment invalidPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "", List.of("Milo!"));
+        JsonAdaptedAppointment nullPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "",
+                Arrays.asList((String) null));
+        assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, blankPet::toModelType);
+        assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, nullPet::toModelType);
+        assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, invalidPet::toModelType);
     }
 }
