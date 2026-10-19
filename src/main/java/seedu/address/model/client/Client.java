@@ -12,7 +12,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -30,6 +32,8 @@ import seedu.address.model.tag.Tag;
  * Guarantees: details are present and not null, field values are validated, immutable.
  */
 public class Client {
+
+    private static final Logger logger = LogsCenter.getLogger(Client.class);
 
     // Identity fields
     private final Name name;
@@ -270,7 +274,7 @@ public class Client {
 
     /**
      * Returns this client's pets that {@code appointment} is linked to, in the appointment's order.
-     * Pet names are matched ignoring case. Linked names with no matching pet are skipped.
+     * Pet names are matched ignoring case. Linked names with no matching pet are skipped and logged.
      *
      * @param appointment the appointment whose pets to look up
      * @return an immutable list of the linked pets, which is empty if the appointment has none
@@ -279,7 +283,9 @@ public class Client {
         requireAllNonNull(appointment);
         List<Pet> linkedPets = new ArrayList<>();
         for (PetName petName : appointment.getPetNames()) {
-            getPet(petName).ifPresent(linkedPets::add);
+            getPet(petName).ifPresentOrElse(linkedPets::add, () -> logger.warning(String.format(
+                    "Appointment on %s at %s is linked to pet %s, but %s has no such pet",
+                    appointment.getDate(), appointment.getTime(), petName, name)));
         }
         return List.copyOf(linkedPets);
     }
@@ -335,6 +341,8 @@ public class Client {
      * The order of the other linked pets is kept.
      */
     private List<Appointment> relinkAppointments(PetName targetName, Optional<PetName> replacementName) {
+        logger.fine("Updating appointment links of " + name + " for pet " + targetName + ": "
+                + replacementName.map(newName -> "renamed to " + newName).orElse("removed"));
         String targetKey = identityKeyOf(targetName);
         List<Appointment> updatedAppointments = new ArrayList<>();
         for (Appointment appointment : appointments) {
