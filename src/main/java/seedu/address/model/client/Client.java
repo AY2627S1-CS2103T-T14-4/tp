@@ -7,14 +7,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
+import seedu.address.model.pet.exceptions.PetNotFoundException;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -246,6 +253,146 @@ public class Client {
         updatedPets.add(pet);
         return new Client(name, phone, email, address, tags,
                 updatedPets, appointments);
+    }
+
+    /**
+     * Returns this client's pet with the given name, ignoring case.
+     *
+     * @param petName the name of the pet to find
+     * @return the matching pet, or an empty optional if this client has no such pet
+     */
+    public Optional<Pet> getPet(PetName petName) {
+        requireAllNonNull(petName);
+        int index = indexOfPet(petName);
+        return index < 0 ? Optional.empty() : Optional.of(pets.get(index));
+    }
+
+    /**
+     * Returns a new client with the pet named {@code targetName} replaced by {@code editedPet},
+     * keeping the pet's position. This client is unchanged.
+     *
+     * @param targetName the name of the pet to replace, ignoring case
+     * @param editedPet the replacement pet
+     * @return a new client containing the edited pet
+     * @throws PetNotFoundException if this client has no pet named {@code targetName}
+     * @throws DuplicatePetException if the edited pet's name matches another of this client's pets
+     */
+    public Client withPetReplaced(PetName targetName, Pet editedPet) {
+        requireAllNonNull(targetName, editedPet);
+        int index = indexOfPet(targetName);
+        if (index < 0) {
+            throw new PetNotFoundException();
+        }
+
+        List<Pet> updatedPets = new ArrayList<>(pets);
+        updatedPets.set(index, editedPet);
+        return new Client(name, phone, email, address, tags,
+                updatedPets, appointments);
+    }
+
+    /**
+     * Returns a new client without the pet named {@code targetName}. This client is unchanged.
+     *
+     * @param targetName the name of the pet to remove, ignoring case
+     * @return a new client without the pet
+     * @throws PetNotFoundException if this client has no pet named {@code targetName}
+     */
+    public Client withoutPet(PetName targetName) {
+        requireAllNonNull(targetName);
+        int index = indexOfPet(targetName);
+        if (index < 0) {
+            throw new PetNotFoundException();
+        }
+
+        List<Pet> updatedPets = new ArrayList<>(pets);
+        updatedPets.remove(index);
+        return new Client(name, phone, email, address, tags,
+                updatedPets, appointments);
+    }
+
+    /**
+     * Returns the position of the pet named {@code petName}, ignoring case, or -1 if there is none.
+     */
+    private int indexOfPet(PetName petName) {
+        String identityKey = petName.fullName.toLowerCase(Locale.ROOT);
+        for (int i = 0; i < pets.size(); i++) {
+            if (pets.get(i).getIdentityKey().equals(identityKey)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns this client's appointment at the given date and time.
+     *
+     * @param date the appointment date
+     * @param time the appointment time
+     * @return the matching appointment, or an empty optional if there is none
+     */
+    public Optional<Appointment> getAppointment(AppointmentDate date, AppointmentTime time) {
+        requireAllNonNull(date, time);
+        int index = indexOfAppointment(date, time);
+        return index < 0 ? Optional.empty() : Optional.of(appointments.get(index));
+    }
+
+    /**
+     * Returns a new client with the appointment at the given date and time replaced by
+     * {@code editedAppointment}, keeping its position. This client is unchanged.
+     *
+     * @param date the date of the appointment to replace
+     * @param time the time of the appointment to replace
+     * @param editedAppointment the replacement appointment, which may have a new date and time
+     * @return a new client containing the edited appointment
+     * @throws AppointmentNotFoundException if this client has no appointment at that date and time
+     * @throws DuplicateAppointmentException if the edited appointment's slot matches another appointment
+     */
+    public Client withAppointmentReplaced(AppointmentDate date, AppointmentTime time,
+            Appointment editedAppointment) {
+        requireAllNonNull(date, time, editedAppointment);
+        int index = indexOfAppointment(date, time);
+        if (index < 0) {
+            throw new AppointmentNotFoundException();
+        }
+
+        List<Appointment> updatedAppointments = new ArrayList<>(appointments);
+        updatedAppointments.set(index, editedAppointment);
+        return new Client(name, phone, email, address, tags,
+                pets, updatedAppointments);
+    }
+
+    /**
+     * Returns a new client without the appointment at the given date and time. This client is unchanged.
+     *
+     * @param date the date of the appointment to remove
+     * @param time the time of the appointment to remove
+     * @return a new client without the appointment
+     * @throws AppointmentNotFoundException if this client has no appointment at that date and time
+     */
+    public Client withoutAppointment(AppointmentDate date, AppointmentTime time) {
+        requireAllNonNull(date, time);
+        int index = indexOfAppointment(date, time);
+        if (index < 0) {
+            throw new AppointmentNotFoundException();
+        }
+
+        List<Appointment> updatedAppointments = new ArrayList<>(appointments);
+        updatedAppointments.remove(index);
+        return new Client(name, phone, email, address, tags,
+                pets, updatedAppointments);
+    }
+
+    /**
+     * Returns the position of the appointment at the given date and time, or -1 if there is none.
+     */
+    private int indexOfAppointment(AppointmentDate date, AppointmentTime time) {
+        for (int i = 0; i < appointments.size(); i++) {
+            Appointment appointment = appointments.get(i);
+            if (appointment.getDate().equals(date) && appointment.getTime().equals(time)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
