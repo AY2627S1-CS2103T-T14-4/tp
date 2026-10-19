@@ -57,7 +57,7 @@ public final class Appointment {
      */
     public Appointment(AppointmentDate date, AppointmentTime time, String details, Set<PetName> petNames) {
         requireAllNonNull(date, time, details, petNames);
-        assert petNames.stream().allMatch(Objects::nonNull) : "Appointment pet names must not be null";
+        petNames.forEach(Objects::requireNonNull);
         this.date = date;
         this.time = time;
         this.details = details;

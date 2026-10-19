@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,7 +67,10 @@ public class JsonAdaptedAppointmentTest {
     public void toModelType_invalidPetName_throwsIllegalValueException() {
         JsonAdaptedAppointment blankPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "", List.of(" "));
         JsonAdaptedAppointment invalidPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "", List.of("Milo!"));
+        JsonAdaptedAppointment nullPet = new JsonAdaptedAppointment("01-01-2025", "09:05", "",
+                Arrays.asList((String) null));
         assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, blankPet::toModelType);
+        assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, nullPet::toModelType);
         assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, invalidPet::toModelType);
     }
 }

@@ -131,6 +131,13 @@ public class AppointmentTest {
     }
 
     @Test
+    public void constructor_nullPetName_throwsNullPointerException() {
+        Set<PetName> petNames = new HashSet<>();
+        petNames.add(null);
+        assertThrows(NullPointerException.class, () -> new Appointment(date, time, "", petNames));
+    }
+
+    @Test
     public void getPetNames_keepsGivenOrder() {
         Set<PetName> petNames = new LinkedHashSet<>(List.of(new PetName("Milo"), new PetName("Luna")));
         Appointment linked = new Appointment(date, time, "", petNames);
