@@ -43,9 +43,12 @@ public class JsonAdaptedPetTest {
                 Map.of("unknown", "Some note"));
         JsonAdaptedPet invalidValue = new JsonAdaptedPet("Milo", "Dog", "Poodle",
                 Map.of("pref", " "));
+        JsonAdaptedPet duplicateType = new JsonAdaptedPet("Milo", "Dog", "Poodle",
+                Map.of("pref", "Quiet handling", "PREF", "Short sessions"));
 
         assertThrows(IllegalValueException.class, NoteType.MESSAGE_CONSTRAINTS, invalidType::toModelType);
         assertThrows(IllegalValueException.class, PetNote.MESSAGE_CONSTRAINTS, invalidValue::toModelType);
+        assertThrows(IllegalValueException.class, NoteType.MESSAGE_CONSTRAINTS, duplicateType::toModelType);
     }
 
     @Test
@@ -72,9 +75,11 @@ public class JsonAdaptedPetTest {
     public void toModelType_missingOrInvalidBreed_throwsIllegalValueException() {
         JsonAdaptedPet missingBreed = new JsonAdaptedPet("Milo", "Dog", null);
         JsonAdaptedPet invalidBreed = new JsonAdaptedPet("Milo", "Dog", " ");
+        JsonAdaptedPet invalidBreedCharacters = new JsonAdaptedPet("Milo", "Dog", "Poodle!");
 
         assertThrows(IllegalValueException.class, String.format(JsonAdaptedPet.MISSING_FIELD_MESSAGE_FORMAT,
                         Breed.class.getSimpleName()), missingBreed::toModelType);
         assertThrows(IllegalValueException.class, Breed.MESSAGE_CONSTRAINTS, invalidBreed::toModelType);
+        assertThrows(IllegalValueException.class, Breed.MESSAGE_CONSTRAINTS, invalidBreedCharacters::toModelType);
     }
 }
