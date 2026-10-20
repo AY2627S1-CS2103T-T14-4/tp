@@ -92,8 +92,6 @@ public class ClientCard extends UiPart<Region> {
                                      boolean safetyNote) {
         pet.getNote(type).ifPresent(note -> {
             Label noteLabel = new Label(prefix + note);
-            noteLabel.setWrapText(true);
-            noteLabel.setMaxWidth(Double.MAX_VALUE);
             noteLabel.getStyleClass().add("cell_note_label");
             if (safetyNote) {
                 noteLabel.getStyleClass().add("cell_safety_note_label");
