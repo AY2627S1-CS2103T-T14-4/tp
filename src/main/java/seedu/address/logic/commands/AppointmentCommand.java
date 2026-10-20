@@ -24,9 +24,10 @@ public class AppointmentCommand extends Command {
     public static final String COMMAND_WORD = "appt";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Adds an appointment to the client identified by their displayed index.\n"
-            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm\n"
+            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]\n"
             + "The index must be positive and the combined date and time must be strictly in the future.\n"
-            + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34";
+            + "The optional end time must be after the start time on the same date.\n"
+            + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
     public static final String MESSAGE_NOT_FUTURE = "Appointment date and time must be strictly in the future.";
     public static final String MESSAGE_DUPLICATE_APPOINTMENT =
@@ -67,7 +68,7 @@ public class AppointmentCommand extends Command {
      * Adds the appointment while preserving the client's other data and the current list filter.
      *
      * @param model The model containing the displayed clients.
-     * @return Feedback identifying the client and the added date/time.
+     * @return Feedback identifying the client, date, start time and end time if supplied.
      * @throws NullPointerException if {@code model} is null.
      * @throws CommandException if the displayed index is invalid, the appointment is not strictly
      *     in the future, or the client already has the same date/time slot.
@@ -89,7 +90,8 @@ public class AppointmentCommand extends Command {
         }
         model.setClient(client, client.copyWithAppointment(appointment));
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                client.getName(), appointment.getDate(), appointment.getTime()));
+                client.getName(), appointment.getDate(), appointment.getTime())
+                + appointment.getEndTime().map(endTime -> " et/" + endTime).orElse(""));
     }
 
     /**

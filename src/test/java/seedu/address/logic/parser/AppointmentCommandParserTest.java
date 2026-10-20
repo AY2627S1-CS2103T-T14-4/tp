@@ -31,6 +31,62 @@ public class AppointmentCommandParserTest {
     }
 
     @Test
+    public void parse_validEndTime_acceptsAnyOrderAndBoundaryTimes() {
+        AppointmentCommand expected = new AppointmentCommand(INDEX_FIRST_CLIENT,
+                new Appointment(new AppointmentDate("29-02-2024"), new AppointmentTime("00:00"))
+                        .withEndTime(new AppointmentTime("23:59")));
+        assertParseSuccess(parser, " c/1 d/29-02-2024 t/00:00 et/23:59", expected);
+        assertParseSuccess(parser, " et/23:59   t/00:00 c/1 d/29-02-2024 ", expected);
+        assertParseSuccess(parser, " c/1 et/23:59 d/29-02-2024 t/00:00", expected);
+
+        AppointmentCommand oneMinute = new AppointmentCommand(INDEX_FIRST_CLIENT,
+                new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("23:58"))
+                        .withEndTime(new AppointmentTime("23:59")));
+        assertParseSuccess(parser, " c/1 d/12-12-2026 t/23:58 et/23:59", oneMinute);
+    }
+
+    @Test
+    public void parse_repeatedEndTime_failsEvenWithIdenticalOrEmptyValues() {
+        for (String endTime : new String[] {"13:00", "14:00", ""}) {
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/12:00 et/13:00 et/" + endTime,
+                    Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_END_TIME));
+        }
+    }
+
+    @Test
+    public void parse_invalidEndTime_fails() {
+        for (String endTime : new String[] {"", "24:00", "12:60", "1:00", "13:00:00", "noon", "13:00 PM"}) {
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/12:00 et/" + endTime,
+                    AppointmentTime.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_endNotAfterStart_fails() {
+        for (String endTime : new String[] {"12:00", "11:59", "00:00"}) {
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/12:00 et/" + endTime,
+                    Appointment.MESSAGE_END_NOT_AFTER_START);
+        }
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/23:00 et/01:00",
+                Appointment.MESSAGE_END_NOT_AFTER_START);
+    }
+
+    @Test
+    public void parse_endTimePresent_preservesRequiredFieldValidation() {
+        for (String input : new String[] {" et/13:00", " c/1 t/12:00 et/13:00",
+            " c/1 d/12-12-2026 et/13:00", " d/12-12-2026 t/12:00 et/13:00",
+            " extra c/1 d/12-12-2026 t/12:00 et/13:00"}) {
+            assertParseFailure(parser, input,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, AppointmentCommand.MESSAGE_USAGE));
+        }
+        assertParseFailure(parser, " c/0 d/12-12-2026 t/12:00 et/13:00", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " c/1 d/31-02-2026 t/12:00 et/13:00", AppointmentDate.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/24:00 et/13:00", AppointmentTime.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/12:00 t/12:00 et/13:00",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_TIME));
+    }
+
+    @Test
     public void parse_missingFieldsOrPreamble_fails() {
         for (String input : new String[] {"", " c/1", " d/12-12-2026 t/12:00",
             " c/1 t/12:00", " c/1 d/12-12-2026", " extra c/1 d/12-12-2026 t/12:00"}) {
