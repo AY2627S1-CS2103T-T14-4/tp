@@ -9,6 +9,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.NoteType;
+import seedu.address.model.pet.Pet;
 
 /**
  * A UI component that displays information of a {@code Client}.
@@ -62,9 +64,12 @@ public class ClientCard extends UiPart<Region> {
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
         client.getPets().forEach(pet -> {
             String petText = "Pet: " + pet.getName() + " (" + pet.getSpecies() + ", " + pet.getBreed() + ")";
+            VBox petDetails = new VBox();
             Label label = new Label(petText);
             label.getStyleClass().add("cell_small_label");
-            pets.getChildren().add(label);
+            petDetails.getChildren().add(label);
+            addNoteLabels(petDetails, pet);
+            pets.getChildren().add(petDetails);
         });
         client.getAppointments().forEach(appointment -> {
             String appointmentText = "Appointment: " + appointment.getDate() + " " + appointment.getTime();
@@ -74,6 +79,24 @@ public class ClientCard extends UiPart<Region> {
             Label label = new Label(appointmentText);
             label.getStyleClass().add("cell_small_label");
             appointments.getChildren().add(label);
+        });
+    }
+
+    private static void addNoteLabels(VBox petDetails, Pet pet) {
+        addNoteLabel(petDetails, pet, NoteType.PREF, "Pref: ", false);
+        addNoteLabel(petDetails, pet, NoteType.SENS, "⚠ Sens: ", true);
+        addNoteLabel(petDetails, pet, NoteType.TEMP, "⚠ Temp: ", true);
+    }
+
+    private static void addNoteLabel(VBox petDetails, Pet pet, NoteType type, String prefix,
+                                     boolean safetyNote) {
+        pet.getNote(type).ifPresent(note -> {
+            Label noteLabel = new Label(prefix + note);
+            noteLabel.getStyleClass().add("cell_note_label");
+            if (safetyNote) {
+                noteLabel.getStyleClass().add("cell_safety_note_label");
+            }
+            petDetails.getChildren().add(noteLabel);
         });
     }
 }
