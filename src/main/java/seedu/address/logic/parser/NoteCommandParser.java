@@ -6,8 +6,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PET_NAME;
 
-import java.util.Optional;
-
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -30,6 +28,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
                 || !arguments.getValue(PREFIX_CLIENT).isPresent()
                 || !arguments.getValue(PREFIX_PET_NAME).isPresent()
                 || !arguments.getValue(PREFIX_NOTE_TYPE).isPresent()
+                || !arguments.getValue(PREFIX_NOTE).isPresent()
                 || hasDuplicate(arguments, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE)) {
             throw new ParseException(NoteCommand.MESSAGE_INVALID_FORMAT);
         }
@@ -43,7 +42,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
 
         PetName petName = ParserUtil.parsePetName(arguments.getValue(PREFIX_PET_NAME).get());
         NoteType noteType = parseNoteType(arguments.getValue(PREFIX_NOTE_TYPE).get());
-        Optional<PetNote> note = parseNote(arguments.getValue(PREFIX_NOTE));
+        PetNote note = parseNote(arguments.getValue(PREFIX_NOTE).get());
 
         return new NoteCommand(clientIndex, petName, noteType, note);
     }
@@ -64,12 +63,9 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         return NoteType.fromKeyword(value);
     }
 
-    private static Optional<PetNote> parseNote(Optional<String> value) throws ParseException {
-        if (value.isEmpty() || value.get().isBlank()) {
-            return Optional.empty();
-        }
+    private static PetNote parseNote(String value) throws ParseException {
         try {
-            return Optional.of(new PetNote(value.get()));
+            return new PetNote(value);
         } catch (IllegalArgumentException e) {
             throw new ParseException(PetNote.MESSAGE_CONSTRAINTS, e);
         }
