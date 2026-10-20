@@ -14,6 +14,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -30,8 +32,10 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 import seedu.address.storage.JsonPawPalsStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -168,6 +172,37 @@ public class DeleteClientCommandIntegrationTest {
 
         assertEquals(List.of(BENSON), restartedModel.getPawPals().getClientList());
         assertFalse(restartedModel.getPawPals().getClientList().contains(ALICE));
+    }
+
+    @Test
+    public void execute_clientsWithNotesAndLinkedAppointments_deletesOnlySelectedClientAfterReload()
+            throws Exception {
+        Client alice = withNotedPetAndLinkedAppointment(ALICE, "Milo", "09:00");
+        Client benson = withNotedPetAndLinkedAppointment(BENSON, "Luna", "14:00");
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(alice);
+        pawPals.addClient(benson);
+        model = new ModelManager(pawPals, new UserPrefs());
+        LogicManager logic = new LogicManager(model, createStorage());
+
+        logic.execute("delc 1");
+
+        StorageManager restartedStorage = createStorage();
+        Model restartedModel = new ModelManager(restartedStorage.readPawPals().orElseThrow(), new UserPrefs());
+        // The other client keeps its pet note, appointment end time and linked pet
+        assertEquals(List.of(benson), restartedModel.getPawPals().getClientList());
+    }
+
+    /**
+     * Returns a copy of {@code client} with a pet that has a temperament note,
+     * and an appointment with an end time that is linked to that pet.
+     */
+    private static Client withNotedPetAndLinkedAppointment(Client client, String petName, String startTime) {
+        Pet pet = new Pet(new PetName(petName), new Species("Dog"), new Breed("Poodle"))
+                .withNote(NoteType.TEMP, new PetNote("Nervous around dryers"));
+        Appointment appointment = new Appointment(new AppointmentDate("01-01-2028"), new AppointmentTime(startTime),
+                Optional.of(new AppointmentTime("16:30")), "Full groom", Set.of(new PetName(petName)));
+        return new ClientBuilder(client).withPets(pet).withAppointments(appointment).build();
     }
 
     private StorageManager createStorage() {

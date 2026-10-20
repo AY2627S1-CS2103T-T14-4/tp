@@ -2,7 +2,11 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
+
+import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +18,13 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
+import seedu.address.model.pet.Species;
+import seedu.address.testutil.ClientBuilder;
 
 public class ClearCommandTest {
 
@@ -47,4 +58,17 @@ public class ClearCommandTest {
         assertTrue(model.getPawPals().getClientList().isEmpty());
     }
 
+    @Test
+    public void execute_clientWithNotesAndLinkedAppointment_removesEverything() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"))
+                .withNote(NoteType.TEMP, new PetNote("Nervous around dryers"));
+        Appointment groom = new Appointment(new AppointmentDate("01-01-2028"), new AppointmentTime("09:00"),
+                Optional.of(new AppointmentTime("10:30")), "Full groom", Set.of(new PetName("Milo")));
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(new ClientBuilder(ALICE).withPets(milo).withAppointments(groom).build());
+        Model model = new ModelManager(pawPals, new UserPrefs());
+        Model expectedModel = new ModelManager(new PawPals(), new UserPrefs());
+
+        assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+    }
 }
