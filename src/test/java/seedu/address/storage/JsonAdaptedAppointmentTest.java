@@ -7,6 +7,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -72,5 +73,31 @@ public class JsonAdaptedAppointmentTest {
         assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, blankPet::toModelType);
         assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, nullPet::toModelType);
         assertThrows(IllegalValueException.class, PetName.MESSAGE_CONSTRAINTS, invalidPet::toModelType);
+    }
+
+    @Test
+    public void toModelType_withEndTime_preservesEndTime() throws Exception {
+        Appointment original = new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"),
+                Optional.of(new AppointmentTime("15:30")), "Bath", Set.of(new PetName("Milo")));
+        assertEquals(original, new JsonAdaptedAppointment(original).toModelType());
+    }
+
+    @Test
+    public void toModelType_missingEndTime_returnsAppointmentWithoutEndTime() throws Exception {
+        // Appointments saved by v1.3 have no endTime field at all
+        JsonAdaptedAppointment legacy = new JsonAdaptedAppointment("12-12-2026", "14:00", null, "", null);
+        assertTrue(legacy.toModelType().getEndTime().isEmpty());
+    }
+
+    @Test
+    public void toModelType_invalidEndTime_throwsIllegalValueException() {
+        JsonAdaptedAppointment invalidEnd = new JsonAdaptedAppointment("12-12-2026", "14:00", "25:00", "", null);
+        JsonAdaptedAppointment endBeforeStart = new JsonAdaptedAppointment("12-12-2026", "14:00", "13:00", "", null);
+        JsonAdaptedAppointment endAtStart = new JsonAdaptedAppointment("12-12-2026", "14:00", "14:00", "", null);
+
+        assertThrows(IllegalValueException.class, AppointmentTime.MESSAGE_CONSTRAINTS, invalidEnd::toModelType);
+        assertThrows(IllegalValueException.class, Appointment.MESSAGE_END_NOT_AFTER_START,
+                endBeforeStart::toModelType);
+        assertThrows(IllegalValueException.class, Appointment.MESSAGE_END_NOT_AFTER_START, endAtStart::toModelType);
     }
 }

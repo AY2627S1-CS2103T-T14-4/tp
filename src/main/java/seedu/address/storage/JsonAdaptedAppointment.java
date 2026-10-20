@@ -3,6 +3,7 @@ package seedu.address.storage;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -17,26 +18,30 @@ import seedu.address.model.pet.PetName;
 
 /**
  * Jackson-friendly representation of an appointment.
- * The linked pets field is optional, so data files saved before pets could be linked still load.
+ * The end time and linked pets fields are optional, so data files saved before they existed still load.
  */
 class JsonAdaptedAppointment {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Appointment's %s field is missing!";
 
     private final String date;
     private final String time;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String endTime;
     private final String details;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private final List<String> pets = new ArrayList<>();
 
     /**
      * Creates an appointment from stored data.
-     * Details and pets may be absent for appointments without notes or linked pets.
+     * The end time, details and pets may be absent for appointments without them.
      */
     @JsonCreator
     public JsonAdaptedAppointment(@JsonProperty("date") String date, @JsonProperty("time") String time,
-            @JsonProperty("details") String details, @JsonProperty("pets") List<String> pets) {
+            @JsonProperty("endTime") String endTime, @JsonProperty("details") String details,
+            @JsonProperty("pets") List<String> pets) {
         this.date = date;
         this.time = time;
+        this.endTime = endTime;
         this.details = details;
         if (pets != null) {
             this.pets.addAll(pets);
@@ -44,10 +49,17 @@ class JsonAdaptedAppointment {
     }
 
     /**
-     * Creates an appointment from stored data with no linked pets.
+     * Creates an appointment from stored data with no end time.
+     */
+    public JsonAdaptedAppointment(String date, String time, String details, List<String> pets) {
+        this(date, time, null, details, pets);
+    }
+
+    /**
+     * Creates an appointment from stored data with no end time or linked pets.
      */
     public JsonAdaptedAppointment(String date, String time, String details) {
-        this(date, time, details, null);
+        this(date, time, null, details, null);
     }
 
     /**
@@ -56,6 +68,7 @@ class JsonAdaptedAppointment {
     public JsonAdaptedAppointment(Appointment source) {
         date = source.getDate().toString();
         time = source.getTime().toString();
+        endTime = source.getEndTime().map(AppointmentTime::toString).orElse(null);
         details = source.getDetails();
         source.getPetNames().forEach(petName -> pets.add(petName.toString()));
     }
@@ -80,6 +93,8 @@ class JsonAdaptedAppointment {
         if (!AppointmentTime.isValidTime(time)) {
             throw new IllegalValueException(AppointmentTime.MESSAGE_CONSTRAINTS);
         }
+        AppointmentTime modelTime = new AppointmentTime(time);
+        Optional<AppointmentTime> modelEndTime = toModelEndTime(modelTime);
         Set<PetName> petNames = new LinkedHashSet<>();
         for (String pet : pets) {
             if (pet == null) {
@@ -91,7 +106,26 @@ class JsonAdaptedAppointment {
                 throw new IllegalValueException(PetName.MESSAGE_CONSTRAINTS, e);
             }
         }
-        return new Appointment(new AppointmentDate(date), new AppointmentTime(time),
+        return new Appointment(new AppointmentDate(date), modelTime, modelEndTime,
                 details == null ? "" : details, petNames);
+    }
+
+    /**
+     * Converts the stored end time, which is optional, to a model end time.
+     *
+     * @throws IllegalValueException if the end time is present but invalid or not after {@code startTime}.
+     */
+    private Optional<AppointmentTime> toModelEndTime(AppointmentTime startTime) throws IllegalValueException {
+        if (endTime == null) {
+            return Optional.empty();
+        }
+        if (!AppointmentTime.isValidTime(endTime)) {
+            throw new IllegalValueException(AppointmentTime.MESSAGE_CONSTRAINTS);
+        }
+        AppointmentTime modelEndTime = new AppointmentTime(endTime);
+        if (!Appointment.isValidEndTime(startTime, modelEndTime)) {
+            throw new IllegalValueException(Appointment.MESSAGE_END_NOT_AFTER_START);
+        }
+        return Optional.of(modelEndTime);
     }
 }
