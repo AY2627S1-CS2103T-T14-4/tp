@@ -123,7 +123,7 @@ public class NoteCommandTest {
         assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
                 new PetNote("Afraid of dryers"))));
         assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                new PetNote("Another note")));
+                new PetNote("Another note"))));
         assertFalse(command.equals(null));
         assertFalse(command.equals(new Object()));
     }
