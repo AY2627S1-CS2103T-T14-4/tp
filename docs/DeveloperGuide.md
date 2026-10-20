@@ -131,7 +131,7 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the PawPals data data i.e., all `Client` objects (which are contained in a `UniqueClientList` object).
+* stores the PawPals data i.e., all `Client` objects (which are contained in a `UniqueClientList` object). Each `Client` also holds its own `Pet` and `Appointment` objects, described in [Pets and appointments](#pets-and-appointments).
 * stores the `Client` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Client>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -144,6 +144,26 @@ The `Model` component,
 <puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
 </box>
 
+#### Pets and appointments
+
+The class diagram below shows how a `Client`'s pets and appointments are modelled.
+
+<puml src="diagrams/PetAppointmentClassDiagram.puml" width="700" />
+
+* A `Pet` has a `PetName`, `Species` and `Breed`, and up to three `PetNote`s: at most one for each `NoteType` (`PREF` preference, `SENS` sensitivity, `TEMP` temperament). Sensitivity and temperament notes count as safety information.
+* An `Appointment` has an `AppointmentDate`, a start `AppointmentTime`, an optional end `AppointmentTime` and free-text details. Within a client, an appointment is identified by its date and start time.
+* An `Appointment` links to the pets it covers by `PetName`, not by `Pet` object. Pet names are unique within a client (ignoring case), so a name is enough to find the pet, and `Client#getPetsFor(Appointment)` returns the linked `Pet` objects.
+* Like `Client`, these classes are immutable. Changes such as `Pet#withNote(...)` or `Client#withPetReplaced(...)` return a new object.
+
+**Design consideration: how an appointment refers to its pets**
+
+* **Alternative 1 (current choice):** store the pet's name.
+  * Pros: `Pet` objects are immutable, so editing a pet replaces the object; a name stays valid across edits. The data file stays simple, and older files without linked pets still load.
+  * Cons: the links must be updated when a pet is renamed or deleted. `Client#withPetReplaced(...)` and `Client#withoutPet(...)` do this, so commands never have to.
+* **Alternative 2:** store a reference to the `Pet` object.
+  * Pros: no lookup by name.
+  * Cons: after a pet is edited, appointments would still point to the old `Pet` object, and saving the reference to the data file would need an ID scheme.
+
 
 ### Storage component
 
@@ -152,7 +172,7 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both PawPals data data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both PawPals data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonPawPalsStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 

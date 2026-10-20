@@ -19,6 +19,8 @@ Class Email
 Class Name
 Class Phone
 Class Tag
+Class Pet
+Class Appointment
 
 Class I #FFFFFF
 }
@@ -42,6 +44,8 @@ Client *--> Phone
 Client *--> Email
 Client *--> Address
 Client *--> "*" Tag
+Client *--> "*" Pet
+Client *--> "*" Appointment
 
 Client -[hidden]up--> I
 UniqueClientList -[hidden]right-> I
