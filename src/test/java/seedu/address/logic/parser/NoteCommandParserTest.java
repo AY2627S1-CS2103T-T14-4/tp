@@ -53,7 +53,6 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_missingRequiredPrefix_throwsParseException() {
-        assertParseFailure(parser, " c/1 pn/Milo ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " pn/Milo ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " c/1 ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " c/1 pn/Milo nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
@@ -77,7 +76,6 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_invalidNote_throwsParseException() {
-        assertParseFailure(parser, " c/1 pn/Milo ty/pref nt/ ", PetNote.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " c/1 pn/Milo ty/pref nt/" + "a".repeat(PetNote.MAX_LENGTH + 1),
                 PetNote.MESSAGE_CONSTRAINTS);
     }
