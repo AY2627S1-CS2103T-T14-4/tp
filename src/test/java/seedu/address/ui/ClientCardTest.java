@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -111,6 +112,36 @@ public class ClientCardTest {
         assertFalse(noteLabels.stream().anyMatch(label -> label.startsWith("⚠ Temp: ")));
     }
 
+    @Test
+    public void constructor_multiplePets_keepsNotesWithTheirPet() {
+        Pet milo = MILO.withNote(NoteType.SENS, new PetNote("Sensitive paws"));
+        Pet luna = LUNA.withNote(NoteType.PREF, new PetNote("Likes short trims"));
+        Client client = new ClientBuilder().withPets(milo, luna).build();
+
+        List<String> labels = getLabelsWithClass(new ClientCard(client, 1).getRoot(), "cell_note_label");
+
+        assertTrue(labels.contains("⚠ Sens: Sensitive paws"));
+        assertTrue(labels.contains("Pref: Likes short trims"));
+        assertEquals(2, labels.size());
+    }
+
+    @Test
+    public void constructor_longNote_preservesTextAndEnablesWrapping() {
+        String longNote = "a".repeat(PetNote.MAX_LENGTH);
+        Pet pet = MILO.withNote(NoteType.PREF, new PetNote(longNote));
+        Client client = new ClientBuilder().withPets(pet).build();
+
+        Node root = new ClientCard(client, 1).getRoot();
+        Label noteLabel = getLabelsWithClass(root, "cell_note_label").stream()
+                .map(text -> findLabel(root, text))
+                .filter(label -> label != null)
+                .findFirst()
+                .orElseThrow();
+
+        assertTrue(noteLabel.isWrapText());
+        assertTrue(noteLabel.getText().contains(longNote));
+    }
+
     private List<String> getSmallLabelTexts(Node node) {
         List<String> labels = new ArrayList<>();
         if (node instanceof Label label && label.getStyleClass().contains("cell_small_label")) {
@@ -131,5 +162,21 @@ public class ClientCardTest {
             parent.getChildrenUnmodifiable().forEach(child -> labels.addAll(getLabelsWithClass(child, styleClass)));
         }
         return labels;
+    }
+
+    private Label findLabel(Node node, String text) {
+        if (node instanceof Label label && label.getStyleClass().contains("cell_note_label")
+                && label.getText().equals(text)) {
+            return label;
+        }
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                Label label = findLabel(child, text);
+                if (label != null) {
+                    return label;
+                }
+            }
+        }
+        return null;
     }
 }
