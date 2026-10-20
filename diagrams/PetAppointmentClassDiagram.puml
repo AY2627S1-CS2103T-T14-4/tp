@@ -1,0 +1,47 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+hide empty members
+
+Class Client
+
+Package Pet as PetPackage <<Rectangle>> {
+Class Pet
+Class PetName
+Class Species
+Class Breed
+Class PetNote
+Enum NoteType <<enumeration>>
+}
+
+Package Appointment as AppointmentPackage <<Rectangle>> {
+Class Appointment
+Class AppointmentDate
+Class AppointmentTime
+}
+
+Client *--> "*" Pet
+Client *--> "*" Appointment
+
+Pet *--> "1" PetName
+Pet *--> "1" Species
+Pet *--> "1" Breed
+Pet *--> "0..3" PetNote : notes >
+Pet ..> NoteType : keys notes by >
+
+Appointment *--> "1" AppointmentDate
+Appointment *--> "1" AppointmentTime : start >
+Appointment *--> "0..1" AppointmentTime : end >
+Appointment --> "*" PetName : covers >
+
+note "At most one note of each NoteType.\nSENS and TEMP notes are safety information." as NoteNote
+NoteNote .. PetNote
+
+note "Linked by name, not by Pet object.\nClient updates the links when a pet\nis renamed or deleted." as LinkNote
+LinkNote .. Appointment
+@enduml
