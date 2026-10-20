@@ -8,7 +8,6 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -134,6 +133,6 @@ public class PawPalsParserTest {
                 "note c/1 pn/Milo ty/temp nt/Anxious around loud dryers");
 
         assertEquals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
-                NoteType.TEMP, Optional.of(new PetNote("Anxious around loud dryers"))), command);
+                NoteType.TEMP, new PetNote("Anxious around loud dryers")), command);
     }
 }

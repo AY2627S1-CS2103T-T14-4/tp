@@ -10,8 +10,6 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -42,7 +40,7 @@ public class NoteCommandTest {
                 MILO.withNote(NoteType.TEMP, new PetNote("Anxious around loud dryers"))));
 
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Anxious around loud dryers")));
+                new PetNote("Anxious around loud dryers"));
 
         assertCommandSuccess(command, model, "Updated temperament note for Milo: Anxious around loud dryers",
                 expectedModel);
@@ -58,41 +56,17 @@ public class NoteCommandTest {
                 petWithNote.withNote(NoteType.PREF, new PetNote("Avoid scented shampoo"))));
 
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
-                Optional.of(new PetNote("Avoid scented shampoo")));
+                new PetNote("Avoid scented shampoo"));
 
         assertCommandSuccess(command, model, "Updated preference note for Milo: Avoid scented shampoo",
                 expectedModel);
     }
 
     @Test
-    public void execute_clearNote_success() {
-        Pet petWithNote = MILO.withNote(NoteType.TEMP, new PetNote("Nervous around strangers"));
-        Model model = modelWithPet(petWithNote);
-        Model expectedModel = modelWithPet(petWithNote);
-        Client targetClient = expectedModel.getFilteredClientList().get(0);
-        expectedModel.setClient(targetClient, targetClient.withPetReplaced(MILO.getName(),
-                petWithNote.withoutNote(NoteType.TEMP)));
-
-        NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.empty());
-
-        assertCommandSuccess(command, model, "Cleared temperament note for Milo", expectedModel);
-    }
-
-    @Test
-    public void execute_clearMissingNote_throwsCommandException() {
-        Model model = modelWithPet(MILO);
-        NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.SENS,
-                Optional.empty());
-
-        assertCommandFailure(command, model, "Milo has no sensitivity note to clear.");
-    }
-
-    @Test
     public void execute_unknownPet_throwsCommandException() {
         Model model = modelWithPet(MILO);
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Luna"), NoteType.PREF,
-                Optional.of(new PetNote("Likes treats")));
+                new PetNote("Likes treats"));
 
         assertCommandFailure(command, model, "This client has no pet named Luna.");
     }
@@ -101,7 +75,7 @@ public class NoteCommandTest {
     public void execute_invalidClientIndex_throwsCommandException() {
         Model model = modelWithPet(MILO);
         NoteCommand command = new NoteCommand(Index.fromOneBased(2), new PetName("Milo"), NoteType.PREF,
-                Optional.of(new PetNote("Likes treats")));
+                new PetNote("Likes treats"));
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
     }
@@ -111,7 +85,7 @@ public class NoteCommandTest {
         Pet petWithSafetyNote = MILO.withNote(NoteType.SENS, new PetNote("Sensitive paws"));
         Model model = modelWithPet(petWithSafetyNote);
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")));
+                new PetNote("Afraid of dryers"));
 
         assertEquals(new CommandResult("Updated temperament note for Milo: Afraid of dryers"),
                 assertDoesNotThrow(() -> command.execute(model)));
@@ -125,11 +99,11 @@ public class NoteCommandTest {
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new NoteCommand(null, new PetName("Milo"), NoteType.PREF,
-                Optional.empty()));
+                new PetNote("Note")));
         assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_CLIENT, null, NoteType.PREF,
-                Optional.empty()));
+                new PetNote("Note")));
         assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
-                null, Optional.empty()));
+                null, new PetNote("Note")));
         assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
                 NoteType.PREF, null));
     }
@@ -137,19 +111,19 @@ public class NoteCommandTest {
     @Test
     public void equals_sameValues_returnsTrue() {
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")));
+                new PetNote("Afraid of dryers"));
 
         assertTrue(command.equals(command));
         assertTrue(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")))));
+                new PetNote("Afraid of dryers"))));
         assertFalse(command.equals(new NoteCommand(Index.fromOneBased(2), new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")))));
+                new PetNote("Afraid of dryers"))));
         assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Luna"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")))));
+                new PetNote("Afraid of dryers"))));
         assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
-                Optional.of(new PetNote("Afraid of dryers")))));
+                new PetNote("Afraid of dryers"))));
         assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.empty())));
+                new PetNote("Another note")));
         assertFalse(command.equals(null));
         assertFalse(command.equals(new Object()));
     }
@@ -157,9 +131,9 @@ public class NoteCommandTest {
     @Test
     public void hashCode_sameValues_returnsSameHashCode() {
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")));
+                new PetNote("Afraid of dryers"));
         NoteCommand equivalentCommand = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")));
+                new PetNote("Afraid of dryers"));
 
         assertEquals(command.hashCode(), equivalentCommand.hashCode());
     }
@@ -167,11 +141,11 @@ public class NoteCommandTest {
     @Test
     public void toStringMethod_returnsExpectedString() {
         NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
-                Optional.of(new PetNote("Afraid of dryers")));
+                new PetNote("Afraid of dryers"));
 
         String expected = NoteCommand.class.getCanonicalName()
                 + "{clientIndex=" + INDEX_FIRST_CLIENT
-                + ", petName=Milo, noteType=TEMP, note=Optional[Afraid of dryers]}";
+                + ", petName=Milo, noteType=TEMP, note=Afraid of dryers}";
 
         assertEquals(expected, command.toString());
     }
