@@ -46,10 +46,20 @@ public class PetTest {
     public void noteOperations_addReplaceAndClearNote() {
         Pet withPreference = milo.withNote(NoteType.PREF, new PetNote("Quiet handling"));
         assertEquals(new PetNote("Quiet handling"), withPreference.getNote(NoteType.PREF).orElseThrow());
+        assertTrue(withPreference.hasNote(NoteType.PREF));
+        assertFalse(withPreference.hasSafetyNote());
 
         Pet withReplacement = withPreference.withNote(NoteType.PREF, new PetNote("Short sessions"));
         assertEquals(new PetNote("Short sessions"), withReplacement.getNote(NoteType.PREF).orElseThrow());
         assertEquals(1, withReplacement.getNotes().size());
+
+        Pet withSensitivity = withReplacement.withNote(NoteType.SENS, new PetNote("Sensitive paws"));
+        assertTrue(withSensitivity.hasNote(NoteType.SENS));
+        assertTrue(withSensitivity.hasSafetyNote());
+
+        Pet withTemperament = withSensitivity.withNote(NoteType.TEMP, new PetNote("Anxious"));
+        assertTrue(withTemperament.hasNote(NoteType.TEMP));
+        assertTrue(withTemperament.hasSafetyNote());
 
         Pet cleared = withReplacement.withoutNote(NoteType.PREF);
         assertTrue(cleared.getNote(NoteType.PREF).isEmpty());
@@ -72,6 +82,7 @@ public class PetTest {
     @Test
     public void noteOperations_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> milo.getNote(null));
+        assertThrows(NullPointerException.class, () -> milo.hasNote(null));
         assertThrows(NullPointerException.class, () ->
                 milo.withNote(null, new PetNote("Quiet handling")));
         assertThrows(NullPointerException.class, () ->

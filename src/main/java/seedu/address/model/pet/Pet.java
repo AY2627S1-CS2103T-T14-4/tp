@@ -77,6 +77,20 @@ public class Pet {
     }
 
     /**
+     * Returns true if this pet has a note of the given type.
+     */
+    public boolean hasNote(NoteType type) {
+        return notes.containsKey(Objects.requireNonNull(type));
+    }
+
+    /**
+     * Returns true if this pet has a sensitivity or temperament note.
+     */
+    public boolean hasSafetyNote() {
+        return hasNote(NoteType.SENS) || hasNote(NoteType.TEMP);
+    }
+
+    /**
      * Returns a copy of this pet with the note of the given type added or replaced.
      */
     public Pet withNote(NoteType type, PetNote note) {
