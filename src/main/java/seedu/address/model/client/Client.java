@@ -6,12 +6,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -29,6 +32,8 @@ import seedu.address.model.tag.Tag;
  * Guarantees: details are present and not null, field values are validated, immutable.
  */
 public class Client {
+
+    private static final Logger logger = LogsCenter.getLogger(Client.class);
 
     // Identity fields
     private final Name name;
@@ -268,8 +273,27 @@ public class Client {
     }
 
     /**
+     * Returns this client's pets that {@code appointment} is linked to, in the appointment's order.
+     * Pet names are matched ignoring case. Linked names with no matching pet are skipped and logged.
+     *
+     * @param appointment the appointment whose pets to look up
+     * @return an immutable list of the linked pets, which is empty if the appointment has none
+     */
+    public List<Pet> getPetsFor(Appointment appointment) {
+        requireAllNonNull(appointment);
+        List<Pet> linkedPets = new ArrayList<>();
+        for (PetName petName : appointment.getPetNames()) {
+            getPet(petName).ifPresentOrElse(linkedPets::add, () -> logger.warning(String.format(
+                    "Appointment on %s at %s is linked to pet %s, but %s has no such pet",
+                    appointment.getDate(), appointment.getTime(), petName, name)));
+        }
+        return List.copyOf(linkedPets);
+    }
+
+    /**
      * Returns a new client with the pet named {@code targetName} replaced by {@code editedPet},
-     * keeping the pet's position. This client is unchanged.
+     * keeping the pet's position. Appointments linked to the pet are updated to its new name.
+     * This client is unchanged.
      *
      * @param targetName the name of the pet to replace, ignoring case
      * @param editedPet the replacement pet
@@ -287,11 +311,12 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.set(index, editedPet);
         return new Client(name, phone, email, address, tags,
-                updatedPets, appointments);
+                updatedPets, relinkAppointments(targetName, Optional.of(editedPet.getName())));
     }
 
     /**
-     * Returns a new client without the pet named {@code targetName}. This client is unchanged.
+     * Returns a new client without the pet named {@code targetName}.
+     * The pet is also unlinked from this client's appointments. This client is unchanged.
      *
      * @param targetName the name of the pet to remove, ignoring case
      * @return a new client without the pet
@@ -307,14 +332,45 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.remove(index);
         return new Client(name, phone, email, address, tags,
-                updatedPets, appointments);
+                updatedPets, relinkAppointments(targetName, Optional.empty()));
+    }
+
+    /**
+     * Returns this client's appointments with every link to the pet named {@code targetName}, ignoring case,
+     * replaced by {@code replacementName}, or removed if {@code replacementName} is empty.
+     * The order of the other linked pets is kept.
+     */
+    private List<Appointment> relinkAppointments(PetName targetName, Optional<PetName> replacementName) {
+        logger.fine("Updating appointment links of " + name + " for pet " + targetName + ": "
+                + replacementName.map(newName -> "renamed to " + newName).orElse("removed"));
+        String targetKey = identityKeyOf(targetName);
+        List<Appointment> updatedAppointments = new ArrayList<>();
+        for (Appointment appointment : appointments) {
+            Set<PetName> updatedPetNames = new LinkedHashSet<>();
+            for (PetName linkedName : appointment.getPetNames()) {
+                if (identityKeyOf(linkedName).equals(targetKey)) {
+                    replacementName.ifPresent(updatedPetNames::add);
+                } else {
+                    updatedPetNames.add(linkedName);
+                }
+            }
+            updatedAppointments.add(appointment.withPetNames(updatedPetNames));
+        }
+        return updatedAppointments;
+    }
+
+    /**
+     * Returns the case-insensitive key used to match pet names, consistent with {@link Pet#getIdentityKey()}.
+     */
+    private static String identityKeyOf(PetName petName) {
+        return petName.fullName.toLowerCase(Locale.ROOT);
     }
 
     /**
      * Returns the position of the pet named {@code petName}, ignoring case, or -1 if there is none.
      */
     private int indexOfPet(PetName petName) {
-        String identityKey = petName.fullName.toLowerCase(Locale.ROOT);
+        String identityKey = identityKeyOf(petName);
         for (int i = 0; i < pets.size(); i++) {
             if (pets.get(i).getIdentityKey().equals(identityKey)) {
                 return i;

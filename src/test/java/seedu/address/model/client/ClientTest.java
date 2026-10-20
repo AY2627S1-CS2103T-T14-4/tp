@@ -14,7 +14,9 @@ import static seedu.address.testutil.TypicalClients.BOB;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -446,5 +448,59 @@ public class ClientTest {
         assertEquals(List.of(appointment, other), original.getAppointments());
         assertThrows(AppointmentNotFoundException.class, () ->
                 updated.withoutAppointment(appointment.getDate(), appointment.getTime()));
+    }
+
+    /**
+     * Returns {@code appointment} linked to the given pet names, in order.
+     */
+    private static Appointment linkedTo(Appointment appointment, String... petNames) {
+        Set<PetName> names = new LinkedHashSet<>();
+        for (String petName : petNames) {
+            names.add(new PetName(petName));
+        }
+        return appointment.withPetNames(names);
+    }
+
+    @Test
+    public void getPetsFor_returnsLinkedPetsInAppointmentOrder() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Client client = new ClientBuilder().build().withPet(milo).withPet(luna);
+
+        assertEquals(List.of(luna, milo), client.getPetsFor(linkedTo(appointment, "LUNA", "milo")));
+        assertEquals(List.of(milo), client.getPetsFor(linkedTo(appointment, "Rex", "Milo")));
+        assertTrue(client.getPetsFor(appointment).isEmpty());
+        assertThrows(UnsupportedOperationException.class, () ->
+                client.getPetsFor(linkedTo(appointment, "Milo")).clear());
+        assertThrows(NullPointerException.class, () -> client.getPetsFor(null));
+    }
+
+    @Test
+    public void withPetReplaced_renamedPet_updatesAppointmentLinks() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Pet max = new Pet(new PetName("Max"), new Species("Dog"), new Breed("Poodle"));
+        Appointment other = new Appointment(appointment.getDate(), new AppointmentTime("16:00"));
+        Client original = new ClientBuilder().build().withPet(milo).withPet(luna)
+                .copyWithAppointment(linkedTo(appointment, "milo", "Luna")).copyWithAppointment(other);
+
+        Client updated = original.withPetReplaced(new PetName("Milo"), max);
+
+        assertEquals(List.of(linkedTo(appointment, "Max", "Luna"), other), updated.getAppointments());
+        assertEquals(List.of(max, luna), updated.getPetsFor(updated.getAppointments().get(0)));
+        assertEquals(List.of(linkedTo(appointment, "milo", "Luna"), other), original.getAppointments());
+    }
+
+    @Test
+    public void withoutPet_unlinksPetFromAppointments() {
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
+        Client original = new ClientBuilder().build().withPet(milo).withPet(luna)
+                .copyWithAppointment(linkedTo(appointment, "Milo", "Luna"));
+
+        Client updated = original.withoutPet(new PetName("MILO"));
+
+        assertEquals(List.of(linkedTo(appointment, "Luna")), updated.getAppointments());
+        assertEquals(List.of(linkedTo(appointment, "Milo", "Luna")), original.getAppointments());
     }
 }
