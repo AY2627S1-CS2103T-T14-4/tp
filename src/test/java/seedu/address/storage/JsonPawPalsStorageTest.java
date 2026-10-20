@@ -26,8 +26,10 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 
 public class JsonPawPalsStorageTest {
@@ -121,7 +123,9 @@ public class JsonPawPalsStorageTest {
     @Test
     public void readAndSavePawPals_petsRemainWithTheirClients() throws Exception {
         Path filePath = testFolder.resolve("pets.json");
-        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
+        Pet milo = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"))
+                .withNote(NoteType.SENS, new PetNote("Sensitive paws"))
+                .withNote(NoteType.TEMP, new PetNote("Anxious around dryers"));
         Pet luna = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
         Client alice = ALICE.withPet(milo);
         Client benson = BENSON.withPet(milo).withPet(luna);
@@ -136,6 +140,7 @@ public class JsonPawPalsStorageTest {
         assertEquals(original, restored);
         assertEquals(alice.getPets(), restored.getClientList().get(0).getPets());
         assertEquals(benson.getPets(), restored.getClientList().get(1).getPets());
+        assertEquals(milo.getNotes(), restored.getClientList().get(0).getPets().get(0).getNotes());
     }
 
     @Test
