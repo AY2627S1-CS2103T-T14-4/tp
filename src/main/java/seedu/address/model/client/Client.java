@@ -356,6 +356,8 @@ public class Client {
             }
             updatedAppointments.add(appointment.withPetNames(updatedPetNames));
         }
+        assert updatedAppointments.size() == appointments.size()
+                : "Relinking pets must preserve the appointment count";
         return updatedAppointments;
     }
 
