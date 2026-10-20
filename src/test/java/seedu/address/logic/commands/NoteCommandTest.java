@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -131,6 +132,48 @@ public class NoteCommandTest {
                 null, Optional.empty()));
         assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
                 NoteType.PREF, null));
+    }
+
+    @Test
+    public void equals_sameValues_returnsTrue() {
+        NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")));
+
+        assertTrue(command.equals(command));
+        assertTrue(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")))));
+        assertFalse(command.equals(new NoteCommand(Index.fromOneBased(2), new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")))));
+        assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Luna"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")))));
+        assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
+                Optional.of(new PetNote("Afraid of dryers")))));
+        assertFalse(command.equals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.empty())));
+        assertFalse(command.equals(null));
+        assertFalse(command.equals(new Object()));
+    }
+
+    @Test
+    public void hashCode_sameValues_returnsSameHashCode() {
+        NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")));
+        NoteCommand equivalentCommand = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")));
+
+        assertEquals(command.hashCode(), equivalentCommand.hashCode());
+    }
+
+    @Test
+    public void toStringMethod_returnsExpectedString() {
+        NoteCommand command = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP,
+                Optional.of(new PetNote("Afraid of dryers")));
+
+        String expected = NoteCommand.class.getCanonicalName()
+                + "{clientIndex=" + INDEX_FIRST_CLIENT
+                + ", petName=Milo, noteType=TEMP, note=Optional[Afraid of dryers]}";
+
+        assertEquals(expected, command.toString());
     }
 
     private static Model modelWithPet(Pet pet) {
