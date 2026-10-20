@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -30,8 +32,10 @@ import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.NameContainsKeywordsPredicate;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
@@ -122,5 +126,14 @@ public class PawPalsParserTest {
         AddPetCommand command = (AddPetCommand) parser.parseCommand("addp c/1 n/Milo s/Dog b/Poodle");
 
         assertEquals(new AddPetCommand(INDEX_FIRST_CLIENT, pet), command);
+    }
+
+    @Test
+    public void parseCommand_note() throws Exception {
+        NoteCommand command = (NoteCommand) parser.parseCommand(
+                "note c/1 pn/Milo ty/temp nt/Anxious around loud dryers");
+
+        assertEquals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
+                NoteType.TEMP, Optional.of(new PetNote("Anxious around loud dryers"))), command);
     }
 }
