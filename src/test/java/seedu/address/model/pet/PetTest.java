@@ -45,6 +45,7 @@ public class PetTest {
     @Test
     public void noteOperations_addReplaceAndClearNote() {
         Pet withPreference = milo.withNote(NoteType.PREF, new PetNote("Quiet handling"));
+        assertTrue(milo.getNotes().isEmpty()); // Tests for immutability
         assertEquals(new PetNote("Quiet handling"), withPreference.getNote(NoteType.PREF).orElseThrow());
         assertTrue(withPreference.hasNote(NoteType.PREF));
         assertFalse(withPreference.hasSafetyNote());
