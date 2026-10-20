@@ -18,8 +18,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 
@@ -79,6 +81,24 @@ public class ClientCardTest {
         assertFalse(bobLabels.contains("Pet: Milo (Dog, Poodle)"));
     }
 
+    @Test
+    public void constructor_petWithNotes_displaysLabelsAndSafetyMarkers() {
+        Pet pet = MILO.withNote(NoteType.PREF, new PetNote("Likes quiet grooming"))
+                .withNote(NoteType.SENS, new PetNote("Sensitive paws"))
+                .withNote(NoteType.TEMP, new PetNote("Anxious around dryers"));
+        Client client = new ClientBuilder().withPets(pet).build();
+
+        Node root = new ClientCard(client, 1).getRoot();
+        List<String> noteLabels = getLabelsWithClass(root, "cell_note_label");
+        List<String> safetyLabels = getLabelsWithClass(root, "cell_safety_note_label");
+
+        assertTrue(noteLabels.contains("Pref: Likes quiet grooming"));
+        assertTrue(noteLabels.contains("⚠ Sens: Sensitive paws"));
+        assertTrue(noteLabels.contains("⚠ Temp: Anxious around dryers"));
+        assertTrue(safetyLabels.contains("⚠ Sens: Sensitive paws"));
+        assertTrue(safetyLabels.contains("⚠ Temp: Anxious around dryers"));
+    }
+
     private List<String> getSmallLabelTexts(Node node) {
         List<String> labels = new ArrayList<>();
         if (node instanceof Label label && label.getStyleClass().contains("cell_small_label")) {
@@ -86,6 +106,17 @@ public class ClientCardTest {
         }
         if (node instanceof Parent parent) {
             parent.getChildrenUnmodifiable().forEach(child -> labels.addAll(getSmallLabelTexts(child)));
+        }
+        return labels;
+    }
+
+    private List<String> getLabelsWithClass(Node node, String styleClass) {
+        List<String> labels = new ArrayList<>();
+        if (node instanceof Label label && label.getStyleClass().contains(styleClass)) {
+            labels.add(label.getText());
+        }
+        if (node instanceof Parent parent) {
+            parent.getChildrenUnmodifiable().forEach(child -> labels.addAll(getLabelsWithClass(child, styleClass)));
         }
         return labels;
     }
