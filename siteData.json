@@ -117,6 +117,7 @@
         "adding-a-pet-addp": "Adding a pet: addp",
         "deleting-a-client-delc": "Deleting a client: delc",
         "adding-an-appointment-appt": "Adding an appointment: appt",
+        "cancelling-an-appointment-cancel": "Cancelling an appointment: cancel",
         "listing-all-clients-list": "Listing all clients: list",
         "editing-a-client-edit": "Editing a client: edit",
         "locating-clients-by-name-find": "Locating clients by name: find",
