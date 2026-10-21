@@ -123,6 +123,53 @@ After a successful command, the pet appears under the selected client's card in 
 
 If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
 
+### Adding or updating a pet note: `note`
+
+Records a note about one of a client's pets. Each pet can have one note of each type:
+
+* `pref`: grooming preference, e.g. preferred cut
+* `sens`: sensitivity, e.g. allergies or skin conditions
+* `temp`: temperament, e.g. nervous around dryers
+
+Sensitivity and temperament notes are safety information and are marked with ⚠ on the client card.
+
+Format: `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`
+
+Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
+* `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
+* If the pet already has a note of that type, the new note replaces it. Other notes are kept.
+
+Successful output: `Updated temperament note for Milo: Anxious around loud dryers`
+
+### Deleting a pet note: `delnote`
+
+Deletes one note from one of a client's pets. The pet's other notes are kept.
+
+Format: `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`
+
+Example: `delnote c/1 pn/Milo ty/temp`
+
+* `CLIENT_INDEX`, `PET_NAME` and `TYPE` follow the same rules as `note`.
+* All three prefixes are required, may appear in any order, and must each appear only once.
+
+Successful output: `Deleted temperament note for Milo`
+
+If the command fails, no note is changed. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions. |
+| Repeated prefix, for example two `ty/` values | `Multiple values specified for the following single-valued field(s): ty/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Luna.` |
+| Invalid type | `Note type must be pref, sens or temp.` |
+| The pet has no note of that type | `Milo has no sensitivity note to delete.` |
+
 ### Deleting a client: `delc`
 
 Removes an unwanted client record, all their pets, and all their appointments.
@@ -327,6 +374,8 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
+**Add/update pet note** | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
+**Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34`
