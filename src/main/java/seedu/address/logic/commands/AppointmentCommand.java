@@ -15,7 +15,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentConflictChecker;
 import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
 
@@ -87,7 +86,7 @@ public class AppointmentCommand extends Command {
             throw new CommandException(MESSAGE_NOT_FUTURE);
         }
         Client client = displayedClients.get(targetIndex.getZeroBased());
-        Optional<Conflict> conflict = AppointmentConflictChecker.findConflict(model.getPawPals(), appointment);
+        Optional<Conflict> conflict = model.findAppointmentConflict(appointment);
         if (conflict.isPresent()) {
             throw new CommandException(Messages.formatAppointmentConflict(conflict.get()));
         }

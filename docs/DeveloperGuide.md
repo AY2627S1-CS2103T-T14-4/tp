@@ -167,13 +167,14 @@ The class diagram below shows how a `Client`'s pets and appointments are modelle
 
 #### Global appointment conflicts
 
-`AppointmentConflictChecker.findConflict(model.getPawPals(), candidate)` scans the full client list's
-active appointments using `Appointment#overlaps(...)`. It returns the first conflict with its owning
-client, or an empty optional. It ignores the current UI filter and completed-session history.
+Commands call `Model#findAppointmentConflict(candidate)` to check active bookings through the Model facade.
+`ModelManager` delegates to `AppointmentConflictChecker`, which scans the full client list's active
+appointments using `Appointment#overlaps(...)`. It returns the first conflict with its owning client,
+or an empty optional. It ignores the current UI filter and completed-session history.
 `appt` checks this before replacing a client, so rejected bookings leave data and the filter unchanged.
 `Messages#formatAppointmentConflict(...)` supplies feedback including the owner and conflicting slot.
 
-The overload `findConflict(pawPals, candidate, originalClient, originalAppointment)` supports `editappt`.
+The overload `Model#findAppointmentConflict(candidate, originalClient, originalAppointment)` supports `editappt`.
 It excludes only the original owner's booking identified by date and start time, while checking all
 other bookings. The editing command must validate its target, run this check before mutation, then use
 `Client#withAppointmentReplaced(...)` and one model update. A client-only appointment and appointments
