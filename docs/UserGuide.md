@@ -343,6 +343,19 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Locating pet owners by pet name: `findp`
+
+Finds all clients who own pets whose names match any of the given keywords.
+
+Format: `findp KEYWORD [MORE_KEYWORDS]`
+
+Pet-name matching is case-insensitive and requires a full-name match. Multiple keywords use OR search.
+The displayed client cards remain unchanged, so client indexes can be used with other commands.
+
+Examples:
+* `findp Milo` returns the owners of pets named `Milo`
+* `findp Milo Luna` returns the owners of pets named `Milo` or `Luna`
+
 ### Clearing all entries: `clear`
 
 Clears all clients, pets, and appointments from PawPals.

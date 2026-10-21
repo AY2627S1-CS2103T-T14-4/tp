@@ -19,6 +19,7 @@ public class Messages {
     public static final String MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX = "The client index provided is invalid.";
     public static final String MESSAGE_UNKNOWN_PET = "This client has no pet named %1$s.";
     public static final String MESSAGE_CLIENTS_LISTED_OVERVIEW = "%1$d client(s) listed!";
+    public static final String MESSAGE_PETS_FOUND = "%1$d pet(s) found.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_APPOINTMENT_CONFLICT =
