@@ -142,19 +142,23 @@ The deleted client disappears from the client list, and the remaining clients ar
 
 ### Adding an appointment: `appt`
 
-Adds an appointment to an existing client. An appointment belongs to the client rather than to a specific pet, so it may cover one or more of the client's pets. You can also schedule an appointment for a client with no recorded pets; this command does not select individual pets.
+Adds an appointment to an existing client. Use one or more `pn/` fields to identify the client's pets attending the appointment. You can also omit pet names, including for a client with no recorded pets.
 
-Format: `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]`
+Format: `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...`
 
 Examples:
 
 * `appt c/1 d/12-12-2026 t/12:34` — records a start time only.
 * `appt c/1 d/12-12-2026 t/12:34 et/13:34` — records a start and end time.
+* `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Sir Fluffy` — links two pets belonging to the displayed client.
 
 Rules:
 
-* `c/`, `d/`, and `t/` are required; `et/` is optional. Fields may appear in any order. Each prefix may appear at most once, even if repeated values are identical. Do not put extra text before the first prefix.
+* `c/`, `d/`, and `t/` are required; `et/` and `pn/` are optional. Fields may appear in any order. Each prefix except `pn/` may appear at most once, even if repeated values are identical. Repeat `pn/` for additional pets. Do not put extra text before the first prefix.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the **currently displayed** list. After `find`, index `1` refers to the first matching client, rather than the first client in the full list. Adding an appointment keeps the current filter.
+* Each `pn/` must name a pet belonging to the selected client. Names are matched ignoring case, leading/trailing spaces and repeated spaces. For example, `pn/sir   FLUFFY` matches the recorded name `Sir Fluffy`. Unknown pets and pets belonging only to another client are rejected; add them to the selected client with `addp` first if appropriate.
+* Repeated references to the same pet are ignored, including references with different casing or spacing. Linked pets are stored and reported using their recorded names, in first-reference order. An empty or invalid `pn/` is an error, even after a valid name. Pet names must be 1–40 characters after space normalization and contain only letters, numbers, spaces, apostrophes and hyphens.
+* Omitting `pn/` creates an appointment without links to individual pets. It does not automatically select every pet belonging to the client.
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
 * `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
@@ -167,6 +171,10 @@ Rules:
 Successful output, if the selected client's name is Ben Lim: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
 
 When an end time is supplied: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34`
+
+When pets are linked: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Sir Fluffy`
+
+Linked pet names and optional end times are retained after restarting PawPals. Creating an appointment preserves the client's existing appointments, contact details, pets, pet notes and completed history.
 
 The appointment's date and start time appear under the selected client's contact information. All appointment data, including an optional end time, is saved automatically and retained after restarting PawPals. End times are included in command feedback; the current client card shows the start time only. Stored nonblank details are also displayed when present. Appointments remain available after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
 
@@ -181,6 +189,8 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
 | Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
 | End time equal to or before the start time | `End time must be after the start time.` |
+| Empty or invalid pet name | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.` |
+| Pet not belonging to the selected client | `Ben Lim has no pet named Milo.` (with the selected client's name and requested pet name) |
 | Past or current date/time | `Appointment date and time must be strictly in the future.` |
 | Overlap with any client's active booking | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
@@ -329,7 +339,7 @@ Action     | Format, Examples
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
-**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34`
+**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
 **Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`

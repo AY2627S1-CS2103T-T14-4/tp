@@ -6,6 +6,10 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
@@ -13,6 +17,7 @@ import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.pet.PetName;
 
 public class AppointmentCommandParserTest {
     private final AppointmentCommandParser parser = new AppointmentCommandParser();
@@ -43,6 +48,59 @@ public class AppointmentCommandParserTest {
                 new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("23:58"))
                         .withEndTime(new AppointmentTime("23:59")));
         assertParseSuccess(parser, " c/1 d/12-12-2026 t/23:58 et/23:59", oneMinute);
+    }
+
+    @Test
+    public void parse_multiplePetNames_acceptsAnyOrderAndPreservesEndTime() {
+        Appointment appointment = new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"))
+                .withEndTime(new AppointmentTime("15:00"))
+                .withPetNames(new LinkedHashSet<>(List.of(new PetName("Milo"), new PetName("Sir Fluffy"))));
+        AppointmentCommand expected = new AppointmentCommand(INDEX_FIRST_CLIENT, appointment);
+        assertParseSuccess(parser, " c/1 d/12-12-2026 t/14:00 et/15:00 pn/Milo pn/Sir Fluffy", expected);
+        assertParseSuccess(parser, " pn/Milo et/15:00 c/1 pn/  Sir   Fluffy  d/12-12-2026 t/14:00", expected);
+    }
+
+    @Test
+    public void parse_petNameWithoutEndTime_acceptsBoundaryNamesAndNormalizesSpaces() {
+        for (String name : List.of("A", "x".repeat(40), "小白", "O'Malley", "Milo-2")) {
+            Appointment appointment = new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"))
+                    .withPetNames(Set.of(new PetName(name)));
+            assertParseSuccess(parser, " c/1 d/12-12-2026 t/14:00 pn/ " + name + " ",
+                    new AppointmentCommand(INDEX_FIRST_CLIENT, appointment));
+        }
+    }
+
+    @Test
+    public void parse_repeatedPetNames_ignoresIdenticalNormalizedReferences() {
+        Appointment appointment = new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"))
+                .withPetNames(Set.of(new PetName("Sir Fluffy")));
+        assertParseSuccess(parser, " c/1 d/12-12-2026 t/14:00 pn/Sir Fluffy pn/ Sir   Fluffy ",
+                new AppointmentCommand(INDEX_FIRST_CLIENT, appointment));
+    }
+
+    @Test
+    public void parse_invalidPetName_failsEvenAfterAValidReference() {
+        for (String name : new String[] {"", " ", "M!lo", "x".repeat(41), "Milo nt/notes"}) {
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/" + name, PetName.MESSAGE_CONSTRAINTS);
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo pn/" + name,
+                    PetName.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_petNamesPresent_preservesRequiredAndSingleValuedPrefixValidation() {
+        assertParseFailure(parser, " c/1 d/12-12-2026 pn/Milo",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AppointmentCommand.MESSAGE_USAGE));
+        for (Prefix prefix : List.of(CliSyntax.PREFIX_CLIENT, CliSyntax.PREFIX_DATE,
+                CliSyntax.PREFIX_TIME, CliSyntax.PREFIX_END_TIME)) {
+            assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/15:00 pn/Milo " + prefix + "invalid",
+                    Messages.getErrorMessageForDuplicatePrefixes(prefix));
+        }
+        assertParseFailure(parser, " c/0 d/12-12-2026 t/14:00 pn/Milo", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " c/1 d/31-02-2026 t/14:00 pn/Milo", AppointmentDate.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/24:00 pn/Milo", AppointmentTime.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/14:00 pn/Milo",
+                Appointment.MESSAGE_END_NOT_AFTER_START);
     }
 
     @Test

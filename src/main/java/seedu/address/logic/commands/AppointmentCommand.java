@@ -5,9 +5,12 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -17,6 +20,7 @@ import seedu.address.model.Model;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.PetName;
 
 /**
  * Adds an appointment to a client identified by their displayed index, including after filtering.
@@ -26,13 +30,15 @@ public class AppointmentCommand extends Command {
     public static final String COMMAND_WORD = "appt";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Adds an appointment to the client identified by their displayed index.\n"
-            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]\n"
+            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...\n"
             + "The index must be positive and the combined date and time must be strictly in the future.\n"
             + "The optional end time must be after the start time on the same date.\n"
+            + "Each pet must belong to the selected client. Repeated references to the same pet are ignored.\n"
             + "Appointments must not overlap any client's active bookings. Adjacent appointments are allowed.\n"
-            + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34";
+            + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
     public static final String MESSAGE_NOT_FUTURE = "Appointment date and time must be strictly in the future.";
+    public static final String MESSAGE_UNKNOWN_PET = "%1$s has no pet named %2$s.";
 
     private final Index targetIndex;
     private final Appointment appointment;
@@ -69,10 +75,10 @@ public class AppointmentCommand extends Command {
      * Adds the appointment while preserving the client's other data and the current list filter.
      *
      * @param model The model containing the displayed clients.
-     * @return Feedback identifying the client, date, start time and end time if supplied.
+     * @return Feedback identifying the client, times and linked pets if supplied.
      * @throws NullPointerException if {@code model} is null.
      * @throws CommandException if the displayed index is invalid, the appointment is not strictly
-     *     in the future, or the appointment overlaps an active booking for any client.
+     *     in the future, a linked pet does not belong to the client, or the appointment overlaps an active booking.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -86,14 +92,30 @@ public class AppointmentCommand extends Command {
             throw new CommandException(MESSAGE_NOT_FUTURE);
         }
         Client client = displayedClients.get(targetIndex.getZeroBased());
-        Optional<Conflict> conflict = model.findAppointmentConflict(appointment);
+        Appointment resolvedAppointment = resolvePetNames(client);
+        Optional<Conflict> conflict = model.findAppointmentConflict(resolvedAppointment);
         if (conflict.isPresent()) {
             throw new CommandException(Messages.formatAppointmentConflict(conflict.get()));
         }
-        model.setClient(client, client.copyWithAppointment(appointment));
+        model.setClient(client, client.copyWithAppointment(resolvedAppointment));
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 client.getName(), appointment.getDate(), appointment.getTime())
-                + appointment.getEndTime().map(endTime -> " et/" + endTime).orElse(""));
+                + appointment.getEndTime().map(endTime -> " et/" + endTime).orElse("")
+                + resolvedAppointment.getPetNames().stream().map(name -> " pn/" + name).collect(Collectors.joining()));
+    }
+
+    /**
+     * Resolves requested names within the selected client and retains each recorded pet name once, in input order.
+     * All references are validated before any model update; omitting pet names does not infer the client's pets.
+     */
+    private Appointment resolvePetNames(Client client) throws CommandException {
+        Set<PetName> resolvedNames = new LinkedHashSet<>();
+        for (PetName requestedName : appointment.getPetNames()) {
+            PetName recordedName = client.getPet(requestedName).orElseThrow(() -> new CommandException(
+                    String.format(MESSAGE_UNKNOWN_PET, client.getName(), requestedName))).getName();
+            resolvedNames.add(recordedName);
+        }
+        return appointment.withPetNames(resolvedNames);
     }
 
     /**

@@ -7,6 +7,7 @@ import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,15 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class PawPalsParserTest {
 
     private final PawPalsParser parser = new PawPalsParser();
+
+    @Test
+    public void parseCommand_appointmentWithLinkedPetsAndEndTime() throws Exception {
+        Appointment appointment = new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"))
+                .withEndTime(new AppointmentTime("15:00"))
+                .withPetNames(new LinkedHashSet<>(List.of(new PetName("Milo"), new PetName("Luna"))));
+        assertEquals(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment), parser.parseCommand(
+                "appt c/1 d/12-12-2026 t/14:00 et/15:00 pn/Milo pn/Luna"));
+    }
 
     @Test
     public void parseCommand_appointment() throws Exception {
