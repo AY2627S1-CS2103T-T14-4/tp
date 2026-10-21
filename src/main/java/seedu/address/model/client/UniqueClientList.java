@@ -46,6 +46,8 @@ public class UniqueClientList implements Iterable<Client> {
             throw new DuplicateClientException();
         }
         internalList.add(toAdd);
+        assert clientsAreUnique(internalList)
+                : "Client list must contain unique identities";
     }
 
     /**
@@ -66,6 +68,8 @@ public class UniqueClientList implements Iterable<Client> {
         }
 
         internalList.set(index, editedClient);
+        assert clientsAreUnique(internalList)
+                : "Client list must contain unique identities";
     }
 
     /**
@@ -82,6 +86,8 @@ public class UniqueClientList implements Iterable<Client> {
     public void setClients(UniqueClientList replacement) {
         requireNonNull(replacement);
         internalList.setAll(replacement.internalList);
+        assert clientsAreUnique(internalList)
+                : "Client list must contain unique identities";
     }
 
     /**
@@ -95,6 +101,8 @@ public class UniqueClientList implements Iterable<Client> {
         }
 
         internalList.setAll(clients);
+        assert clientsAreUnique(internalList)
+                : "Client list must contain unique identities";
     }
 
     /**
