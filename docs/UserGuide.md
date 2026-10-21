@@ -239,6 +239,66 @@ If validation fails, no data changes. Feedback includes:
 If saving fails, the appointment may be removed in the current session but remain in the saved file.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
 
+### Completing an appointment: `done`
+
+Marks one existing appointment as completed and records grooming-session notes. The active booking is
+removed and an immutable copy is retained in the client's completed-session history.
+
+Format: `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES`
+
+Example: `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
+
+* All four prefixes are required and may appear in any order. Each must appear exactly once, even if
+  repeated values are identical. Do not put extra text before the first prefix.
+* `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` means the
+  first matching client. Completion preserves the filter and all other clients.
+* Use the appointment's date and **start time**, with the same `DD-MM-YYYY` and `HH:mm` formats as `appt`.
+  No end time or pet names are needed to identify the booking.
+* The appointment must have started according to the computer's current local date and time. It can
+  be completed exactly at its start, before its planned end, or later. Future appointments are rejected.
+* `NOTES` must contain 1–200 characters after trimming leading and trailing whitespace. Internal spaces
+  are retained. Notes describe this visit and do not replace booking details or standing pet notes.
+* A visit covering several pets creates one history record containing its recorded pet names. An
+  appointment without linked pets remains a client-only session; current pets are not inferred.
+* Repeating `done` for a slot with no remaining active booking is rejected without adding another record
+  or changing existing notes. If an active booking matches an older history entry, the active booking
+  is selected first.
+
+Successful output for a client-only booking with no end time:
+`Completed session: Ben Lim d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
+
+When the booking has an end time and linked pets, these are also reported:
+`Completed session: Ben Lim d/12-12-2026 t/14:00 et/15:30 pn/Milo pn/Luna nt/Teddy cut, short ears`
+
+The active appointment disappears from the client card. Its date, start time, optional end time,
+booking details and linked pet names are retained in history with the session notes and logging time.
+The logging time records when `done` was executed, rather than claiming an actual grooming finish time.
+Completion is saved automatically and retained after restarting PawPals. Later pet rename/deletion
+does not change completed records. Other appointments, contact details, tags, pets, pet notes and
+previous history are preserved. Deleting the client removes its history; `clear` removes all history.
+
+Completed history never reserves a slot. Completing early releases the remaining planned interval for
+another booking. A new booking must still start strictly in the future and avoid all remaining active
+appointments; completing a visit does not permit rebooking a past or current start time.
+
+If validation fails, no data changes. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `done` usage instructions. |
+| Repeated prefix, for example two `nt/` values | `Multiple values specified for the following single-valued field(s): nt/` |
+| Invalid index, date or start time | The corresponding index, date or time validation message used by `appt`. |
+| Empty notes or more than 200 characters after trimming | `Session notes should be between 1 and 200 characters long.` |
+| Appointment has not started | `An appointment cannot be completed before its scheduled start time.` |
+| No active appointment at the requested slot | `Ben Lim has no active appointment at 12-12-2026 14:00.` |
+| Already completed slot with no active booking | `Ben Lim already has a completed session at 12-12-2026 14:00.` |
+
+The example requires a matching active appointment that has already started. Replace the date and
+time with an existing booking when trying the command.
+
+If saving fails, completion may exist in memory while the saved file still contains the active booking.
+Resolve the reported file or folder access problem before relying on the completion being saved.
+
 ### Listing all clients: `list`
 
 Shows an overview of all clients, their appointments, and their pets.
@@ -341,6 +401,7 @@ Action     | Format, Examples
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
 **Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
+**Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
