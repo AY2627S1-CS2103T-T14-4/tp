@@ -155,6 +155,14 @@ The class diagram below shows how a `Client`'s pets and appointments are modelle
 * An `Appointment` links to the pets it covers by `PetName`, not by `Pet` object. Pet names are unique within a client (ignoring case), so a name is enough to find the pet, and `Client#getPetsFor(Appointment)` returns the linked `Pet` objects.
 * Like `Client`, these classes are immutable. Changes such as `Pet#withNote(...)` or `Client#withPetReplaced(...)` return a new object.
 
+`AppointmentCommandParser` accepts repeated optional `pn/` fields using the shared `PREFIX_PET_NAME` and
+`ParserUtil#parsePetName(...)`. Required client/date/start parsing still uses
+`ParserUtil#parseAppointmentTarget(...)`. At execution, `AppointmentCommand` resolves every requested name
+through the displayed client's `Client#getPet(...)`, then stores the recorded names once in first-reference
+order. This reuses existing case-insensitive pet identity rules and preserves the appointment's other fields.
+Missing pets reject the command before any model update. The resolved appointment uses the same global
+Model conflict check as client-only bookings; omitting `pn/` does not infer participating pets.
+
 **Design consideration: how an appointment refers to its pets**
 
 * **Alternative 1 (current choice):** store the pet's name.
@@ -183,8 +191,19 @@ for different pets follow the same overlap rules. Editing command integration is
 #### Completed-session history
 
 History is stored under its owning `Client` as an immutable `List<CompletedSession>`, separate from
-the active appointments returned by `Client#getAppointments()`. This is the model/storage foundation
-for the separately implemented `done` command and history UI.
+the active appointments returned by `Client#getAppointments()`. The `done` command uses this model/storage
+foundation; history presentation is handled by the UI.
+
+`DoneCommandParser` reuses `ParserUtil#parseAppointmentTarget(...)` for client/date/start parsing and
+the existing `PREFIX_NOTE` for required `nt/` session notes. `SessionNotes` handles trimming and length
+validation. `PawPalsParser` dispatches `done` to this parser.
+
+`DoneCommand` resolves the target against the displayed client list, checks active appointments first,
+and uses history only to distinguish an already completed slot from a missing booking. It delegates
+completion eligibility and snapshot creation to `Client#completeAppointment(...)`, using an injectable
+clock, then applies the replacement with exactly one `Model#setClient(...)` call. This keeps completion
+and active removal together without changing the filter. Future starts become a command error before
+the model is updated. Success feedback identifies the client, slot, recorded pets and session notes.
 
 Each `CompletedSession` retains:
 
@@ -202,7 +221,7 @@ Each `CompletedSession` retains:
   It may occur before the scheduled end, or much later than the visit. The logging instant is read once
   from that same clock. A future start or missing active appointment leaves the original client unchanged.
 * Repeating completion without another active appointment fails. `hasCompletedAppointment(date, time)`
-  lets the future command distinguish an already logged slot from one that never existed.
+  lets `DoneCommand` distinguish an already logged slot from one that never existed.
   Always look for an active appointment first; an old history record must not block a new booking at that slot.
 * History has no date/start-time uniqueness constraint and never reserves time. Booking and conflict
   checks use active appointments only; the normal future-start rule for `appt` still applies.
@@ -521,8 +540,8 @@ Preconditions: PawPals is running and the appointment's client exists in the dis
 MSS:
 
 1. User requests to add an appointment.
-2. User identifies the client and provides a date and time.
-3. PawPals validates that the date and time form a valid future appointment.
+2. User identifies the client and provides a date, start time, and optional end time and pet names.
+3. PawPals validates the future appointment, the linked pets' ownership, and global booking conflicts.
 4. PawPals adds the appointment to the client.
 5. PawPals displays a success message and the appointment under the client.
 
@@ -537,8 +556,11 @@ Extensions:
 * 3a. The appointment is not strictly in the future.
   * 3a1. PawPals informs the user that the appointment must be scheduled in the future.
   * Use case ends.
-* 4a. The client already has an appointment at the same date and time.
-  * 4a1. PawPals informs the user that the appointment already exists.
+* 3b. A requested pet does not belong to the selected client.
+  * 3b1. PawPals identifies the unknown pet and leaves all data unchanged.
+  * Use case ends.
+* 4a. The appointment overlaps an active booking for any client.
+  * 4a1. PawPals identifies the conflicting client and booking slot, leaving all data unchanged.
   * Use case ends.
 
 #### UC05 - List clients, pets, and appointments
@@ -769,8 +791,8 @@ The separate client-add section of the User Guide also uses `addc`.
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
 | Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34` | Success names Alice Test; her card shows the date/time. Bob's card is unchanged. |
-| Duplicate for the same client | Repeat the previous command. | `This client already has an appointment at that date and time.` No extra appointment appears. |
-| Same slot for another client | `appt c/2 d/FUTURE_DATE t/12:34` | Bob gets the same date/time; Alice keeps hers. |
+| Duplicate for the same client | Repeat the previous command. | Overlap rejection identifies Alice and her existing slot; no extra appointment appears. |
+| Same slot for another client | `appt c/2 d/FUTURE_DATE t/12:34` | Overlap rejection identifies Alice and her existing slot; no data changes. |
 | Invalid date | `appt c/1 d/31-04-2027 t/12:34` | Date-validation message; no data changes. |
 | Invalid time | `appt c/1 d/FUTURE_DATE t/24:00` | Time-validation message; no data changes. |
 | Missing field | `appt c/1 d/FUTURE_DATE` | Invalid-format message and usage instructions; no data changes. |
@@ -782,6 +804,24 @@ The separate client-add section of the User Guide also uses `addc`.
 | Restart | Run `exit`, relaunch from the same folder, and run `list`. | Each appointment is still displayed under its original client. |
 | Edit preservation | `edit 2 p/93456789`, then restart. | Bob's phone changes, and all his appointments remain. |
 | Delete and clear | `delc 1`, restart; then `clear` and restart. | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments. |
+
+For linked-pet checks, reset the disposable data with the two-client setup above, then run:
+
+```text
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/1 n/Sir Fluffy s/Cat b/Persian
+addp c/2 n/Luna s/Cat b/Persian
+appt c/1 d/FUTURE_DATE t/14:00 et/15:00 pn/sir   FLUFFY pn/MILO pn/Milo
+find Bob
+appt c/1 d/FUTURE_DATE t/15:00 et/16:00 pn/Luna
+```
+
+Alice's success feedback must contain `pn/Sir Fluffy pn/Milo` once each; Bob's adjacent booking succeeds
+and keeps the filter. Booking for Bob at `14:30–15:30` with `pn/Luna` must reject the overlap with hidden
+Alice. Booking for Bob with `pn/Milo` must reject the pet belonging only to Alice. An empty `pn/` must
+reject the input. These failures must leave the client data, filter and saved file unchanged.
+Restart and inspect the saved appointments' `pets` arrays to verify the recorded names and input order
+are retained, together with their end times. Appointment-card presentation is a separate UI concern.
 
 For stored details, close the app, add `"details": "Call on arrival"` to an appointment object in the
 disposable `data/pawpals.json`, and restart. Expect `(Call on arrival)` after its date/time.

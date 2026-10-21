@@ -24,7 +24,10 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 
 public class AppointmentOverlapCommandTest {
@@ -39,6 +42,9 @@ public class AppointmentOverlapCommandTest {
         for (int ownerIndex : new int[] {0, 1}) {
             Client owner = new ClientBuilder(ownerIndex == 0 ? ALICE : BENSON).withAppointments(EXISTING).build();
             Model model = modelWith(ownerIndex == 0 ? owner : ALICE, ownerIndex == 1 ? owner : BENSON);
+            Client selected = model.getFilteredClientList().get(1);
+            model.setClient(selected, selected.withPet(new Pet(new PetName("Luna"),
+                    new Species("Cat"), new Breed("Persian"))));
             for (Appointment candidate : conflicts) {
                 // Booking for another pet cannot bypass the global overlap rule.
                 Appointment linked = candidate.withPetNames(Set.of(new PetName("Luna")));

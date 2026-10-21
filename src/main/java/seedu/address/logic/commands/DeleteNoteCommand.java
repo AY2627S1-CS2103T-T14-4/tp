@@ -61,7 +61,7 @@ public class DeleteNoteCommand extends Command {
 
         Client targetClient = displayedClients.get(clientIndex.getZeroBased());
         Pet targetPet = targetClient.getPet(petName)
-                .orElseThrow(() -> new CommandException(String.format(NoteCommand.MESSAGE_UNKNOWN_PET, petName)));
+                .orElseThrow(() -> new CommandException(String.format(Messages.MESSAGE_UNKNOWN_PET, petName)));
         String displayType = noteType.getDisplayName();
         if (!targetPet.hasNote(noteType)) {
             throw new CommandException(String.format(MESSAGE_NO_SUCH_NOTE, targetPet.getName(), displayType));

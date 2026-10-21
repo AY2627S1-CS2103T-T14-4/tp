@@ -8,6 +8,7 @@ import java.util.Objects;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.client.Client;
@@ -26,7 +27,6 @@ public class NoteCommand extends Command {
             + " c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Usage: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_CLIENT_INDEX = "The client index provided is invalid.";
-    public static final String MESSAGE_UNKNOWN_PET = "This client has no pet named %1$s.";
     public static final String MESSAGE_UPDATED_NOTE = "Updated %1$s note for %2$s: %3$s";
 
     private final Index clientIndex;
@@ -60,7 +60,7 @@ public class NoteCommand extends Command {
 
         Client targetClient = displayedClients.get(clientIndex.getZeroBased());
         Pet targetPet = targetClient.getPet(petName)
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_UNKNOWN_PET, petName)));
+                .orElseThrow(() -> new CommandException(String.format(Messages.MESSAGE_UNKNOWN_PET, petName)));
 
         Pet updatedPet = targetPet.withNote(noteType, note);
         Client updatedClient = targetClient.withPetReplaced(petName, updatedPet);
