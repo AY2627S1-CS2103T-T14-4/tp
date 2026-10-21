@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
@@ -17,6 +18,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.history.CompletedSession;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.model.tag.Tag;
@@ -35,17 +37,20 @@ class JsonAdaptedClient {
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
     private final List<JsonAdaptedPet> pets = new ArrayList<>();
     private final List<JsonAdaptedAppointment> appointments = new ArrayList<>();
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private final List<JsonAdaptedCompletedSession> history = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedClient} from stored fields.
-     * A missing appointments property in an older data file means the client has no appointments.
+     * Missing appointments or history properties in older data files default to empty lists.
      */
     @JsonCreator
     public JsonAdaptedClient(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("pets") List<JsonAdaptedPet> pets,
-            @JsonProperty("appointments") List<JsonAdaptedAppointment> appointments) {
+            @JsonProperty("appointments") List<JsonAdaptedAppointment> appointments,
+            @JsonProperty("history") List<JsonAdaptedCompletedSession> history) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -59,6 +64,17 @@ class JsonAdaptedClient {
         if (appointments != null) {
             this.appointments.addAll(appointments);
         }
+        if (history != null) {
+            this.history.addAll(history);
+        }
+    }
+
+    /**
+     * Creates an adapted client without completed history, as in older data files.
+     */
+    public JsonAdaptedClient(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedPet> pets, List<JsonAdaptedAppointment> appointments) {
+        this(name, phone, email, address, tags, pets, appointments, null);
     }
 
     /**
@@ -92,6 +108,9 @@ class JsonAdaptedClient {
                 .collect(Collectors.toList()));
         appointments.addAll(source.getAppointments().stream()
                 .map(JsonAdaptedAppointment::new)
+                .collect(Collectors.toList()));
+        history.addAll(source.getHistory().stream()
+                .map(JsonAdaptedCompletedSession::new)
                 .collect(Collectors.toList()));
     }
 
@@ -153,9 +172,16 @@ class JsonAdaptedClient {
             }
             modelAppointments.add(appointment.toModelType());
         }
+        final List<CompletedSession> modelHistory = new ArrayList<>();
+        for (JsonAdaptedCompletedSession session : history) {
+            if (session == null) {
+                throw new IllegalValueException("History entry is missing!");
+            }
+            modelHistory.add(session.toModelType());
+        }
         try {
             return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags,
-                    modelPets, modelAppointments);
+                    modelPets, modelAppointments, modelHistory);
         } catch (DuplicatePetException e) {
             throw new IllegalValueException("Pets list contains duplicate pet names.");
         } catch (DuplicateAppointmentException e) {

@@ -131,7 +131,7 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the PawPals data i.e., all `Client` objects (which are contained in a `UniqueClientList` object). Each `Client` also holds its own `Pet` and `Appointment` objects, described in [Pets and appointments](#pets-and-appointments).
+* stores the PawPals data i.e., all `Client` objects (which are contained in a `UniqueClientList` object). Each `Client` also holds its own pets, active appointments and completed-session history, described in [Pets and appointments](#pets-and-appointments) and [Completed-session history](#completed-session-history).
 * stores the `Client` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Client>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -164,6 +164,73 @@ The class diagram below shows how a `Client`'s pets and appointments are modelle
   * Pros: no lookup by name.
   * Cons: after a pet is edited, appointments would still point to the old `Pet` object, and saving the reference to the data file would need an ID scheme.
 
+
+#### Completed-session history
+
+History is stored under its owning `Client` as an immutable `List<CompletedSession>`, separate from
+the active appointments returned by `Client#getAppointments()`. This is the model/storage foundation
+for the separately implemented `done` command and history UI.
+
+Each `CompletedSession` retains:
+
+* An immutable `Appointment` snapshot: date, start time, optional end time, booking details and linked pet names.
+* Required `SessionNotes`: 1–200 characters after trimming leading and trailing spaces. These describe
+  the visit and do not replace booking details or a pet's standing preference/safety notes.
+* `loggedAt`, an `Instant` recording when the session was logged. It does not claim to be the actual finish time.
+
+**Completion and identity rules**
+
+* `Client#completeAppointment(date, time, notes, clock)` looks up the **active** appointment by date and
+  start time. It returns a replacement client with that appointment removed and one history record added.
+  The caller applies the result with one `Model#setClient(...)` call, preserving the current filter.
+* Completion is allowed at or after the scheduled start, interpreted in the supplied clock's local zone.
+  It may occur before the scheduled end, or much later than the visit. The logging instant is read once
+  from that same clock. A future start or missing active appointment leaves the original client unchanged.
+* Repeating completion without another active appointment fails. `hasCompletedAppointment(date, time)`
+  lets the future command distinguish an already logged slot from one that never existed.
+  Always look for an active appointment first; an old history record must not block a new booking at that slot.
+* History has no date/start-time uniqueness constraint and never reserves time. Booking and conflict
+  checks use active appointments only; the normal future-start rule for `appt` still applies.
+* An appointment without linked pets remains a client-only session. Current pets are not inferred as participants.
+  A visit covering several pets creates one record with all its recorded pet names.
+
+**Preservation, display and storage rules**
+
+* Pet rename/deletion updates active appointment links but preserves all historical pet names. Render
+  history from its snapshot rather than resolving those names through `Client#getPetsFor(...)`.
+  Names are historical labels, not stable identifiers for automatic per-pet matching across renames.
+* All client-copy operations and contact edits preserve history. This includes adding pets/appointments,
+  changing pet notes, rescheduling and removing appointments. Deleting a client removes its history;
+  `clear` removes every client's history. There is no individual history edit/delete operation in this scope.
+* `Client#getHistory()` returns **all** records, sorted by appointment date and start time descending,
+  then logging instant descending. Equal keys retain their insertion order. A UI preview of three
+  records must not discard older stored sessions; history presentation is owned by the UI task.
+* `JsonAdaptedCompletedSession` stores the appointment snapshot, notes and an ISO-8601 logging instant.
+  `JsonAdaptedClient` stores these records in an optional `history` array. Missing or null history in
+  older files loads as empty history; empty history is omitted when saving.
+* Stored records validate required fields and appointment/note/timestamp formats. Invalid entries reject
+  the file rather than silently dropping history. Loading does not reapply completion eligibility against
+  the current clock, or require historical pets to remain in the client's current pet list.
+
+Example entry in a client's `history` array:
+
+```json
+{
+  "appointment": {
+    "date": "20-10-2026",
+    "time": "14:00",
+    "endTime": "15:00",
+    "details": "Call on arrival",
+    "pets": ["Milo"]
+  },
+  "notes": "Teddy cut, short ears",
+  "loggedAt": "2026-10-21T06:30:00Z"
+}
+```
+
+The single-client update guarantees that active removal and history creation happen together in memory.
+Persistence still uses the existing `LogicManager` save pipeline; this model operation does not introduce
+disk transactions or rollback on save errors.
 
 ### Storage component
 
