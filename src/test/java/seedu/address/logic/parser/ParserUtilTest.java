@@ -2,6 +2,9 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
@@ -12,6 +15,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
@@ -55,6 +60,46 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_CLIENT, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseAppointmentTarget_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseAppointmentTarget(null));
+    }
+
+    @Test
+    public void parseAppointmentTarget_validInput_acceptsAnyOrderAndPastOrFutureDates() throws Exception {
+        for (String date : List.of("29-02-2024", "31-12-9999")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" t/00:00   d/" + date + "   c/1 ",
+                    PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
+            ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
+            assertEquals(INDEX_FIRST_CLIENT, target.clientIndex());
+            assertEquals(new AppointmentDate(date), target.date());
+            assertEquals(new AppointmentTime("00:00"), target.time());
+        }
+    }
+
+    @Test
+    public void parseAppointmentTarget_additionalPrefixes_remainAvailableToCaller() throws Exception {
+        Prefix notesPrefix = new Prefix("nt/");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" c/1 d/12-12-2026 t/14:00 nt/Teddy cut",
+                PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, notesPrefix);
+        ParserUtil.AppointmentTarget expected = new ParserUtil.AppointmentTarget(INDEX_FIRST_CLIENT,
+                new AppointmentDate("12-12-2026"), new AppointmentTime("14:00"));
+        assertEquals(expected, ParserUtil.parseAppointmentTarget(arguments));
+        assertEquals("Teddy cut", arguments.getValue(notesPrefix).orElseThrow());
+    }
+
+    @Test
+    public void parseAppointmentTarget_invalidValues_preservesValidationOrderAndMessages() {
+        String[] inputs = {" c/0 d/invalid t/invalid", " c/1 d/31-02-2026 t/invalid",
+            " c/1 d/12-12-2026 t/24:00"};
+        String[] messages = {MESSAGE_INVALID_INDEX, AppointmentDate.MESSAGE_CONSTRAINTS,
+            AppointmentTime.MESSAGE_CONSTRAINTS};
+        for (int i = 0; i < inputs.length; i++) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(inputs[i], PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
+            assertThrows(ParseException.class, messages[i], () -> ParserUtil.parseAppointmentTarget(arguments));
+        }
     }
 
     @Test

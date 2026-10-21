@@ -186,6 +186,47 @@ The example date must still be in the future when you try it. Replace it with a 
 
 If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
 
+### Cancelling an appointment: `cancel`
+
+Removes one existing appointment from a client using its date and **start time**.
+Both past and future appointments can be cancelled.
+
+Format: `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`
+
+Example: `cancel c/1 d/12-12-2026 t/14:00`
+
+* All three prefixes are required and may appear in any order. Each must appear exactly once,
+  even if repeated values are identical. Do not put extra text before the first prefix.
+* `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` refers to
+  the first matching client. Cancellation keeps the current filter and does not delete the client.
+* Date and time use the same strict formats as `appt`: a valid calendar date in `DD-MM-YYYY` format
+  (years `0001` to `9999`) and a 24-hour time in `HH:mm` format (`00:00` to `23:59`).
+  The appointment does not need to be in the future.
+* Use the appointment's start time, even when it has an end time. An end time and pet names are not
+  needed to identify it.
+
+Successful output, if the selected client's name is Ben Lim:
+`Cancelled appointment: Ben Lim d/12-12-2026 t/14:00`
+
+Only that appointment is removed. The client's contact details, tags, pets, pet notes, other
+appointments, and all other clients are preserved. The card updates automatically, and the
+cancellation is saved so the appointment remains absent after restarting PawPals.
+
+If validation fails, no data changes. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions. |
+| Repeated prefix, for example two `t/` values | `Multiple values specified for the following single-valued field(s): t/` |
+| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
+| Invalid or empty time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
+| No matching appointment, including one already cancelled | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
+
+If saving fails, the appointment may be removed in the current session but remain in the saved file.
+Resolve the reported file or folder access problem before relying on the cancellation being saved.
+
 ### Listing all clients: `list`
 
 Shows an overview of all clients, their appointments, and their pets.
@@ -286,7 +327,8 @@ Action     | Format, Examples
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
-**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]`<br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34`
+**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34`
+**Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`

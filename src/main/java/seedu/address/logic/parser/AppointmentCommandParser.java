@@ -11,11 +11,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 
 /**
@@ -43,12 +41,11 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AppointmentCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_END_TIME);
-        Index index = ParserUtil.parseIndex(arguments.getValue(PREFIX_CLIENT).get());
+        ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
         try {
-            AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
-            AppointmentTime time = new AppointmentTime(arguments.getValue(PREFIX_TIME).get());
             Optional<AppointmentTime> endTime = arguments.getValue(PREFIX_END_TIME).map(AppointmentTime::new);
-            return new AppointmentCommand(index, new Appointment(date, time, endTime, "", Set.of()));
+            Appointment appointment = new Appointment(target.date(), target.time(), endTime, "", Set.of());
+            return new AppointmentCommand(target.clientIndex(), appointment);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

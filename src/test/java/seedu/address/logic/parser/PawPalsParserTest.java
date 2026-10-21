@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddPetCommand;
 import seedu.address.logic.commands.AppointmentCommand;
+import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -50,6 +51,15 @@ public class PawPalsParserTest {
                 new Appointment(new AppointmentDate("12-12-2026"), new AppointmentTime("12:34"))),
                 parser.parseCommand("appt c/1 d/12-12-2026 t/12:34"));
         assertThrows(ParseException.class, () -> parser.parseCommand("appt c/1 d/31-02-2026 t/12:34"));
+    }
+
+    @Test
+    public void parseCommand_cancel() throws Exception {
+        assertEquals(new CancelCommand(INDEX_FIRST_CLIENT,
+                new AppointmentDate("29-02-2024"), new AppointmentTime("14:00")),
+                parser.parseCommand("cancel c/1 d/29-02-2024 t/14:00"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("cancel c/1 d/31-02-2026 t/14:00"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("cancel c/1 d/12-12-2026"));
     }
 
     @Test

@@ -1,6 +1,9 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -9,6 +12,8 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
@@ -36,6 +41,36 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses the client index, date and start time shared by appointment-related commands.
+     * Callers must first check required prefixes, duplicate prefixes and command-specific syntax.
+     * Other prefixes are left untouched. Eligibility against the current time belongs to the command.
+     *
+     * @throws NullPointerException if {@code arguments} is null.
+     * @throws ParseException if the client index, date or time is invalid, checked in that order.
+     */
+    public static AppointmentTarget parseAppointmentTarget(ArgumentMultimap arguments) throws ParseException {
+        requireNonNull(arguments);
+        Index index = parseIndex(arguments.getValue(PREFIX_CLIENT).get());
+        try {
+            AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
+            AppointmentTime time = new AppointmentTime(arguments.getValue(PREFIX_TIME).get());
+            return new AppointmentTarget(index, date, time);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Parsed values identifying an appointment within the displayed client list.
+     *
+     * @param clientIndex the displayed client index.
+     * @param date the appointment date.
+     * @param time the appointment start time.
+     */
+    public record AppointmentTarget(Index clientIndex, AppointmentDate date, AppointmentTime time) {
     }
 
     /**
