@@ -79,7 +79,7 @@ public class AppointmentLinkedPetsCommandTest {
             Appointment requested = APPOINTMENT.withPetNames(
                     new LinkedHashSet<>(List.of(MILO.getName(), new PetName(missing))));
             assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, requested, CLOCK), model,
-                    "Benson Meier has no pet named " + missing + ".");
+                    "This client has no pet named " + missing + ".");
         }
     }
 

@@ -38,7 +38,6 @@ public class AppointmentCommand extends Command {
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
     public static final String MESSAGE_NOT_FUTURE = "Appointment date and time must be strictly in the future.";
-    public static final String MESSAGE_UNKNOWN_PET = "%1$s has no pet named %2$s.";
 
     private final Index targetIndex;
     private final Appointment appointment;
@@ -112,7 +111,7 @@ public class AppointmentCommand extends Command {
         Set<PetName> resolvedNames = new LinkedHashSet<>();
         for (PetName requestedName : appointment.getPetNames()) {
             PetName recordedName = client.getPet(requestedName).orElseThrow(() -> new CommandException(
-                    String.format(MESSAGE_UNKNOWN_PET, client.getName(), requestedName))).getName();
+                    String.format(Messages.MESSAGE_UNKNOWN_PET, requestedName))).getName();
             resolvedNames.add(recordedName);
         }
         return appointment.withPetNames(resolvedNames);

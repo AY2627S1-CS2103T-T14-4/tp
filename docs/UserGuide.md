@@ -190,7 +190,7 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
 | End time equal to or before the start time | `End time must be after the start time.` |
 | Empty or invalid pet name | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.` |
-| Pet not belonging to the selected client | `Ben Lim has no pet named Milo.` (with the selected client's name and requested pet name) |
+| Pet not belonging to the selected client | `This client has no pet named Milo.` (with the requested pet name) |
 | Past or current date/time | `Appointment date and time must be strictly in the future.` |
 | Overlap with any client's active booking | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 

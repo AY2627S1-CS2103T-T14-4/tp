@@ -111,14 +111,14 @@ public class AppointmentLinkedPetsIntegrationTest {
         for (String name : List.of("Unknown", "Luna")) {
             CommandException exception = assertThrows(CommandException.class, () -> logic.execute(
                     "appt c/1 d/" + FUTURE_DATE + " t/14:00 et/15:00 pn/Milo pn/" + name));
-            assertEquals("Benson Meier has no pet named " + name + ".", exception.getMessage());
+            assertEquals("This client has no pet named " + name + ".", exception.getMessage());
             assertUnchanged(original, List.of(SELECTED), saved);
         }
         logic.execute("find Alice");
         String savedAfterFind = Files.readString(dataFile());
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(
                 "appt c/1 d/" + FUTURE_DATE + " t/14:00 pn/Milo"));
-        assertEquals("Alice Pauline has no pet named Milo.", exception.getMessage());
+        assertEquals("This client has no pet named Milo.", exception.getMessage());
         assertUnchanged(original, List.of(OTHER_CLIENT), savedAfterFind);
     }
 
