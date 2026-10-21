@@ -177,7 +177,7 @@ The overload `findConflict(pawPals, candidate, originalClient, originalAppointme
 It excludes only the original owner's booking identified by date and start time, while checking all
 other bookings. The editing command must validate its target, run this check before mutation, then use
 `Client#withAppointmentReplaced(...)` and one model update. A client-only appointment and appointments
-for different pets follow the same overlap rules. Editing command integration belongs to Person 5.
+for different pets follow the same overlap rules. Editing command integration is handled by the `editappt` command.
 
 #### Completed-session history
 
