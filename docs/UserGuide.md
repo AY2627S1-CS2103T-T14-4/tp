@@ -144,32 +144,41 @@ The deleted client disappears from the client list, and the remaining clients ar
 
 Adds an appointment to an existing client. An appointment belongs to the client rather than to a specific pet, so it may cover one or more of the client's pets. You can also schedule an appointment for a client with no recorded pets; this command does not select individual pets.
 
-Format: `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`
+Format: `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]`
 
-Example: `appt c/1 d/12-12-2026 t/12:34`
+Examples:
 
-* All three fields are required and may appear in any order. Each prefix (`c/`, `d/`, and `t/`) must appear exactly once, even if repeated values are identical. Do not put extra text before the first prefix.
+* `appt c/1 d/12-12-2026 t/12:34` — records a start time only.
+* `appt c/1 d/12-12-2026 t/12:34 et/13:34` — records a start and end time.
+
+Rules:
+
+* `c/`, `d/`, and `t/` are required; `et/` is optional. Fields may appear in any order. Each prefix may appear at most once, even if repeated values are identical. Do not put extra text before the first prefix.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the **currently displayed** list. After `find`, index `1` refers to the first matching client, rather than the first client in the full list. Adding an appointment keeps the current filter.
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
+* `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
 * The **combined date and time** must be strictly later than the computer's current date and time when the command executes, using its local time zone. Later today is valid. For example, at 10:30 today, today's `t/10:31` is valid but `t/10:30` is not.
 * The same date and time cannot be added twice for the **same client**, even if stored appointment details differ. Different clients may have appointments at the same date and time; PawPals does not check overlaps or available staff.
 * `t/` means time in `appt`. It means a tag in commands that accept tags. The `appt` command does not accept tags or appointment details.
 
 Successful output, if the selected client's name is Ben Lim: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
 
-The appointment's date and time appear under the selected client's contact information and are saved automatically. Stored nonblank details are also displayed when present. Appointments remain available after restarting PawPals, including after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
+When an end time is supplied: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34`
+
+The appointment's date and start time appear under the selected client's contact information. All appointment data, including an optional end time, is saved automatically and retained after restarting PawPals. End times are included in command feedback; the current client card shows the start time only. Stored nonblank details are also displayed when present. Appointments remain available after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
 
 If the command is rejected because of invalid input or a duplicate appointment, no appointment is added. Validation feedback includes:
 
 | Problem | Feedback |
 | --- | --- |
 | Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `appt` usage instructions. |
-| Repeated prefix, for example two `t/` values | `Multiple values specified for the following single-valued field(s): t/` |
+| Repeated prefix, for example two `et/` values | `Multiple values specified for the following single-valued field(s): et/` |
 | Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
 | Positive index outside the displayed list | `The client index provided is invalid.` |
 | Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Invalid or empty time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
+| Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
+| End time equal to or before the start time | `End time must be after the start time.` |
 | Past or current date/time | `Appointment date and time must be strictly in the future.` |
 | Existing date/time for the selected client | `This client already has an appointment at that date and time.` |
 
@@ -318,8 +327,8 @@ Action     | Format, Examples
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
-**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`<br> e.g., `appt c/1 d/12-12-2026 t/12:34`
-**Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm`<br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
+**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34`
+**Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
