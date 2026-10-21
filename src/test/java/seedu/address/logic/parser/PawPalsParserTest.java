@@ -19,6 +19,7 @@ import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.DeleteNoteCommand;
+import seedu.address.logic.commands.DoneCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
 import seedu.address.logic.commands.ExitCommand;
@@ -32,6 +33,7 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.NameContainsKeywordsPredicate;
+import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
@@ -45,6 +47,16 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class PawPalsParserTest {
 
     private final PawPalsParser parser = new PawPalsParser();
+
+    @Test
+    public void parseCommand_done() throws Exception {
+        assertEquals(new DoneCommand(INDEX_FIRST_CLIENT, new AppointmentDate("29-02-2024"),
+                new AppointmentTime("14:00"), new SessionNotes("Teddy cut")),
+                parser.parseCommand("done c/1 d/29-02-2024 t/14:00 nt/Teddy cut"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("done c/1 d/31-02-2026 t/14:00 nt/Notes"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("done c/1 d/29-02-2024 t/14:00"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("done c/1 d/29-02-2024 t/14:00 nt/"));
+    }
 
     @Test
     public void parseCommand_appointment() throws Exception {
