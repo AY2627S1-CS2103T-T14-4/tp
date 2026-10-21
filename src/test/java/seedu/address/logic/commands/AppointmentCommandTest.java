@@ -85,6 +85,62 @@ public class AppointmentCommandTest {
     }
 
     @Test
+    public void execute_withEndTime_preservesOtherDataAndReportsEndTime() {
+        Client original = model.getFilteredClientList().getFirst();
+        Client withAppointment = original.copyWithAppointment(createAppointment("14-12-2026", "14:00"));
+        model.setClient(original, withAppointment);
+        Appointment appointment = createAppointment("12-12-2026", "12:01")
+                .withEndTime(new AppointmentTime("13:00"));
+        Model expected = new ModelManager(model.getPawPals(), new UserPrefs());
+        expected.setClient(withAppointment, withAppointment.copyWithAppointment(appointment));
+
+        assertCommandSuccess(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
+                "Added appointment: " + original.getName() + " d/12-12-2026 t/12:01 et/13:00", expected);
+    }
+
+    @Test
+    public void execute_withEndTimeFilteredList_updatesOnlyDisplayedClient() throws Exception {
+        Client selected = model.getFilteredClientList().get(1);
+        Client untouched = model.getFilteredClientList().getFirst();
+        showClientAtIndex(model, INDEX_SECOND_CLIENT);
+        Appointment appointment = createAppointment("13-12-2026", "00:00")
+                .withEndTime(new AppointmentTime("00:01"));
+
+        new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK).execute(model);
+
+        assertEquals(List.of(selected.copyWithAppointment(appointment)), model.getFilteredClientList());
+        assertEquals(untouched, model.getPawPals().getClientList().getFirst());
+        assertCommandFailure(new AppointmentCommand(INDEX_SECOND_CLIENT, appointment, CLOCK), model,
+                Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_withEndTimePastOrPresentStart_doesNotChangeData() {
+        for (String startTime : new String[] {"11:59", "12:00"}) {
+            Appointment appointment = createAppointment("12-12-2026", startTime)
+                    .withEndTime(new AppointmentTime("13:00"));
+            assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
+                    AppointmentCommand.MESSAGE_NOT_FUTURE);
+        }
+        Appointment past = createAppointment("11-12-2026", "12:00")
+                .withEndTime(new AppointmentTime("13:00"));
+        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK), model,
+                AppointmentCommand.MESSAGE_NOT_FUTURE);
+    }
+
+    @Test
+    public void execute_sameStartWithDifferentEndTime_doesNotChangeData() {
+        Appointment appointment = createAppointment("13-12-2026", "12:00");
+        Client original = model.getFilteredClientList().getFirst();
+        model.setClient(original, original.copyWithAppointment(
+                appointment.withEndTime(new AppointmentTime("13:00"))));
+
+        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT,
+                appointment.withEndTime(new AppointmentTime("14:00")), CLOCK), model,
+                AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT);
+    }
+
+    @Test
     public void execute_invalidDisplayedIndex_doesNotChangeData() {
         Appointment appointment = createAppointment("13-12-2026", "00:00");
         assertCommandFailure(new AppointmentCommand(Index.fromOneBased(100), appointment, CLOCK), model,
