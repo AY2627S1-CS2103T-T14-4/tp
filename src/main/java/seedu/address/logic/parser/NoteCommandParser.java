@@ -29,7 +29,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
                 || !arguments.getValue(PREFIX_PET_NAME).isPresent()
                 || !arguments.getValue(PREFIX_NOTE_TYPE).isPresent()
                 || !arguments.getValue(PREFIX_NOTE).isPresent()
-                || hasDuplicate(arguments, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE)) {
+                || hasDuplicatePrefixes(arguments, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE)) {
             throw new ParseException(NoteCommand.MESSAGE_INVALID_FORMAT);
         }
 
@@ -47,7 +47,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         return new NoteCommand(clientIndex, petName, noteType, note);
     }
 
-    private static boolean hasDuplicate(ArgumentMultimap arguments, Prefix... prefixes) {
+    private static boolean hasDuplicatePrefixes(ArgumentMultimap arguments, Prefix... prefixes) {
         for (Prefix prefix : prefixes) {
             if (arguments.getAllValues(prefix).size() > 1) {
                 return true;
