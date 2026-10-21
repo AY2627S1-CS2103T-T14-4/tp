@@ -8,11 +8,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
 import java.util.stream.Stream;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentTime;
 
 /**
  * Parses the client index, date and start time identifying an appointment to cancel.
@@ -35,13 +32,7 @@ public class CancelCommandParser implements Parser<CancelCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, CancelCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
-        Index index = ParserUtil.parseIndex(arguments.getValue(PREFIX_CLIENT).get());
-        try {
-            AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
-            AppointmentTime time = new AppointmentTime(arguments.getValue(PREFIX_TIME).get());
-            return new CancelCommand(index, date, time);
-        } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
-        }
+        ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
+        return new CancelCommand(target.clientIndex(), target.date(), target.time());
     }
 }

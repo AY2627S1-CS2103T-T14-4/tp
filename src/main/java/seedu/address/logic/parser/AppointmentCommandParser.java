@@ -8,12 +8,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
 import java.util.stream.Stream;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentTime;
 
 /**
  * Parses the client index, date and time for an appointment.
@@ -38,13 +35,7 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AppointmentCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
-        Index index = ParserUtil.parseIndex(arguments.getValue(PREFIX_CLIENT).get());
-        try {
-            AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
-            AppointmentTime time = new AppointmentTime(arguments.getValue(PREFIX_TIME).get());
-            return new AppointmentCommand(index, new Appointment(date, time));
-        } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
-        }
+        ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
+        return new AppointmentCommand(target.clientIndex(), new Appointment(target.date(), target.time()));
     }
 }
