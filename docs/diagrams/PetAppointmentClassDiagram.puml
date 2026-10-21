@@ -4,9 +4,12 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeIconSize 0
+skinparam classAttributeFontColor #FFFFFF
 hide circle
 hide methods
 hide empty members
+skinparam nodesep 40
+skinparam ranksep 50
 
 Class Client
 
@@ -31,11 +34,12 @@ Class CompletedSession {
 }
 Class SessionNotes
 }
+show CompletedSession fields
 
 Client *--> "*" Pet
-Client *--> "*" Appointment
+Client *-right-> "*" Appointment : active appointments >
 Client *--> "*" CompletedSession : history >
-CompletedSession *--> "1" Appointment : snapshot >
+CompletedSession *-up-> "1" Appointment : snapshot >
 CompletedSession *--> "1" SessionNotes
 
 Pet *--> "1" PetName
