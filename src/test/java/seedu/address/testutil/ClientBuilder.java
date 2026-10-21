@@ -10,6 +10,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
+import seedu.address.model.history.CompletedSession;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
@@ -31,6 +32,7 @@ public class ClientBuilder {
     private Set<Tag> tags;
     private List<Appointment> appointments;
     private List<Pet> pets;
+    private List<CompletedSession> history;
 
     /**
      * Creates a {@code ClientBuilder} with the default details.
@@ -43,6 +45,7 @@ public class ClientBuilder {
         tags = new HashSet<>();
         appointments = List.of();
         pets = List.of();
+        history = List.of();
     }
 
     /**
@@ -56,6 +59,7 @@ public class ClientBuilder {
         tags = new HashSet<>(clientToCopy.getTags());
         appointments = List.copyOf(clientToCopy.getAppointments());
         pets = List.copyOf(clientToCopy.getPets());
+        history = List.copyOf(clientToCopy.getHistory());
     }
 
     /**
@@ -118,11 +122,18 @@ public class ClientBuilder {
     }
 
     /**
-     * Builds a {@code Client} with the current details,
-     * pets, and appointments.
+     * Sets all completed-session history records for the client being built.
+     */
+    public ClientBuilder withHistory(CompletedSession... history) {
+        this.history = List.of(history);
+        return this;
+    }
+
+    /**
+     * Builds a {@code Client} with the current details, pets, appointments and history.
      */
     public Client build() {
         return new Client(name, phone, email, address, tags,
-                pets, appointments);
+                pets, appointments, history);
     }
 }

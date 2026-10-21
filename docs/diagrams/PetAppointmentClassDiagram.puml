@@ -25,8 +25,18 @@ Class AppointmentDate
 Class AppointmentTime
 }
 
+Package History as HistoryPackage <<Rectangle>> {
+Class CompletedSession {
+    loggedAt : Instant
+}
+Class SessionNotes
+}
+
 Client *--> "*" Pet
 Client *--> "*" Appointment
+Client *--> "*" CompletedSession : history >
+CompletedSession *--> "1" Appointment : snapshot >
+CompletedSession *--> "1" SessionNotes
 
 Pet *--> "1" PetName
 Pet *--> "1" Species
@@ -44,4 +54,7 @@ NoteNote .. PetNote
 
 note "Linked by name, not by Pet object.\nClient updates the links when a pet\nis renamed or deleted." as LinkNote
 LinkNote .. Appointment
+
+note "History preserves pet names after rename/deletion.\nOnly active appointments reserve booking slots." as HistoryNote
+HistoryNote .. CompletedSession
 @enduml

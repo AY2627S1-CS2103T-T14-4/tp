@@ -295,6 +295,7 @@ public class ClientTest {
                 + ", tags=" + ALICE.getTags()
                 + ", pets=" + ALICE.getPets()
                 + ", appointments=" + ALICE.getAppointments()
+                + ", history=" + ALICE.getHistory()
                 + "}";
 
         assertEquals(expected, ALICE.toString());

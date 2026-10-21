@@ -2,6 +2,8 @@ package seedu.address.model.client;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +23,8 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.DuplicateAppointmentException;
+import seedu.address.model.history.CompletedSession;
+import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
@@ -32,6 +36,9 @@ import seedu.address.model.tag.Tag;
  * Guarantees: details are present and not null, field values are validated, immutable.
  */
 public class Client {
+
+    public static final String MESSAGE_APPOINTMENT_NOT_STARTED =
+            "An appointment cannot be completed before its scheduled start time.";
 
     private static final Logger logger = LogsCenter.getLogger(Client.class);
 
@@ -45,6 +52,7 @@ public class Client {
     private final Set<Tag> tags = new HashSet<>();
     private final List<Appointment> appointments;
     private final List<Pet> pets;
+    private final List<CompletedSession> history;
 
     /**
      * Creates a client with no pets or appointments, delegating validation to the full constructor.
@@ -96,9 +104,24 @@ public class Client {
     public Client(Name name, Phone phone, Email email,
             Address address, Set<Tag> tags,
             List<Pet> pets, List<Appointment> appointments) {
+        this(name, phone, email, address, tags, pets, appointments, List.of());
+    }
+
+    /**
+     * Creates a client with defensively copied pets, active appointments and completed-session history.
+     * History is kept newest appointment first, with logging time breaking ties. It has no slot-uniqueness
+     * constraint and does not participate in active-appointment validation.
+     *
+     * @throws NullPointerException if any argument or collection entry is null.
+     * @throws DuplicatePetException if pets share an identity.
+     * @throws DuplicateAppointmentException if active appointments share a date and start time.
+     */
+    public Client(Name name, Phone phone, Email email,
+            Address address, Set<Tag> tags,
+            List<Pet> pets, List<Appointment> appointments, List<CompletedSession> history) {
 
         requireAllNonNull(name, phone, email, address, tags,
-                pets, appointments);
+                pets, appointments, history);
 
         this.name = name;
         this.phone = phone;
@@ -108,6 +131,7 @@ public class Client {
 
         this.pets = List.copyOf(pets);
         this.appointments = List.copyOf(appointments);
+        this.history = List.copyOf(history).stream().sorted(CompletedSession.NEWEST_FIRST).toList();
 
         ensurePetsAreUnique(this.pets);
         ensureAppointmentsAreUnique(this.appointments);
@@ -162,6 +186,48 @@ public class Client {
     }
 
     /**
+     * Returns all completed sessions, newest appointment first, without truncating older records.
+     */
+    public List<CompletedSession> getHistory() {
+        return history;
+    }
+
+    /**
+     * Returns whether history contains a session at the given date and start time.
+     * An active appointment at the same slot must still be looked up first when completing it.
+     */
+    public boolean hasCompletedAppointment(AppointmentDate date, AppointmentTime time) {
+        requireAllNonNull(date, time);
+        return history.stream().anyMatch(session -> session.getAppointment().getDate().equals(date)
+                && session.getAppointment().getTime().equals(time));
+    }
+
+    /**
+     * Returns a new client with an active appointment moved into completed-session history in one update.
+     * The supplied clock determines both completion eligibility in its local zone and the logging instant.
+     * An appointment may be completed at or after its start, even before its planned end.
+     * Historical pet names are captured from the appointment, including an empty list for client-only visits.
+     *
+     * @throws NullPointerException if any argument is null.
+     * @throws AppointmentNotFoundException if no active appointment exists at the requested slot.
+     * @throws IllegalArgumentException if the appointment has not started.
+     */
+    public Client completeAppointment(AppointmentDate date, AppointmentTime time, SessionNotes notes, Clock clock) {
+        requireAllNonNull(date, time, notes, clock);
+        Appointment appointment = getAppointment(date, time).orElseThrow(AppointmentNotFoundException::new);
+        Instant loggedAt = clock.instant();
+        LocalDateTime start = LocalDateTime.of(date.getValue(), time.getValue());
+        if (start.isAfter(LocalDateTime.ofInstant(loggedAt, clock.getZone()))) {
+            throw new IllegalArgumentException(MESSAGE_APPOINTMENT_NOT_STARTED);
+        }
+        List<Appointment> updatedAppointments = new ArrayList<>(appointments);
+        updatedAppointments.remove(appointment);
+        List<CompletedSession> updatedHistory = new ArrayList<>(history);
+        updatedHistory.add(new CompletedSession(appointment, notes, loggedAt));
+        return new Client(name, phone, email, address, tags, pets, updatedAppointments, updatedHistory);
+    }
+
+    /**
      * Returns true if this client has an appointment with the same date and time.
      *
      * @param appointment The appointment whose slot to check.
@@ -194,7 +260,7 @@ public class Client {
         updatedAppointments.add(appointment);
 
         return new Client(name, phone, email, address, tags,
-                pets, updatedAppointments);
+                pets, updatedAppointments, history);
     }
 
     public Name getName() {
@@ -257,7 +323,7 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.add(pet);
         return new Client(name, phone, email, address, tags,
-                updatedPets, appointments);
+                updatedPets, appointments, history);
     }
 
     /**
@@ -311,7 +377,7 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.set(index, editedPet);
         return new Client(name, phone, email, address, tags,
-                updatedPets, relinkAppointments(targetName, Optional.of(editedPet.getName())));
+                updatedPets, relinkAppointments(targetName, Optional.of(editedPet.getName())), history);
     }
 
     /**
@@ -332,7 +398,7 @@ public class Client {
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.remove(index);
         return new Client(name, phone, email, address, tags,
-                updatedPets, relinkAppointments(targetName, Optional.empty()));
+                updatedPets, relinkAppointments(targetName, Optional.empty()), history);
     }
 
     /**
@@ -414,7 +480,7 @@ public class Client {
         List<Appointment> updatedAppointments = new ArrayList<>(appointments);
         updatedAppointments.set(index, editedAppointment);
         return new Client(name, phone, email, address, tags,
-                pets, updatedAppointments);
+                pets, updatedAppointments, history);
     }
 
     /**
@@ -435,7 +501,7 @@ public class Client {
         List<Appointment> updatedAppointments = new ArrayList<>(appointments);
         updatedAppointments.remove(index);
         return new Client(name, phone, email, address, tags,
-                pets, updatedAppointments);
+                pets, updatedAppointments, history);
     }
 
     /**
@@ -487,14 +553,15 @@ public class Client {
                 && address.equals(otherClient.address)
                 && tags.equals(otherClient.tags)
                 && pets.equals(otherClient.pets)
-                && appointments.equals(otherClient.appointments);
+                && appointments.equals(otherClient.appointments)
+                && history.equals(otherClient.history);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(name, phone, email, address, tags,
-                pets, appointments);
+                pets, appointments, history);
     }
 
     @Override
@@ -507,6 +574,7 @@ public class Client {
                 .add("tags", tags)
                 .add("pets", pets)
                 .add("appointments", appointments)
+                .add("history", history)
                 .toString();
     }
 

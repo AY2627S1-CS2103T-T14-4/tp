@@ -108,7 +108,8 @@ public class EditCommand extends Command {
                 updatedAddress,
                 updatedTags,
                 clientToEdit.getPets(),
-                clientToEdit.getAppointments());
+                clientToEdit.getAppointments(),
+                clientToEdit.getHistory());
     }
 
     @Override
