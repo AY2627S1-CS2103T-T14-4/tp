@@ -45,6 +45,49 @@ public class FindPetCommandTest {
     }
 
     @Test
+    public void execute_multipleMatchingPetsAndOwners_displaysEachOwnerOnce() {
+        Pet miloJr = new Pet(new PetName("Milo Jr"), new Species("Dog"), new Breed("Poodle"));
+        Client alice = new ClientBuilder().withName("Alice").withPets(MILO, miloJr).build();
+        Client bob = new ClientBuilder().withName("Bob").withPets(MILO).build();
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(alice);
+        pawPals.addClient(bob);
+        Model model = new ModelManager(pawPals, new UserPrefs());
+        PetContainsKeywordsPredicate predicate = new PetContainsKeywordsPredicate(List.of("Milo", "Milo Jr"));
+
+        CommandResult result = new FindPetCommand(predicate).execute(model);
+
+        assertEquals(String.format(MESSAGE_PETS_FOUND, 3), result.getFeedbackToUser());
+        assertEquals(List.of(alice, bob), model.getFilteredClientList());
+    }
+
+    @Test
+    public void execute_noMatchingPets_displaysNoOwners() {
+        Client alice = new ClientBuilder().withName("Alice").withPets(MILO).build();
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(alice);
+        Model model = new ModelManager(pawPals, new UserPrefs());
+
+        CommandResult result = new FindPetCommand(
+                new PetContainsKeywordsPredicate(List.of("Coco"))).execute(model);
+
+        assertEquals(String.format(MESSAGE_PETS_FOUND, 0), result.getFeedbackToUser());
+        assertTrue(model.getFilteredClientList().isEmpty());
+    }
+
+    @Test
+    public void execute_doesNotModifyPawPalsData() {
+        Client alice = new ClientBuilder().withName("Alice").withPets(MILO).build();
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(alice);
+        Model model = new ModelManager(pawPals, new UserPrefs());
+
+        new FindPetCommand(new PetContainsKeywordsPredicate(List.of("Milo"))).execute(model);
+
+        assertEquals(List.of(alice), model.getPawPals().getClientList());
+    }
+
+    @Test
     public void equals() {
         FindPetCommand first = new FindPetCommand(new PetContainsKeywordsPredicate(List.of("Milo")));
         FindPetCommand same = new FindPetCommand(new PetContainsKeywordsPredicate(List.of("Milo")));
