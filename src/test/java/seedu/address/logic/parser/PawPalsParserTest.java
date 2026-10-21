@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,8 @@ import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.DoneCommand;
+import seedu.address.logic.commands.EditAppointmentCommand;
+import seedu.address.logic.commands.EditAppointmentCommand.EditAppointmentDescriptor;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
 import seedu.address.logic.commands.ExitCommand;
@@ -47,6 +50,19 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class PawPalsParserTest {
 
     private final PawPalsParser parser = new PawPalsParser();
+
+    @Test
+    public void parseCommand_editAppointment() throws Exception {
+        EditAppointmentDescriptor edits = new EditAppointmentDescriptor(Optional.of(new AppointmentDate("13-12-2026")),
+                Optional.of(new AppointmentTime("16:00")), Optional.of(new AppointmentTime("17:00")));
+        assertEquals(new EditAppointmentCommand(INDEX_FIRST_CLIENT, new AppointmentDate("29-02-2024"),
+                new AppointmentTime("14:00"), edits), parser.parseCommand(
+                        "editappt c/1 d/29-02-2024 t/14:00 nd/13-12-2026 ns/16:00 ne/17:00"));
+        assertThrows(ParseException.class, EditAppointmentCommand.MESSAGE_NOT_EDITED, () -> parser.parseCommand(
+                "editappt c/1 d/29-02-2024 t/14:00"));
+        assertThrows(ParseException.class, AppointmentTime.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
+                "editappt c/1 d/29-02-2024 t/14:00 ns/24:00"));
+    }
 
     @Test
     public void parseCommand_appointmentWithLinkedPetsAndEndTime() throws Exception {
