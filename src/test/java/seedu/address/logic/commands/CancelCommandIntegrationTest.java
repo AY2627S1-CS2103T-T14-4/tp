@@ -96,6 +96,14 @@ public class CancelCommandIntegrationTest {
 
     @Test
     public void execute_cancelFutureAppointment_allowsAnotherClientToBookSlotAfterReload() throws Exception {
+        logic.execute("find Benson");
+        String saved = Files.readString(testFolder.resolve("pawPals.json"));
+        CommandException blocked = assertThrows(CommandException.class, ()
+                -> logic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:00 et/15:30"));
+        assertEquals("Appointment overlaps with Alice Pauline's appointment: d/" + FUTURE_DATE
+                + " t/14:00 et/15:30.", blocked.getMessage());
+        assertDataUnchanged(saved);
+        logic.execute("list");
         logic.execute("cancel c/1 d/" + FUTURE_DATE + " t/14:00");
         Client expectedAlice = new ClientBuilder(alice).withAppointments().build();
         assertEquals(List.of(expectedAlice, benson), createStorage().readPawPals().orElseThrow().getClientList());
@@ -104,9 +112,10 @@ public class CancelCommandIntegrationTest {
         Model restored = new ModelManager(restartedStorage.readPawPals().orElseThrow(), new UserPrefs());
         LogicManager restoredLogic = new LogicManager(restored, restartedStorage);
         restoredLogic.execute("find Benson");
-        restoredLogic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:00");
+        restoredLogic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:00 et/15:30");
 
-        Appointment rebooked = new Appointment(FUTURE.getDate(), FUTURE.getTime());
+        Appointment rebooked = new Appointment(FUTURE.getDate(), FUTURE.getTime())
+                .withEndTime(new AppointmentTime("15:30"));
         Client expectedBenson = new ClientBuilder(benson).withAppointments(PAST, rebooked).build();
         assertEquals(List.of(expectedBenson), restored.getFilteredClientList());
         assertEquals(List.of(expectedAlice, expectedBenson),

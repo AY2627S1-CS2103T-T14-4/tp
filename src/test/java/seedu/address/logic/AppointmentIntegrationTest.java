@@ -15,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -65,13 +64,21 @@ public class AppointmentIntegrationTest {
     }
 
     @Test
-    public void execute_sameSlotForDifferentClients_savesBoth() throws Exception {
+    public void execute_sameSlotForDifferentClients_rejectsAndPreservesSavedData() throws Exception {
         logic.execute(appointmentCommand(1));
-        logic.execute(appointmentCommand(2));
+        ReadOnlyPawPals original = new PawPals(model.getPawPals());
+        String savedJson = Files.readString(dataFile);
+
+        CommandException exception = assertThrows(CommandException.class, () -> logic.execute(appointmentCommand(2)));
 
         ReadOnlyPawPals saved = readSavedPawPals();
+        assertEquals("Appointment overlaps with Alice Test's appointment: d/" + futureDate + " t/12:34.",
+                exception.getMessage());
         assertEquals(List.of(appointment), saved.getClientList().get(0).getAppointments());
-        assertEquals(List.of(appointment), saved.getClientList().get(1).getAppointments());
+        assertTrue(saved.getClientList().get(1).getAppointments().isEmpty());
+        assertEquals(original, model.getPawPals());
+        assertEquals(original, saved);
+        assertEquals(savedJson, Files.readString(dataFile));
     }
 
     @Test
@@ -104,7 +111,8 @@ public class AppointmentIntegrationTest {
 
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(appointmentCommand(1)));
 
-        assertEquals(AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT, exception.getMessage());
+        assertEquals("Appointment overlaps with Alice Test's appointment: d/" + futureDate + " t/12:34.",
+                exception.getMessage());
         assertEquals(original, model.getPawPals());
         assertEquals(savedJson, Files.readString(dataFile));
     }
@@ -138,13 +146,14 @@ public class AppointmentIntegrationTest {
     @Test
     public void execute_deleteAndClear_removeSavedAppointments() throws Exception {
         logic.execute(appointmentCommand(1));
-        logic.execute(appointmentCommand(2));
+        logic.execute("appt c/2 d/" + futureDate + " t/12:35");
         logic.execute("delc 1");
 
         ReadOnlyPawPals afterDelete = readSavedPawPals();
         assertEquals(1, afterDelete.getClientList().size());
         assertEquals("Bob Test", afterDelete.getClientList().get(0).getName().fullName);
-        assertEquals(List.of(appointment), afterDelete.getClientList().get(0).getAppointments());
+        assertEquals(List.of(new Appointment(appointment.getDate(), new AppointmentTime("12:35"))),
+                afterDelete.getClientList().get(0).getAppointments());
 
         logic.execute("clear");
         assertTrue(readSavedPawPals().getClientList().isEmpty());

@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -10,6 +11,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentConflictChecker;
+import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
 
 /**
@@ -91,6 +95,19 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedClient);
 
         pawPals.setClient(target, editedClient);
+    }
+
+    //=========== Appointment Conflict Checks ================================================================
+
+    @Override
+    public Optional<Conflict> findAppointmentConflict(Appointment candidate) {
+        return AppointmentConflictChecker.findConflict(pawPals, candidate);
+    }
+
+    @Override
+    public Optional<Conflict> findAppointmentConflict(Appointment candidate, Client excludedClient,
+            Appointment excludedAppointment) {
+        return AppointmentConflictChecker.findConflict(pawPals, candidate, excludedClient, excludedAppointment);
     }
 
     //=========== Filtered Client List Accessors =============================================================

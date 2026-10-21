@@ -7,7 +7,9 @@ import static seedu.address.testutil.TypicalClients.BENSON;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
@@ -120,6 +123,67 @@ public class AppointmentCommandIntegrationTest {
         assertEquals(List.of(ALICE, selectedClient), model.getPawPals().getClientList());
         assertEquals(List.of(selectedClient), model.getFilteredClientList());
         assertEquals(saved, Files.readString(testFolder.resolve("pawPals.json")));
+    }
+
+    @Test
+    public void execute_hiddenOverlapAfterReload_preservesMemoryFilterAndSavedFile() throws Exception {
+        Appointment existing = new Appointment(new AppointmentDate(FUTURE_DATE), new AppointmentTime("14:00"))
+                .withEndTime(new AppointmentTime("15:00"));
+        Client owner = ALICE.copyWithAppointment(existing);
+        model.setClient(ALICE, owner);
+        createStorage().savePawPals(model.getPawPals());
+        model = new ModelManager(createStorage().readPawPals().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, createStorage());
+        logic.execute("find Benson");
+        String saved = Files.readString(testFolder.resolve("pawPals.json"));
+
+        CommandException exception = assertThrows(CommandException.class, ()
+                -> logic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:30 et/15:30"));
+
+        assertEquals("Appointment overlaps with Alice Pauline's appointment: d/" + FUTURE_DATE
+                + " t/14:00 et/15:00.", exception.getMessage());
+        assertEquals(List.of(owner, selectedClient), model.getPawPals().getClientList());
+        assertEquals(List.of(selectedClient), model.getFilteredClientList());
+        assertEquals(saved, Files.readString(testFolder.resolve("pawPals.json")));
+        assertEquals(model.getPawPals(), createStorage().readPawPals().orElseThrow());
+    }
+
+    @Test
+    public void execute_adjacentAppointmentsForDifferentClients_saveAndReload() throws Exception {
+        logic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:00 et/15:00");
+        logic.execute("appt c/2 d/" + FUTURE_DATE + " t/15:00 et/16:00");
+        assertEquals(model.getPawPals(), createStorage().readPawPals().orElseThrow());
+        assertEquals(new AppointmentTime("15:00"), createStorage().readPawPals().orElseThrow()
+                .getClientList().get(1).getAppointments().getLast().getTime());
+    }
+
+    @Test
+    public void execute_completedSessionAfterReload_releasesSlotAndPreservesHistory() throws Exception {
+        Appointment existing = new Appointment(new AppointmentDate(FUTURE_DATE), new AppointmentTime("14:00"))
+                .withEndTime(new AppointmentTime("15:00"));
+        Client owner = ALICE.copyWithAppointment(existing);
+        model.setClient(ALICE, owner);
+        assertThrows(CommandException.class, ()
+                -> logic.execute("appt c/2 d/" + FUTURE_DATE + " t/14:00 et/15:00"));
+
+        // Exercise the completion API; the separately implemented done command supplies its execution clock.
+        ZoneId zone = ZoneId.of("Asia/Singapore");
+        Clock completionClock = Clock.fixed(existing.getDate().getValue().atTime(14, 0).atZone(zone).toInstant(), zone);
+        Client completed = owner.completeAppointment(existing.getDate(), existing.getTime(),
+                new SessionNotes("Teddy cut"), completionClock);
+        model.setClient(owner, completed);
+        createStorage().savePawPals(model.getPawPals());
+
+        Model restored = new ModelManager(createStorage().readPawPals().orElseThrow(), new UserPrefs());
+        LogicManager restoredLogic = new LogicManager(restored, createStorage());
+        restoredLogic.execute("find Benson");
+        restoredLogic.execute("appt c/1 d/" + FUTURE_DATE + " t/14:00 et/15:00");
+
+        assertEquals(List.of(completed, selectedClient.copyWithAppointment(existing)),
+                createStorage().readPawPals().orElseThrow().getClientList());
+        assertEquals(1, completed.getHistory().size());
+        assertEquals(existing, completed.getHistory().getFirst().getAppointment());
+        assertEquals(List.of(selectedClient.copyWithAppointment(existing)), restored.getFilteredClientList());
     }
 
     private StorageManager createStorage() {

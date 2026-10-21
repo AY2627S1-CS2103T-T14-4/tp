@@ -7,6 +7,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -14,11 +15,12 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
 
 /**
  * Adds an appointment to a client identified by their displayed index, including after filtering.
- * Duplicate slots are checked within the selected client, regardless of appointment details.
+ * Overlaps are rejected across all clients' active appointments, including clients hidden by filtering.
  */
 public class AppointmentCommand extends Command {
     public static final String COMMAND_WORD = "appt";
@@ -27,11 +29,10 @@ public class AppointmentCommand extends Command {
             + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm]\n"
             + "The index must be positive and the combined date and time must be strictly in the future.\n"
             + "The optional end time must be after the start time on the same date.\n"
+            + "Appointments must not overlap any client's active bookings. Adjacent appointments are allowed.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
     public static final String MESSAGE_NOT_FUTURE = "Appointment date and time must be strictly in the future.";
-    public static final String MESSAGE_DUPLICATE_APPOINTMENT =
-            "This client already has an appointment at that date and time.";
 
     private final Index targetIndex;
     private final Appointment appointment;
@@ -71,7 +72,7 @@ public class AppointmentCommand extends Command {
      * @return Feedback identifying the client, date, start time and end time if supplied.
      * @throws NullPointerException if {@code model} is null.
      * @throws CommandException if the displayed index is invalid, the appointment is not strictly
-     *     in the future, or the client already has the same date/time slot.
+     *     in the future, or the appointment overlaps an active booking for any client.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -85,8 +86,9 @@ public class AppointmentCommand extends Command {
             throw new CommandException(MESSAGE_NOT_FUTURE);
         }
         Client client = displayedClients.get(targetIndex.getZeroBased());
-        if (client.hasAppointment(appointment)) {
-            throw new CommandException(MESSAGE_DUPLICATE_APPOINTMENT);
+        Optional<Conflict> conflict = model.findAppointmentConflict(appointment);
+        if (conflict.isPresent()) {
+            throw new CommandException(Messages.formatAppointmentConflict(conflict.get()));
         }
         model.setClient(client, client.copyWithAppointment(appointment));
         return new CommandResult(String.format(MESSAGE_SUCCESS,

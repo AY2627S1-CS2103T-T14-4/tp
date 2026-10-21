@@ -159,7 +159,9 @@ Rules:
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
 * `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
 * The **combined date and time** must be strictly later than the computer's current date and time when the command executes, using its local time zone. Later today is valid. For example, at 10:30 today, today's `t/10:31` is valid but `t/10:30` is not.
-* The same date and time cannot be added twice for the **same client**, even if stored appointment details differ. Different clients may have appointments at the same date and time; PawPals does not check overlaps or available staff.
+* An appointment must not overlap **any active appointment across all clients**, including clients hidden by the current search filter. Overlaps are rejected for both the same client and different clients, regardless of appointment details or linked pets. The rejection identifies the conflicting client and booking slot.
+* An appointment with an end time occupies its start time up to, but not including, its end time. Adjacent bookings such as `14:00–15:00` and `15:00–16:00` are allowed. Without an end time, a booking occupies its starting minute: `t/14:00` conflicts with a range containing 14:00 or another `t/14:00`, but permits a booking starting at 14:01. Appointments on different dates do not conflict.
+* Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must still satisfy the future-date/time rule and avoid remaining active bookings.
 * `t/` means time in `appt`. It means a tag in commands that accept tags. The `appt` command does not accept tags or appointment details.
 
 Successful output, if the selected client's name is Ben Lim: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
@@ -168,7 +170,7 @@ When an end time is supplied: `Added appointment: Ben Lim d/12-12-2026 t/12:34 e
 
 The appointment's date and start time appear under the selected client's contact information. All appointment data, including an optional end time, is saved automatically and retained after restarting PawPals. End times are included in command feedback; the current client card shows the start time only. Stored nonblank details are also displayed when present. Appointments remain available after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
 
-If the command is rejected because of invalid input or a duplicate appointment, no appointment is added. Validation feedback includes:
+If the command is rejected because of invalid input or an overlap, no data is changed. Validation feedback includes:
 
 | Problem | Feedback |
 | --- | --- |
@@ -180,7 +182,7 @@ If the command is rejected because of invalid input or a duplicate appointment, 
 | Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
 | End time equal to or before the start time | `End time must be after the start time.` |
 | Past or current date/time | `Appointment date and time must be strictly in the future.` |
-| Existing date/time for the selected client | `This client already has an appointment at that date and time.` |
+| Overlap with any client's active booking | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
 The example date must still be in the future when you try it. Replace it with a future date if needed.
 

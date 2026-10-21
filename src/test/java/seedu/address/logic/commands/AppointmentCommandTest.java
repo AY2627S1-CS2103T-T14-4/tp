@@ -137,7 +137,8 @@ public class AppointmentCommandTest {
 
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT,
                 appointment.withEndTime(new AppointmentTime("14:00")), CLOCK), model,
-                AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT);
+                "Appointment overlaps with " + original.getName()
+                        + "'s appointment: d/13-12-2026 t/12:00 et/13:00.");
     }
 
     @Test
@@ -166,18 +167,19 @@ public class AppointmentCommandTest {
         model.setClient(original, original.copyWithAppointment(
                 new Appointment(appointment.getDate(), appointment.getTime(), "Existing details")));
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
-                AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT);
+                "Appointment overlaps with " + original.getName() + "'s appointment: d/13-12-2026 t/00:00.");
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT,
                 new Appointment(appointment.getDate(), appointment.getTime(), "Existing details"), CLOCK), model,
-                AppointmentCommand.MESSAGE_DUPLICATE_APPOINTMENT);
+                "Appointment overlaps with " + original.getName() + "'s appointment: d/13-12-2026 t/00:00.");
     }
 
     @Test
-    public void execute_sameSlotForDifferentClients_succeeds() throws Exception {
+    public void execute_sameSlotForDifferentClients_rejectsWithoutChangingData() throws Exception {
         Appointment appointment = createAppointment("13-12-2026", "00:00");
         new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK).execute(model);
-        new AppointmentCommand(INDEX_SECOND_CLIENT, appointment, CLOCK).execute(model);
-        assertEquals(List.of(appointment), model.getFilteredClientList().get(1).getAppointments());
+        assertCommandFailure(new AppointmentCommand(INDEX_SECOND_CLIENT, appointment, CLOCK), model,
+                "Appointment overlaps with " + model.getPawPals().getClientList().getFirst().getName()
+                        + "'s appointment: d/13-12-2026 t/00:00.");
     }
 
     @Test

@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
 
 /**
@@ -18,6 +20,17 @@ public class Messages {
     public static final String MESSAGE_CLIENTS_LISTED_OVERVIEW = "%1$d client(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_APPOINTMENT_CONFLICT =
+            "Appointment overlaps with %1$s's appointment: d/%2$s t/%3$s%4$s.";
+
+    /**
+     * Identifies a conflicting booking, including its end time when one is recorded.
+     */
+    public static String formatAppointmentConflict(Conflict conflict) {
+        Appointment appointment = conflict.appointment();
+        return String.format(MESSAGE_APPOINTMENT_CONFLICT, conflict.client().getName(), appointment.getDate(),
+                appointment.getTime(), appointment.getEndTime().map(end -> " et/" + end).orElse(""));
+    }
 
     /**
      * Returns an error message indicating the duplicate prefixes.

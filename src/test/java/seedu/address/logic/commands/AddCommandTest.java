@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,8 @@ import seedu.address.model.Model;
 import seedu.address.model.PawPals;
 import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
 import seedu.address.model.client.Client;
 import seedu.address.testutil.ClientBuilder;
 
@@ -133,6 +136,17 @@ public class AddCommandTest {
 
         @Override
         public ObservableList<Client> getFilteredClientList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Conflict> findAppointmentConflict(Appointment candidate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Conflict> findAppointmentConflict(Appointment candidate, Client excludedClient,
+                Appointment excludedAppointment) {
             throw new AssertionError("This method should not be called.");
         }
 
