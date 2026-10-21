@@ -183,8 +183,19 @@ for different pets follow the same overlap rules. Editing command integration is
 #### Completed-session history
 
 History is stored under its owning `Client` as an immutable `List<CompletedSession>`, separate from
-the active appointments returned by `Client#getAppointments()`. This is the model/storage foundation
-for the separately implemented `done` command and history UI.
+the active appointments returned by `Client#getAppointments()`. The `done` command uses this model/storage
+foundation; history presentation is handled by the UI.
+
+`DoneCommandParser` reuses `ParserUtil#parseAppointmentTarget(...)` for client/date/start parsing and
+the existing `PREFIX_NOTE` for required `nt/` session notes. `SessionNotes` handles trimming and length
+validation. `PawPalsParser` dispatches `done` to this parser.
+
+`DoneCommand` resolves the target against the displayed client list, checks active appointments first,
+and uses history only to distinguish an already completed slot from a missing booking. It delegates
+completion eligibility and snapshot creation to `Client#completeAppointment(...)`, using an injectable
+clock, then applies the replacement with exactly one `Model#setClient(...)` call. This keeps completion
+and active removal together without changing the filter. Future starts become a command error before
+the model is updated. Success feedback identifies the client, slot, recorded pets and session notes.
 
 Each `CompletedSession` retains:
 
@@ -202,7 +213,7 @@ Each `CompletedSession` retains:
   It may occur before the scheduled end, or much later than the visit. The logging instant is read once
   from that same clock. A future start or missing active appointment leaves the original client unchanged.
 * Repeating completion without another active appointment fails. `hasCompletedAppointment(date, time)`
-  lets the future command distinguish an already logged slot from one that never existed.
+  lets `DoneCommand` distinguish an already logged slot from one that never existed.
   Always look for an active appointment first; an old history record must not block a new booking at that slot.
 * History has no date/start-time uniqueness constraint and never reserves time. Booking and conflict
   checks use active appointments only; the normal future-start rule for `appt` still applies.
