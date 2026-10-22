@@ -65,6 +65,7 @@
         "deleting-a-pet-note": "Deleting a pet note",
         "deleting-a-client": "Deleting a client",
         "adding-appointments": "Adding appointments",
+        "rescheduling-appointments": "Rescheduling appointments",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -119,6 +120,7 @@
         "deleting-a-pet-note-delnote": "Deleting a pet note: delnote",
         "deleting-a-client-delc": "Deleting a client: delc",
         "adding-an-appointment-appt": "Adding an appointment: appt",
+        "rescheduling-an-appointment-editappt": "Rescheduling an appointment: editappt",
         "cancelling-an-appointment-cancel": "Cancelling an appointment: cancel",
         "completing-an-appointment-done": "Completing an appointment: done",
         "listing-all-clients-list": "Listing all clients: list",
