@@ -215,6 +215,15 @@ public class EditAppointmentCommandTest {
         assertNotEquals(command, command(slot("13-12-2026", "15:00", null), MOVE_START));
     }
 
+    @Test
+    public void toStringMethod_returnsExpectedString() {
+        EditAppointmentCommand command = command(ORIGINAL, MOVE_START);
+        String expected = EditAppointmentCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_CLIENT
+                + ", date=" + ORIGINAL.getDate() + ", time=" + ORIGINAL.getTime() + ", edits=" + MOVE_START + "}";
+
+        assertEquals(expected, command.toString());
+    }
+
     private static void assertReplacement(Appointment original, EditAppointmentDescriptor edits, Appointment expected)
             throws Exception {
         ModelStub model = modelWith(owner(original));
