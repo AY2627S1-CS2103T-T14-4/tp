@@ -40,6 +40,7 @@ public class FindPetCommandTest {
         CommandResult result = new FindPetCommand(predicate).execute(model);
 
         assertEquals(String.format(MESSAGE_PETS_FOUND, 1), result.getFeedbackToUser());
+        assertEquals(FeedbackType.NEUTRAL, result.getFeedbackType());
         assertEquals(List.of(alice), model.getFilteredClientList());
         assertEquals(expectedModel.getFilteredClientList(), model.getFilteredClientList());
     }
@@ -72,6 +73,7 @@ public class FindPetCommandTest {
                 new PetContainsKeywordsPredicate(List.of("Coco"))).execute(model);
 
         assertEquals(String.format(MESSAGE_PETS_FOUND, 0), result.getFeedbackToUser());
+        assertEquals(FeedbackType.NEUTRAL, result.getFeedbackType());
         assertTrue(model.getFilteredClientList().isEmpty());
     }
 

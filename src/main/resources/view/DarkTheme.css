@@ -157,6 +157,24 @@
     -fx-text-fill: black !important;
 }
 
+.feedback-status {
+    -fx-font-size: 11pt;
+    -fx-font-weight: bold;
+    -fx-min-height: 20;
+}
+
+.feedback-neutral .feedback-status {
+    -fx-text-fill: #b8d9f5;
+}
+
+.feedback-success .feedback-status {
+    -fx-text-fill: #a8dfb0;
+}
+
+.feedback-error .feedback-status {
+    -fx-text-fill: #ffb4a2;
+}
+
 .status-bar .label {
     -fx-font-family: "Segoe UI Light";
     -fx-text-fill: white;

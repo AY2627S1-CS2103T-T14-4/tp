@@ -32,7 +32,7 @@ public class FindPetCommand extends Command {
         long matchingPetCount = model.getPawPals().getClientList().stream()
                 .mapToLong(predicate::getMatchingPetCount)
                 .sum();
-        return new CommandResult(String.format(Messages.MESSAGE_PETS_FOUND, matchingPetCount));
+        return new CommandResult(String.format(Messages.MESSAGE_PETS_FOUND, matchingPetCount), FeedbackType.NEUTRAL);
     }
 
     @Override
