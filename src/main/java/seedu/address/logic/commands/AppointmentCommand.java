@@ -37,7 +37,6 @@ public class AppointmentCommand extends Command {
             + "Appointments must not overlap any client's active bookings. Adjacent appointments are allowed.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
-    public static final String MESSAGE_NOT_FUTURE = "Appointment date and time must be strictly in the future.";
 
     private final Index targetIndex;
     private final Appointment appointment;
@@ -88,7 +87,7 @@ public class AppointmentCommand extends Command {
         }
         LocalDateTime dateTime = LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue());
         if (!dateTime.isAfter(LocalDateTime.now(clock))) {
-            throw new CommandException(MESSAGE_NOT_FUTURE);
+            throw new CommandException(Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
         }
         Client client = displayedClients.get(targetIndex.getZeroBased());
         Appointment resolvedAppointment = resolvePetNames(client);

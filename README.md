@@ -1,20 +1,19 @@
 # PawPals
 
-[![Build Status](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml)
-
 [![CI Status](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp/graph/badge.svg?token=ZQ7UEO7OJX)](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp)
 
 ![PawPals user interface](docs/images/Ui.png)
 
-[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp/graph/badge.svg?token=ZQ7UEO7OJX)](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp)
+PawPals is a desktop app for independent mobile pet groomers to manage their clients, pets and appointments. It is optimised for typing commands, while still showing everything in a GUI.
 
 ## Key features
 
-- Add and manage client contact records, with duplicate detection by name and phone.
-- Associate multiple pets (name, species, breed) with each client.
-- Schedule future appointments for a client, with duplicate-slot detection per client.
-- Delete a client together with all their pets and appointments.
-- Find clients by name and work directly from the filtered list.
+- Keep client contact records, with duplicate detection by name and phone.
+- Record each client's pets (name, species, breed), with care notes on grooming preferences, sensitivities and temperament.
+- Schedule appointments with an optional end time and the pets being groomed. Overlapping bookings are rejected across all clients.
+- Cancel an appointment, or mark it done with session notes so it is kept in the client's grooming history.
+- Find clients by name, phone or email, or find pet owners by pet name.
 
 ## Documentation
 

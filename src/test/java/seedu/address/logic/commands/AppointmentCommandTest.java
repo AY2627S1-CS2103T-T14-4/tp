@@ -120,12 +120,12 @@ public class AppointmentCommandTest {
             Appointment appointment = createAppointment("12-12-2026", startTime)
                     .withEndTime(new AppointmentTime("13:00"));
             assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
-                    AppointmentCommand.MESSAGE_NOT_FUTURE);
+                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
         }
         Appointment past = createAppointment("11-12-2026", "12:00")
                 .withEndTime(new AppointmentTime("13:00"));
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK), model,
-                AppointmentCommand.MESSAGE_NOT_FUTURE);
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test
@@ -156,7 +156,7 @@ public class AppointmentCommandTest {
         for (Appointment appointment : new Appointment[] {createAppointment("11-12-2026", "23:59"),
             createAppointment("12-12-2026", "11:59"), createAppointment("12-12-2026", "12:00")}) {
             assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
-                    AppointmentCommand.MESSAGE_NOT_FUTURE);
+                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
         }
     }
 

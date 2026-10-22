@@ -24,6 +24,9 @@ public class Messages {
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_APPOINTMENT_CONFLICT =
             "Appointment overlaps with %1$s's appointment: d/%2$s t/%3$s%4$s.";
+    public static final String MESSAGE_APPOINTMENT_NOT_FOUND = "%1$s has no appointment at %2$s %3$s.";
+    public static final String MESSAGE_APPOINTMENT_NOT_FUTURE =
+            "Appointment date and time must be strictly in the future.";
 
     /**
      * Identifies a conflicting booking, including its end time when one is recorded.
