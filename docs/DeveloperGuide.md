@@ -276,7 +276,7 @@ The `Storage` component,
 * can save both PawPals data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonPawPalsStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
-* stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved as its optional `preference`, `sensitivity` and `temperament` fields.
+* stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved in its `notes` object, keyed by note type, e.g. `"notes": {"pref": "Teddy cut", "temp": "Nervous around dryers"}`.
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
 ### Common classes
