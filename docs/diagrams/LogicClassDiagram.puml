@@ -10,6 +10,13 @@ package "Parser Classes" as ParserClasses{
 }
 Class XYZCommand
 Class CommandResult
+enum FeedbackType {
+  NEUTRAL
+  SUCCESS
+  ERROR
+}
+
+CommandResult --> FeedbackType
 Class "{abstract}\nCommand" as Command
 
 
