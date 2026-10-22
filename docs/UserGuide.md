@@ -318,8 +318,8 @@ Successful output, if Ben Lim's original booking was `14:00–15:30`:
 `Rescheduled appointment: Ben Lim 12-12-2026 14:00 → 12-12-2026 16:00 et/17:30`
 
 Feedback includes the resulting end time when one exists, including for end-only edits. The client card
-refreshes its date and start time immediately; its current format shows the start time and any nonblank
-booking details. End times are shown in feedback and saved data. Linked pets, their order, booking details,
+updates immediately to show the new date, start time and any end time, along with the appointment's linked
+pet names and any nonblank booking details. Linked pets, their order, booking details,
 history, other appointments, contact details, tags and pet notes are preserved. Changes are saved
 automatically and retained after restarting PawPals. After a successful move, use the **new** date and start
 time to identify that booking in later commands.
