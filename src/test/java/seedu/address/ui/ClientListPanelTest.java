@@ -30,6 +30,24 @@ public class ClientListPanelTest {
     }
 
     @Test
+    public void constructor_singleList_tracksStoredClients() throws Exception {
+        runOnFxThread(() -> {
+            ObservableList<Client> clients = FXCollections.observableArrayList();
+            ClientListPanel panel = new ClientListPanel(clients);
+            new Scene(panel.getRoot(), 340, 350);
+            assertPlaceholder(panel, "No clients yet. Use addc to create a client.");
+            clients.add(EMPTY_CLIENT);
+            layout(panel);
+            assertEquals(clients, listView(panel).getItems());
+            assertFalse(isAttached(panel, listView(panel).getPlaceholder()));
+            clients.clear();
+            assertPlaceholder(panel, "No clients yet. Use addc to create a client.");
+            assertThrows(NullPointerException.class, () -> new ClientListPanel(null));
+            return null;
+        });
+    }
+
+    @Test
     public void constructor_nullList_throwsNullPointerException() throws Exception {
         runOnFxThread(() -> {
             ObservableList<Client> clients = FXCollections.observableArrayList();

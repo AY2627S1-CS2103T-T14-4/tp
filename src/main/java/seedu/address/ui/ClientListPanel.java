@@ -28,6 +28,15 @@ public class ClientListPanel extends UiPart<Region> {
     private Label emptyListLabel;
 
     /**
+     * Creates a panel for a stored client list that is also the displayed list.
+     *
+     * @throws NullPointerException if {@code clientList} is null.
+     */
+    public ClientListPanel(ObservableList<Client> clientList) {
+        this(clientList, clientList);
+    }
+
+    /**
      * Creates a panel showing {@code filteredClients}, using {@code allClients} to distinguish an empty
      * address book from a search without matches.
      *
@@ -52,11 +61,20 @@ public class ClientListPanel extends UiPart<Region> {
         protected void updateItem(Client client, boolean empty) {
             super.updateItem(client, empty);
 
+            if (getGraphic() instanceof Region previousCard) {
+                previousCard.prefWidthProperty().unbind();
+                previousCard.maxWidthProperty().unbind();
+            }
+            setText(null);
             if (empty || client == null) {
                 setGraphic(null);
-                setText(null);
             } else {
-                setGraphic(new ClientCard(client, getIndex() + 1).getRoot());
+                Region card = new ClientCard(client, getIndex() + 1).getRoot();
+                card.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
+                        getWidth() - getInsets().getLeft() - getInsets().getRight()),
+                        widthProperty(), insetsProperty()));
+                card.maxWidthProperty().bind(card.prefWidthProperty());
+                setGraphic(card);
             }
         }
     }

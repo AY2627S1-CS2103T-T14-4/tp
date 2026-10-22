@@ -168,6 +168,40 @@ After a successful command, the pet appears under the selected client's card in 
 
 If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
 
+### Editing a pet: `editp`
+
+Edits the name, species or breed of one of a client's pets. The pet's notes are kept.
+
+Format: `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`
+
+Examples:
+* `editp c/1 pn/Milo b/Toy Poodle` changes Milo's breed.
+* `editp c/1 pn/Milo n/Max` renames Milo to Max.
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` is the pet's current name. It must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* At least one of `n/`, `s/` or `b/` must be given. `NAME`, `SPECIES` and `BREED` follow the same rules as in `addp`.
+* Each prefix may appear only once, in any order.
+* A pet cannot be renamed to the name of another of the same client's pets, ignoring capitalisation.
+* Renaming a pet also renames it in the client's upcoming appointments. Completed sessions keep the old name,
+  since they record what happened at the time.
+* To change a pet's notes, use `note` and `delnote` instead.
+
+Successful output: `Edited pet: Milo (Dog, Toy Poodle)`
+
+If the command fails, the pet is not changed. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions. |
+| None of `n/`, `s/` or `b/` given | `At least one field to edit must be provided.` |
+| Repeated prefix, for example two `b/` values | `Multiple values specified for the following single-valued field(s): b/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Rex.` |
+| Invalid new name, species or breed | The same message as in `addp`. |
+| New name already used by another of the client's pets | `This client already has a pet with the same name.` |
+
 ### Adding or updating a pet note: `note`
 
 Records a note about one of a client's pets. Each pet can have one note of each type:
@@ -294,7 +328,22 @@ When pets are linked: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34 
 
 Linked pet names and optional end times are retained after restarting PawPals. Creating an appointment preserves the client's existing appointments, contact details, pets, pet notes and completed history.
 
-The appointment's date and start time appear under the selected client's contact information. All appointment data, including an optional end time, is saved automatically and retained after restarting PawPals. End times are included in command feedback; the current client card shows the start time only. Stored nonblank details are also displayed when present. Appointments remain available after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
+Appointments appear under the selected client's pets in the client list. Each row shows the date,
+start time, optional end time, and linked pet names in their recorded order. For example:
+
+* `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna`
+* `Appointment: 12-12-2026 16:00 · Milo`
+* `Appointment: 13-12-2026 09:00 · No pets linked`
+
+`No pets linked` means no individual pets were selected for that appointment, even if the client has
+pets. Stored nonblank booking details appear in parentheses after the pet names, for example
+`Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)`. The `appt` command does not accept
+booking details, but existing stored details remain visible. Long appointment rows and pet names wrap
+to keep their full text visible; scroll down to see additional appointments.
+
+All appointment data is saved automatically and retained after restarting PawPals. Appointments remain
+available after their scheduled time has passed. Editing the client's contact information preserves
+their appointments; deleting the client or clearing all records removes them.
 
 If the command is rejected because of invalid input or an overlap, no data is changed. Validation feedback includes:
 
@@ -348,8 +397,8 @@ Successful output, if Ben Lim's original booking was `14:00–15:30`:
 `Rescheduled appointment: Ben Lim 12-12-2026 14:00 → 12-12-2026 16:00 et/17:30`
 
 Feedback includes the resulting end time when one exists, including for end-only edits. The client card
-refreshes its date and start time immediately; its current format shows the start time and any nonblank
-booking details. End times are shown in feedback and saved data. Linked pets, their order, booking details,
+updates immediately to show the new date, start time and any end time, along with the appointment's linked
+pet names and any nonblank booking details. Linked pets, their order, booking details,
 history, other appointments, contact details, tags and pet notes are preserved. Changes are saved
 automatically and retained after restarting PawPals. After a successful move, use the **new** date and start
 time to identify that booking in later commands.
@@ -485,6 +534,8 @@ Example: `list`
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
 under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
 are marked with ⚠. Clients without pets continue to display without a pet entry.
+Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
+and any stored booking details. Pet names and appointment rows wrap within the card.
 
 ### Editing a client: `edit`
 
@@ -583,22 +634,23 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 ## Command summary
 
-| Action                     | Format, Examples                                                                                                                             |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| **Add client**             | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`  |
-| **Add pet**                | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`                                                    |
-| **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                         |
-| **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                         |
-| **Clear**                  | `clear`                                                                                                                                      |
-| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                       |
-| **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                               |
-| **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`   |
-| **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` |
-| **Cancel appointment**     | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`                                                    |
-| **Complete appointment**   | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`                      |
-| **Edit**                   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`                |
-| **Exit**                   | `exit`                                                                                                                                       |
-| **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                  |
-| **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                  |
-| **List**                   | `list`                                                                                                                                       |
-| **Help**                   | `help`                                                                                                                                       |
+Action     | Format, Examples
+-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+**Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
+**Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
+**Edit pet** | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`
+**Add/update pet note** | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
+**Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
+**Clear**  | `clear`
+**Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
+**Delete pet** | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`
+**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
+**Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
+**Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
+**Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Exit**   | `exit`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`
+**Find pet owners** | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`
+**List**   | `list`
+**Help**   | `help`

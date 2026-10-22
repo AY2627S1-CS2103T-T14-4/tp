@@ -78,10 +78,6 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-This partial class diagram focuses on the main input, feedback, and client-display parts and their
-dependencies. Common `UiPart` inheritance, auxiliary windows, and command-result details are omitted
-for clarity.
-
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `ClientListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T14-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T14-4/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
@@ -131,8 +127,8 @@ Both list arguments must be non-null; the UI never changes their contents direct
 wrapping labels. A pet gets one empty-note label only when its entire notes map is empty; partial
 notes keep their existing labels and safety markers. `emptyHistory` is visible and managed only while
 history is empty, so it reserves no space after the first completed session. Populated history records
-remain in the model and storage without being rendered here. Model updates replace immutable clients, 
-causing list cells to rebuild their cards and recompute empty sections. No command syntax or storage 
+remain in the model and storage without being rendered here. Model updates replace immutable clients,
+causing list cells to rebuild their cards and recompute empty sections. No command syntax or storage
 schema changes are required.
 
 Tests use the shared `JavaFxTestUtil` toolkit and run new UI scenarios on the JavaFX application thread.
@@ -142,6 +138,33 @@ Tests use the shared `JavaFxTestUtil` toolkit and run new UI scenarios on the Ja
 `ClientCardEmptyStateTest`, `ClientListPanelTest`, and `EmptyStateUiIntegrationTest` verify placeholders,
 reused cells, filtering, and transitions through real commands. `LogicManagerTest` verifies that the
 stored list stays observable across changes and cannot be modified through the Logic API.
+
+#### Appointment presentation and refresh
+
+`ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
+`ClientCard` renders `Client#getAppointments()` in insertion order. Its private appointment formatter
+reads the date, start time, optional end time, recorded linked names and booking details directly from
+`Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
+end-time range when no end time exists and omits parentheses for blank details.
+
+The formatter uses `Appointment#getPetNames()` in recorded order, rather than looking up the client's
+current pets. An empty collection displays `No pets linked`; it never implies all the client's pets.
+Unresolved names in existing records remain visible, so displaying a card does not lose booking information.
+
+Pet summaries, appointment rows and pet notes share wrapping-label configuration. The FXML containers
+allow content to shrink horizontally, while labels keep their computed preferred height. Each list
+cell binds its card's preferred and maximum widths to its available width after insets, allowing
+wrapping and variable row heights. Replacing or clearing a cell unbinds its previous card.
+
+Model updates replace immutable clients through `Model#setClient(...)`, which replaces an element in
+the observable client list. The displayed list then updates its cells and recreates affected cards.
+`Client#withPetReplaced(...)` updates active appointment names after a rename, and `Client#withoutPet(...)`
+removes deleted pets from active links. Removing the final link displays `No pets linked` on the next
+card update. Presentation adds no per-pet listeners or separate refresh mechanism.
+
+Rendering tests cover linked/unlinked rows with optional end times, stored details, ordered names and
+unresolved names. Layout tests exercise wrapping at narrow widths; list tests verify model-driven
+refresh and binding cleanup during cell reuse. UI assertions run on the JavaFX application thread.
 
 ### Logic component
 
@@ -773,6 +796,35 @@ Extensions:
   * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC13 - Edit pet
+
+System: PawPals<br>
+Use case: UC13 - Edit pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to edit one of a client's pets.
+2. User provides the client's index, the pet's current name, and a new name, species or breed.
+3. PawPals updates the pet, keeping its notes. If the pet was renamed, PawPals also renames it in the client's appointments.
+4. PawPals displays a success message and the updated client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index, pet name, species or breed, or no field to edit.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The client has no pet with that name.
+  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+  * Use case ends.
+* 3a. The new name is already used by another of the client's pets.
+  * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
+  * Use case ends.
+
 ### Non-Functional Requirements
 
 1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
@@ -899,6 +951,30 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Editing a pet
+
+Set up one client with two pets, a note and a linked appointment (replace `FUTURE_DATE` with a future date):
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/1 n/Luna s/Cat b/Persian
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+appt c/1 d/FUTURE_DATE t/14:00 pn/Milo
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Edit the breed | `editp c/1 pn/milo b/Toy Poodle` | `Edited pet: Milo (Dog, Toy Poodle)`. Milo keeps his ⚠ Temp note. |
+| Rename a linked pet | `editp c/1 pn/Milo n/Max`, then open `data/pawpals.json`. | `Edited pet: Max (Dog, Toy Poodle)`. Max keeps the note. In the data file, the appointment's `pets` array is now `["Max"]`. |
+| Rename to another pet's name | `editp c/1 pn/Max n/LUNA` | `This client already has a pet with the same name.` No data changes. |
+| No field to edit | `editp c/1 pn/Max` | `At least one field to edit must be provided.` |
+| Unknown pet | `editp c/1 pn/Rex b/Beagle` | `This client has no pet named Rex.` |
+| Repeated prefix | `editp c/1 pn/Max b/Pug b/Pug` | `Multiple values specified for the following single-valued field(s): b/` |
+| Invalid value | `editp c/1 pn/Max s/Dog!` | The species validation message from `addp`. |
+| Restart | Run `exit`, relaunch and run `list`. | The pet is still named Max with breed Toy Poodle. In `data/pawpals.json`, the appointment's `pets` array is still `["Max"]`. |
 
 ### Deleting a pet
 
