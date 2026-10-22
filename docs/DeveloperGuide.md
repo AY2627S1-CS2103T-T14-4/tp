@@ -871,13 +871,13 @@ appt c/1 d/FUTURE_DATE t/14:00 pn/Milo
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
 | Edit the breed | `editp c/1 pn/milo b/Toy Poodle` | `Edited pet: Milo (Dog, Toy Poodle)`. Milo keeps his ⚠ Temp note. |
-| Rename a linked pet | `editp c/1 pn/Milo n/Max` | `Edited pet: Max (Dog, Toy Poodle)`. The appointment now covers Max, and Max keeps the note. |
+| Rename a linked pet | `editp c/1 pn/Milo n/Max`, then open `data/pawpals.json`. | `Edited pet: Max (Dog, Toy Poodle)`. Max keeps the note. In the data file, the appointment's `pets` array is now `["Max"]`. |
 | Rename to another pet's name | `editp c/1 pn/Max n/LUNA` | `This client already has a pet with the same name.` No data changes. |
 | No field to edit | `editp c/1 pn/Max` | `At least one field to edit must be provided.` |
 | Unknown pet | `editp c/1 pn/Rex b/Beagle` | `This client has no pet named Rex.` |
 | Repeated prefix | `editp c/1 pn/Max b/Pug b/Pug` | `Multiple values specified for the following single-valued field(s): b/` |
 | Invalid value | `editp c/1 pn/Max s/Dog!` | The species validation message from `addp`. |
-| Restart | Run `exit`, relaunch and run `list`. | The pet is still named Max with breed Toy Poodle, and the appointment still covers Max. |
+| Restart | Run `exit`, relaunch and run `list`. | The pet is still named Max with breed Toy Poodle. In `data/pawpals.json`, the appointment's `pets` array is still `["Max"]`. |
 
 ### Deleting a pet
 
