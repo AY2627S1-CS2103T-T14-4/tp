@@ -625,6 +625,32 @@ Extensions:
   * 2a2. PawPals leaves the data file unchanged.
   * Use case ends.
 
+#### UC12 - Delete pet
+
+System: PawPals<br>
+Use case: UC12 - Delete pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to delete one of a client's pets.
+2. User provides the client's index and the pet's name.
+3. PawPals removes the pet and its notes from the client, and unlinks the pet from the client's appointments.
+4. PawPals displays a success message and the updated client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index or pet name.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The client has no pet with that name.
+  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+  * Use case ends.
+
 ### Non-Functional Requirements
 
 1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
@@ -709,6 +735,29 @@ add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Deleting a pet
+
+Set up one client with two pets, a note and a linked appointment (replace `FUTURE_DATE` with a future date):
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/1 n/Luna s/Cat b/Persian
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+appt c/1 d/FUTURE_DATE t/14:00 pn/Milo pn/Luna
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Delete a pet | `delp c/1 pn/milo` | `Deleted pet: Milo (owner: Alice Test)`. Milo and his note disappear from the card; Luna remains. |
+| Appointment kept, pet unlinked | Look at Alice's appointment after the previous step. | The appointment is still shown and now covers only Luna. |
+| Unknown pet | `delp c/1 pn/Rex` | `This client has no pet named Rex.` No data changes. |
+| Missing prefix | `delp c/1` | `Invalid command format!` followed by the `delp` usage. |
+| Repeated prefix | `delp c/1 pn/Luna pn/Luna` | `Multiple values specified for the following single-valued field(s): pn/` |
+| Invalid index | `delp c/0 pn/Luna`, then `delp c/2 pn/Luna` | The first gives `Index must be a positive integer.`; the second gives `The client index provided is invalid.` |
+| Restart | Run `exit`, relaunch and run `list`. | Milo is still gone, and the appointment still covers only Luna. |
 
 ### Adding appointments
 
