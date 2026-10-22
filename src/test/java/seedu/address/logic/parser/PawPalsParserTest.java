@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import seedu.address.logic.commands.DeleteNoteCommand;
 import seedu.address.logic.commands.DoneCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
+import seedu.address.logic.commands.EditPetCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.FindPetCommand;
@@ -114,6 +116,14 @@ public class PawPalsParserTest {
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_CLIENT.getOneBased() + " " + ClientUtil.getEditClientDescriptorDetails(descriptor));
         assertEquals(new EditCommand(INDEX_FIRST_CLIENT, descriptor), command);
+    }
+
+    @Test
+    public void parseCommand_editPet() throws Exception {
+        EditPetCommand command = (EditPetCommand) parser.parseCommand("editp c/1 pn/Milo b/Toy Poodle");
+
+        assertEquals(new EditPetCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), Optional.empty(),
+                Optional.empty(), Optional.of(new Breed("Toy Poodle"))), command);
     }
 
     @Test
