@@ -19,6 +19,7 @@ import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
+import seedu.address.logic.commands.DeleteNoteCommand;
 import seedu.address.logic.commands.DoneCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
@@ -166,5 +167,12 @@ public class PawPalsParserTest {
 
         assertEquals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
                 NoteType.TEMP, new PetNote("Anxious around loud dryers")), command);
+    }
+
+    @Test
+    public void parseCommand_deleteNote() throws Exception {
+        DeleteNoteCommand command = (DeleteNoteCommand) parser.parseCommand("delnote c/1 pn/Milo ty/temp");
+
+        assertEquals(new DeleteNoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP), command);
     }
 }

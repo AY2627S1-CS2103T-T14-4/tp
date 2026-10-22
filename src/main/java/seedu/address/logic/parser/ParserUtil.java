@@ -19,6 +19,7 @@ import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 import seedu.address.model.tag.Tag;
@@ -176,6 +177,20 @@ public class ParserUtil {
         }
 
         return new PetName(normalizedName);
+    }
+
+    /**
+     * Parses a note type keyword ({@code pref}, {@code sens} or {@code temp}) into a {@code NoteType},
+     * ignoring case and surrounding spaces.
+     *
+     * @throws ParseException if the keyword is not a valid note type.
+     */
+    public static NoteType parseNoteType(String keyword) throws ParseException {
+        requireNonNull(keyword);
+        if (!NoteType.isValidKeyword(keyword)) {
+            throw new ParseException(NoteType.MESSAGE_CONSTRAINTS);
+        }
+        return NoteType.fromKeyword(keyword);
     }
 
     /**

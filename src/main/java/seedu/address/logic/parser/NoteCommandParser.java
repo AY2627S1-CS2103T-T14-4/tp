@@ -41,7 +41,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         }
 
         PetName petName = ParserUtil.parsePetName(arguments.getValue(PREFIX_PET_NAME).get());
-        NoteType noteType = parseNoteType(arguments.getValue(PREFIX_NOTE_TYPE).get());
+        NoteType noteType = ParserUtil.parseNoteType(arguments.getValue(PREFIX_NOTE_TYPE).get());
         PetNote note = parseNote(arguments.getValue(PREFIX_NOTE).get());
 
         return new NoteCommand(clientIndex, petName, noteType, note);
@@ -54,13 +54,6 @@ public class NoteCommandParser implements Parser<NoteCommand> {
             }
         }
         return false;
-    }
-
-    private static NoteType parseNoteType(String value) throws ParseException {
-        if (!NoteType.isValidKeyword(value)) {
-            throw new ParseException(NoteType.MESSAGE_CONSTRAINTS);
-        }
-        return NoteType.fromKeyword(value);
     }
 
     private static PetNote parseNote(String value) throws ParseException {
