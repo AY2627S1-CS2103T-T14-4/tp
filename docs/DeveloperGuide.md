@@ -719,6 +719,35 @@ Extensions:
   * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC13 - Edit pet
+
+System: PawPals<br>
+Use case: UC13 - Edit pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to edit one of a client's pets.
+2. User provides the client's index, the pet's current name, and a new name, species or breed.
+3. PawPals updates the pet, keeping its notes. If the pet was renamed, PawPals also renames it in the client's appointments.
+4. PawPals displays a success message and the updated client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index, pet name, species or breed, or no field to edit.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The client has no pet with that name.
+  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+  * Use case ends.
+* 3a. The new name is already used by another of the client's pets.
+  * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
+  * Use case ends.
+
 ### Non-Functional Requirements
 
 1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
@@ -825,6 +854,30 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Editing a pet
+
+Set up one client with two pets, a note and a linked appointment (replace `FUTURE_DATE` with a future date):
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/1 n/Luna s/Cat b/Persian
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+appt c/1 d/FUTURE_DATE t/14:00 pn/Milo
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Edit the breed | `editp c/1 pn/milo b/Toy Poodle` | `Edited pet: Milo (Dog, Toy Poodle)`. Milo keeps his ⚠ Temp note. |
+| Rename a linked pet | `editp c/1 pn/Milo n/Max`, then open `data/pawpals.json`. | `Edited pet: Max (Dog, Toy Poodle)`. Max keeps the note. In the data file, the appointment's `pets` array is now `["Max"]`. |
+| Rename to another pet's name | `editp c/1 pn/Max n/LUNA` | `This client already has a pet with the same name.` No data changes. |
+| No field to edit | `editp c/1 pn/Max` | `At least one field to edit must be provided.` |
+| Unknown pet | `editp c/1 pn/Rex b/Beagle` | `This client has no pet named Rex.` |
+| Repeated prefix | `editp c/1 pn/Max b/Pug b/Pug` | `Multiple values specified for the following single-valued field(s): b/` |
+| Invalid value | `editp c/1 pn/Max s/Dog!` | The species validation message from `addp`. |
+| Restart | Run `exit`, relaunch and run `list`. | The pet is still named Max with breed Toy Poodle. In `data/pawpals.json`, the appointment's `pets` array is still `["Max"]`. |
 
 ### Deleting a pet
 

@@ -123,6 +123,40 @@ After a successful command, the pet appears under the selected client's card in 
 
 If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
 
+### Editing a pet: `editp`
+
+Edits the name, species or breed of one of a client's pets. The pet's notes are kept.
+
+Format: `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`
+
+Examples:
+* `editp c/1 pn/Milo b/Toy Poodle` changes Milo's breed.
+* `editp c/1 pn/Milo n/Max` renames Milo to Max.
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` is the pet's current name. It must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* At least one of `n/`, `s/` or `b/` must be given. `NAME`, `SPECIES` and `BREED` follow the same rules as in `addp`.
+* Each prefix may appear only once, in any order.
+* A pet cannot be renamed to the name of another of the same client's pets, ignoring capitalisation.
+* Renaming a pet also renames it in the client's upcoming appointments. Completed sessions keep the old name,
+  since they record what happened at the time.
+* To change a pet's notes, use `note` and `delnote` instead.
+
+Successful output: `Edited pet: Milo (Dog, Toy Poodle)`
+
+If the command fails, the pet is not changed. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions. |
+| None of `n/`, `s/` or `b/` given | `At least one field to edit must be provided.` |
+| Repeated prefix, for example two `b/` values | `Multiple values specified for the following single-valued field(s): b/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Rex.` |
+| Invalid new name, species or breed | The same message as in `addp`. |
+| New name already used by another of the client's pets | `This client already has a pet with the same name.` |
+
 ### Adding or updating a pet note: `note`
 
 Records a note about one of a client's pets. Each pet can have one note of each type:
@@ -542,6 +576,7 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
+**Edit pet** | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`
 **Add/update pet note** | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
 **Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
 **Clear**  | `clear`
