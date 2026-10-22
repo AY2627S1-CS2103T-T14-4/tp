@@ -7,10 +7,9 @@ start
 
 :Receive candidate appointment;
 
-:Check whether this is a new appointment;
-if () then (yes)
+if () then ([new appointment])
     :No appointment is excluded;
-else (else)
+else ([rescheduled appointment])
     :Remember original client and appointment
     as the exclusion;
 endif
@@ -23,25 +22,25 @@ The current UI filter is ignored.
 end note
 
 :Check whether more clients remain;
-while (More clients?) is (yes)
+while () is ([more clients])
     :Read the next client's active appointments;
 
     :Check whether more active appointments remain;
-    while (More active appointments?) is (yes)
+    while () is ([more active appointments])
         :Check whether this is the excluded original appointment;
-        if (Is this the excluded original appointment?) then (yes)
+        if () then ([is excluded original appointment])
             :Skip this appointment;
-        else (else)
+        else ([else])
             :Check whether the candidate overlaps this appointment;
-            if (Candidate overlaps this appointment?) then (yes)
+            if () then ([overlaps])
                 :Return Conflict(owner, appointment);
                 stop
-            else (else)
+            else ([else])
                 :Continue scanning;
             endif
         endif
-    endwhile (no more appointments)
-endwhile (else)
+    endwhile ([else])
+endwhile ([else])
 
 :Return Optional.empty();
 
