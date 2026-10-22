@@ -13,11 +13,15 @@ import static seedu.address.testutil.TypicalClients.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteClientCommand;
@@ -26,6 +30,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.PawPals;
 import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.client.Client;
@@ -86,6 +91,32 @@ public class LogicManagerTest {
     @Test
     public void getFilteredClientList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredClientList().remove(0));
+    }
+
+    @Test
+    public void getClientList_modifyPopulatedList_throwsUnsupportedOperationException() {
+        model.addClient(AMY);
+        ObservableList<Client> clients = logic.getClientList();
+        assertThrows(UnsupportedOperationException.class, () -> clients.add(new ClientBuilder().build()));
+        assertThrows(UnsupportedOperationException.class, () -> clients.remove(0));
+        assertThrows(UnsupportedOperationException.class, clients::clear);
+        assertEquals(List.of(AMY), model.getPawPals().getClientList());
+    }
+
+    @Test
+    public void getClientList_modelChangesAndFiltering_observesAllStoredClients() {
+        ObservableList<Client> clients = logic.getClientList();
+        List<List<Client>> changes = new ArrayList<>();
+        clients.addListener((ListChangeListener<Client>) change -> changes.add(List.copyOf(clients)));
+
+        model.addClient(AMY);
+        assertEquals(List.of(AMY), clients);
+        model.updateFilteredClientList(unused -> false);
+        assertEquals(List.of(), logic.getFilteredClientList());
+        assertEquals(List.of(AMY), clients);
+        model.setPawPals(new PawPals());
+        assertEquals(List.of(), clients);
+        assertEquals(List.of(List.of(AMY), List.of()), changes);
     }
 
     /**

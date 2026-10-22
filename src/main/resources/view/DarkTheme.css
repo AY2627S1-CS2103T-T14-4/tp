@@ -132,6 +132,13 @@
     -fx-text-fill: #010504;
 }
 
+.empty-state, .list-cell .empty-state {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-text-fill: #c9c9c9;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }
@@ -155,6 +162,24 @@
 
 .result-display .label {
     -fx-text-fill: black !important;
+}
+
+.feedback-status {
+    -fx-font-size: 11pt;
+    -fx-font-weight: bold;
+    -fx-min-height: 20;
+}
+
+.feedback-neutral .feedback-status {
+    -fx-text-fill: #b8d9f5;
+}
+
+.feedback-success .feedback-status {
+    -fx-text-fill: #a8dfb0;
+}
+
+.feedback-error .feedback-status {
+    -fx-text-fill: #ffb4a2;
 }
 
 .status-bar .label {

@@ -65,6 +65,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Client> getClientList() {
+        return model.getPawPals().getClientList();
+    }
+
+    @Override
     public GuiSettings getGuiSettings() {
         return model.getGuiSettings();
     }

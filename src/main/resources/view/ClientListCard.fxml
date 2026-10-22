@@ -33,6 +33,8 @@
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <VBox fx:id="pets" minWidth="0" />
       <VBox fx:id="appointments" minWidth="0" />
+      <Label fx:id="emptyHistory" text="No completed sessions" styleClass="empty-state"
+             wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
     </VBox>
   </GridPane>
 </HBox>

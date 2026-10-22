@@ -51,9 +51,13 @@ public class ClientCard extends UiPart<Region> {
     private VBox pets;
     @FXML
     private VBox appointments;
+    @FXML
+    private Label emptyHistory;
 
     /**
      * Creates a {@code ClientCard} with the given {@code Client} and index to display.
+     *
+     * @throws NullPointerException if {@code client} is null.
      */
     public ClientCard(Client client, int displayedIndex) {
         super(FXML);
@@ -66,6 +70,9 @@ public class ClientCard extends UiPart<Region> {
         client.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        if (client.getPets().isEmpty()) {
+            pets.getChildren().add(createEmptyLabel("No pets recorded"));
+        }
         client.getPets().forEach(pet -> {
             String petText = "Pet: " + pet.getName() + " (" + pet.getSpecies() + ", " + pet.getBreed() + ")";
             VBox petDetails = new VBox();
@@ -76,6 +83,11 @@ public class ClientCard extends UiPart<Region> {
         });
         client.getAppointments().forEach(appointment -> appointments.getChildren().add(
                 createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
+        if (client.getAppointments().isEmpty()) {
+            appointments.getChildren().add(createEmptyLabel("No appointments scheduled"));
+        }
+        emptyHistory.setVisible(client.getHistory().isEmpty());
+        emptyHistory.setManaged(emptyHistory.isVisible());
     }
 
     /**
@@ -105,6 +117,9 @@ public class ClientCard extends UiPart<Region> {
     }
 
     private static void addNoteLabels(VBox petDetails, Pet pet) {
+        if (pet.getNotes().isEmpty()) {
+            petDetails.getChildren().add(createEmptyLabel("No notes recorded"));
+        }
         addNoteLabel(petDetails, pet, NoteType.PREF, "Pref: ", false);
         addNoteLabel(petDetails, pet, NoteType.SENS, "⚠ Sens: ", true);
         addNoteLabel(petDetails, pet, NoteType.TEMP, "⚠ Temp: ", true);
@@ -119,5 +134,18 @@ public class ClientCard extends UiPart<Region> {
             }
             petDetails.getChildren().add(noteLabel);
         });
+    }
+
+    /**
+     * Creates a subdued empty-state label that can wrap without truncating its text vertically.
+     */
+    private static Label createEmptyLabel(String text) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMinWidth(0);
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setMinHeight(Region.USE_PREF_SIZE);
+        label.getStyleClass().add("empty-state");
+        return label;
     }
 }

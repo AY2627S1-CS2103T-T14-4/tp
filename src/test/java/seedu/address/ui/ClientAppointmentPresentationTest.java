@@ -92,7 +92,8 @@ public class ClientAppointmentPresentationTest {
             assertEquals(List.of(START_TEXT + " · Missing (Legacy booking)",
                     "Appointment: 12-12-2026 09:00 · No pets linked"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
-            assertTrue(appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()).isEmpty());
+            assertEquals(List.of("No appointments scheduled"),
+                    appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()));
             return null;
         });
     }
@@ -144,7 +145,7 @@ public class ClientAppointmentPresentationTest {
             model.addClient(initial);
             ClientListPanel panel = new ClientListPanel(model.getFilteredClientList());
             StackPane root = sceneRoot(panel.getRoot());
-            assertDisplayedAppointments(root, List.of());
+            assertDisplayedAppointments(root, List.of("No appointments scheduled"));
 
             Appointment booking = new Appointment(DATE, START, "Gentle shampoo", Set.of(MILO.getName()));
             Client added = initial.copyWithAppointment(booking);
@@ -171,7 +172,7 @@ public class ClientAppointmentPresentationTest {
 
             Client cancelled = unlinked.withoutAppointment(DATE, START);
             model.setClient(unlinked, cancelled);
-            assertDisplayedAppointments(root, List.of());
+            assertDisplayedAppointments(root, List.of("No appointments scheduled"));
             return null;
         });
     }
@@ -230,7 +231,7 @@ public class ClientAppointmentPresentationTest {
             cell.updateItem(second, false);
             assertFalse(oldCard.prefWidthProperty().isBound());
             assertFalse(oldCard.maxWidthProperty().isBound());
-            assertTrue(appointmentTexts(cell.getGraphic()).isEmpty());
+            assertEquals(List.of("No appointments scheduled"), appointmentTexts(cell.getGraphic()));
             Region nextCard = (Region) cell.getGraphic();
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
