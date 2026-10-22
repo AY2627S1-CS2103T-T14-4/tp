@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.EmptyStateFixtures.CLIENT_WITH_ALL_NOTES;
 import static seedu.address.testutil.EmptyStateFixtures.CLIENT_WITH_APPOINTMENT;
@@ -34,6 +35,14 @@ public class ClientCardEmptyStateTest {
     @BeforeAll
     public static void setUpJavaFxToolkit() throws InterruptedException {
         initializeToolkit();
+    }
+
+    @Test
+    public void constructor_nullClient_throwsNullPointerException() throws Exception {
+        runOnFxThread(() -> {
+            assertThrows(NullPointerException.class, () -> new ClientCard(null, 1));
+            return null;
+        });
     }
 
     @Test

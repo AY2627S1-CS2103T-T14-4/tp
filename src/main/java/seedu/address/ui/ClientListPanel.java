@@ -30,6 +30,8 @@ public class ClientListPanel extends UiPart<Region> {
     /**
      * Creates a panel showing {@code filteredClients}, using {@code allClients} to distinguish an empty
      * address book from a search without matches.
+     *
+     * @throws NullPointerException if either list is null.
      */
     public ClientListPanel(ObservableList<Client> filteredClients, ObservableList<Client> allClients) {
         super(FXML);

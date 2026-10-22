@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
@@ -42,6 +43,14 @@ public class FeedbackUiIntegrationTest {
     @BeforeAll
     public static void setUpJavaFxToolkit() throws InterruptedException {
         initializeToolkit();
+    }
+
+    @Test
+    public void constructor_nullCommandExecutor_throwsNullPointerException() throws Exception {
+        runOnFxThread(() -> {
+            assertThrows(NullPointerException.class, () -> new CommandBox(null));
+            return null;
+        });
     }
 
     @Test

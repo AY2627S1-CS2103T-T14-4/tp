@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.EmptyStateFixtures.CLIENT_WITH_PET;
 import static seedu.address.testutil.EmptyStateFixtures.EMPTY_CLIENT;
@@ -26,6 +27,16 @@ public class ClientListPanelTest {
     @BeforeAll
     public static void setUpJavaFxToolkit() throws InterruptedException {
         initializeToolkit();
+    }
+
+    @Test
+    public void constructor_nullList_throwsNullPointerException() throws Exception {
+        runOnFxThread(() -> {
+            ObservableList<Client> clients = FXCollections.observableArrayList();
+            assertThrows(NullPointerException.class, () -> new ClientListPanel(null, clients));
+            assertThrows(NullPointerException.class, () -> new ClientListPanel(clients, null));
+            return null;
+        });
     }
 
     @Test

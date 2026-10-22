@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -23,10 +25,12 @@ public class CommandBox extends UiPart<Region> {
 
     /**
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
+     *
+     * @throws NullPointerException if {@code commandExecutor} is null.
      */
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
-        this.commandExecutor = commandExecutor;
+        this.commandExecutor = requireNonNull(commandExecutor);
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
     }
