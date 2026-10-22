@@ -87,8 +87,8 @@ Adding a pet replaces `No pets recorded` with that pet's details and `No notes r
 Adding a note removes the pet's empty-note message; deleting its last note restores it.
 
 Cancelling the last active appointment restores `No appointments scheduled`. Completing it with `done`
-also removes `No completed sessions`. Completed-session records are saved, but their details are not
-currently shown on client cards. Empty messages update immediately after commands; no restart is needed.
+also replaces `No completed sessions` with a preview of up to three recent sessions, including their
+recorded times, pet names and session notes. Empty messages update immediately after commands; no restart is needed.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -111,6 +111,10 @@ currently shown on client cards. Empty messages update immediately after command
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+
+* Command words and prefixes are case-sensitive: use `addc` and `n/`, not `ADDC` or `N/`.
+  Separate each prefix from the preceding value with a space. Except for explicitly repeatable fields,
+  supply each prefix once. An index without a prefix, such as in `edit 1 n/Alice`, stays before the fields.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -135,7 +139,7 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/regular t/vip`
 
-* `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `NAME` must contain 1 to 60 characters and must start and end with a letter. Only letters, spaces, apostrophes, and hyphens are allowed between those letters. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `PHONE` must contain 3 to 15 digits without spaces.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
@@ -159,7 +163,7 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
 * `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 
 Successful output: `New pet added: Milo`
 
@@ -221,6 +225,8 @@ Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
 * `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
 * `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
 * If the pet already has a note of that type, the new note replaces it. Other notes are kept.
+* All four prefixes are required, may appear in any order, and must each appear only once.
+  Extra text before the first prefix is rejected.
 
 Successful output: `Updated temperament note for Milo: Anxious around loud dryers`
 
@@ -551,9 +557,10 @@ Example: `list`
 
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
 under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
-are marked with ⚠. Clients without pets continue to display without a pet entry.
+are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
+Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`
 
@@ -566,6 +573,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the client's existing tags are removed; adding tags is not cumulative.
 * To remove all of a client's tags, enter `t/` without a tag after it.
+* Names, phone numbers, emails, addresses and tags follow the same validation rules as `addc`.
+  An edit that would duplicate another client's name and phone number is rejected.
+* Pets, pet notes, appointments and completed history are preserved. After a successful edit,
+  all clients are shown again, clearing any `find` or `findp` filter.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -599,7 +610,11 @@ Finds all clients who own pets whose names match any of the given keywords.
 Format: `findp KEYWORD [MORE_KEYWORDS]`
 
 Pet-name matching is case-insensitive and requires a full-name match. Multiple keywords use OR search.
-The displayed client cards remain unchanged, so client indexes can be used with other commands.
+Keywords are split at whitespace, so this command currently cannot match pet names containing spaces:
+`findp Sir Fluffy` searches for pets named `Sir` or `Fluffy`, not `Sir Fluffy`. Find the owner with `find` or `list` instead.
+At least one keyword is required. Feedback counts matching pets, which can exceed the number of matching clients.
+Each matching client card shows all of that client's pets and appointments. Client indexes are renumbered
+within the filtered results and can be used with other commands. Use `list` to show all clients again.
 
 Examples:
 * `findp Milo` returns the owners of pets named `Milo`
@@ -619,18 +634,25 @@ Format: `exit`
 
 ### Saving the data
 
-PawPals automatically saves all data after every command, including clients, pets, pet notes, appointments, and
+PawPals automatically saves all data after every command that executes successfully, including commands such as
+`list` that do not change records. Commands rejected during parsing or execution do not save. Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
 
+If saving fails, Error feedback appears. Changes may already be visible in the current session, but the
+saved file may be unchanged or incomplete. Resolve the reported file or folder access problem before
+relying on those changes being available after a restart.
+
 ### Editing the data file
 
-PawPals data is saved automatically as a JSON file `[JAR file location]/data/pawpals.json`. Advanced users are welcome to update data directly by editing that data file.
+By default, PawPals data is saved as `data/pawpals.json` relative to the folder from which you launch the app.
+Following Quick start makes this the JAR's folder. Advanced users may edit this file while PawPals is closed;
+back it up first.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you run a command (PawPals saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you successfully execute a command (including `list`), which overwrites it with the current data. Restore your backup before executing a command if you want to recover the original records.<br>
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
