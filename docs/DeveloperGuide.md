@@ -186,7 +186,46 @@ The overload `Model#findAppointmentConflict(candidate, originalClient, originalA
 It excludes only the original owner's booking identified by date and start time, while checking all
 other bookings. The editing command must validate its target, run this check before mutation, then use
 `Client#withAppointmentReplaced(...)` and one model update. A client-only appointment and appointments
-for different pets follow the same overlap rules. Editing command integration is handled by the `editappt` command.
+for different pets follow the same overlap rules.
+
+#### Appointment rescheduling
+
+`PawPalsParser` dispatches `editappt` to `EditAppointmentCommandParser`. The parser reuses
+`ParserUtil#parseAppointmentTarget(...)` for required `c/`, `d/` and `t/`, and the existing validated
+date/time types for optional `nd/`, `ns/` and `ne/`. It rejects duplicate prefixes, non-empty preambles,
+missing target fields and invalid values. The immutable `EditAppointmentDescriptor` requires at least
+one replacement value, including when a command is constructed directly. Ordering and future-start
+checks belong to execution because omitted values depend on the original appointment.
+
+`EditAppointmentCommand` performs these steps:
+
+1. Resolve the client from the displayed list and look up its active appointment by original date/start.
+2. Construct a replacement using the supplied values and the original details and ordered pet links.
+   Without a supplied end, retain a missing end or preserve the existing duration. Compute the proposed
+   end in minutes and reject an end at or after midnight before converting it to `LocalTime`, avoiding
+   wraparound. Exactly 23:59 is valid. A supplied `ne/` overrides this calculation.
+3. Validate the end through `Appointment`'s constructor, then require the resulting start to be strictly
+   after `LocalDateTime.now(clock)`. The default clock uses the system's local zone; tests inject a fixed
+   clock. Past originals may be moved, but an end-only edit still requires a future resulting start.
+4. Check all active bookings with `Model#findAppointmentConflict(candidate, client, original)`.
+   Only the original owner's original date/start is excluded; the filter and history do not limit the scan.
+5. Use `Client#withAppointmentReplaced(...)`, then call `Model#setClient(...)` exactly once. This preserves
+   appointment position, other client data, history and the current predicate. Validation failures occur
+   before mutation. `LogicManager` saves the updated model through the existing storage path.
+
+Success feedback identifies the owner, original and resulting starts, and the resulting end when present.
+The observable list replacement updates the card immediately. The current card format displays the date,
+start and any booking details; end-only edits are confirmed through feedback and saved data. No storage
+schema change is needed. Save errors retain the application's existing behavior: memory may already
+contain the replacement when writing the file fails.
+
+Tests are separated by responsibility: `EditAppointmentCommandTest` uses a model stub for validation,
+duration boundaries and update/delegation checks; `EditAppointmentCommandIntegrationTest` uses the real
+model for filtering, conflict exclusion and preservation. `EditAppointmentCommandParserTest` covers
+syntax independently. `EditAppointmentPersistenceIntegrationTest` exercises dispatch, saving and reloading;
+`EditAppointmentUiIntegrationTest` drives the actual command box, feedback display and list controls.
+UI tests share a JavaFX toolkit via `JavaFxTestUtil` because it cannot restart after `Platform.exit()`
+in the same test worker. Full checks run with `gradlew check coverage`.
 
 #### Completed-session history
 
@@ -836,6 +875,42 @@ Additional disposable-file checks:
   starts with an empty PawPals data. Keep the corrupted file disposable; executing a later command can overwrite it.
 
 Record completed checks and any remaining manual verification in the feature pull request.
+
+### Rescheduling appointments
+
+Use the disposable test folder described under [Adding appointments](#adding-appointments).
+Replace `FUTURE_DATE` with a future date and `OTHER_FUTURE_DATE` with a different future date in
+`DD-MM-YYYY` format. Reset to this setup before each independent scenario:
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+appt c/1 d/FUTURE_DATE t/14:00 et/15:30 pn/Milo
+appt c/2 d/FUTURE_DATE t/16:00 et/17:00
+find Alice
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Preserve duration and exclude original | `editappt c/1 d/FUTURE_DATE t/14:00 ns/14:30` | Succeeds with `et/16:00`, adjacent to Bob's booking. Alice's row updates immediately; the filter stays active. |
+| Date only | `editappt c/1 d/FUTURE_DATE t/14:00 nd/OTHER_FUTURE_DATE` | Date changes; start remains 14:00 and feedback ends with `et/15:30`. |
+| End only | `editappt c/1 d/FUTURE_DATE t/14:00 ne/15:45` | Feedback reports `et/15:45`; start and date remain unchanged. |
+| Same-day end boundary | Try `ns/22:30`, then `ns/22:29`, in an otherwise valid edit of the 14:00 booking. | First edit rejects the midnight end and suggests `ne/`; second succeeds with `et/23:59`. |
+| Explicit end overrides duration | `editappt c/1 d/FUTURE_DATE t/14:00 ns/23:00 ne/23:30` | Succeeds with the supplied end instead of preserving the 90-minute duration. |
+| Start-only booking | Add `appt c/1 d/FUTURE_DATE t/18:00`, then edit that slot with `ns/19:00`. Edit the new 19:00 slot with `ne/20:00`. | First move retains no end; the second edit adds one. |
+| Hidden conflict | `editappt c/1 d/FUTURE_DATE t/14:00 ns/16:00` | Rejects Bob's hidden booking. Alice's booking, filter and saved file remain unchanged. |
+| Missing edits or malformed time | Use the original target with no edits, then with `ns/24:00`. | Corresponding error feedback appears; failed input remains for correction and the row is unchanged. |
+| Invalid end or past start | Use the original target with `ne/14:00`, then with `nd/01-01-2000`. | Rejects the invalid end or non-future start without changing data. |
+| Displayed index | Use `c/2` while only Alice is displayed. | Invalid displayed-index message; Bob is not edited. |
+| Correct failed input | After a rejection, change the input to a valid edit and press Enter. | Error styling clears on editing; success feedback appears and the command box clears. |
+| Save/reload and preservation | Make a valid move, exit, relaunch from the same folder and inspect the booking and saved file. | Only the edited slot changes. Linked pets, their order, details, other bookings, pet notes and history remain intact. Use the new date/start for subsequent commands. |
+
+End times are confirmed in feedback and saved data; the current card shows its date, start and any
+nonblank details. To test stored details, use the disposable-file procedure under Adding appointments.
+Automated UI tests verify row replacement, feedback, filtering and retained failed input; these manual
+checks also allow visual inspection in the packaged application.
 
 ### Saving data
 
