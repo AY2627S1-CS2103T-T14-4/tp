@@ -62,7 +62,7 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `t/` means **time**, not tag.
+* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `cancel` and `done`, `t/` means the appointment's start **time**, not a tag.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -381,7 +381,8 @@ Format: `list`
 Example: `list`
 
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
-under its client with its name, species, and breed. Clients without pets continue to display without a pet entry.
+under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
+are marked with ⚠. Clients without pets continue to display without a pet entry.
 
 ### Editing a client: `edit`
 
@@ -407,8 +408,10 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* A keyword matches a client if it matches their name, phone number, or email:
+  * **Name:** only full words match; for example, `Han` does not match `Hans`.
+  * **Phone number:** the whole number must match exactly; for example, `9123` does not match `91234567`.
+  * **Email:** the whole email must match, ignoring case; for example, `ALICE@example.com` matches `alice@example.com`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
@@ -445,8 +448,9 @@ Format: `exit`
 
 ### Saving the data
 
-PawPals automatically saves client, pet, and appointment data after every command. Pets are saved under their
-owning client and remain available after restarting PawPals. You do not need to save manually.
+PawPals automatically saves all data after every command, including clients, pets, pet notes, appointments, and
+completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
+available after restarting PawPals. You do not need to save manually.
 
 ### Editing the data file
 
@@ -458,10 +462,6 @@ PawPals data is saved automatically as a JSON file `[JAR file location]/data/paw
 If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you run a command (PawPals saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -495,6 +495,7 @@ Action     | Format, Examples
 **Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`
+**Find pet owners** | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`
 **List**   | `list`
 **Help**   | `help`

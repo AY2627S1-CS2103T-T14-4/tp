@@ -276,7 +276,7 @@ The `Storage` component,
 * can save both PawPals data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonPawPalsStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
-* stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved as its optional `preference`, `sensitivity` and `temperament` fields.
+* stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved in its `notes` object, keyed by note type, e.g. `"notes": {"pref": "Teddy cut", "temp": "Nervous around dryers"}`.
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
 ### Common classes
@@ -625,30 +625,54 @@ Extensions:
   * 2a2. PawPals leaves the data file unchanged.
   * Use case ends.
 
+<<<<<<< HEAD
 #### UC12 - Delete pet
 
 System: PawPals<br>
 Use case: UC12 - Delete pet<br>
+=======
+#### UC11 - Delete pet note
+
+System: PawPals<br>
+Use case: UC11 - Delete pet note<br>
+>>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
 Actor: User<br>
 Preconditions: PawPals is running and the client exists in the displayed client list.
 
 MSS:
 
+<<<<<<< HEAD
 1. User requests to delete one of a client's pets.
 2. User provides the client's index and the pet's name.
 3. PawPals removes the pet and its notes from the client, and unlinks the pet from the client's appointments.
+=======
+1. User requests to delete a note of one of a client's pets.
+2. User provides the client's index, the pet's name and the note type.
+3. PawPals removes that note from the pet, keeping the pet's other notes.
+>>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
 4. PawPals displays a success message and the updated client card.
 
 Use case ends.
 
 Extensions:
 
+<<<<<<< HEAD
 * 2a. User provides a missing, repeated or invalid index or pet name.
+=======
+* 2a. User provides a missing, repeated or invalid index, pet name or note type.
+>>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
   * 2a1. PawPals displays the corresponding validation message.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
 * 2b. The client has no pet with that name.
+<<<<<<< HEAD
   * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+=======
+  * 2b1. PawPals informs the user that the client has no pet with that name.
+  * Use case ends.
+* 2c. The pet has no note of that type.
+  * 2c1. PawPals informs the user that the pet has no such note, leaving all data unchanged.
+>>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
   * Use case ends.
 
 ### Non-Functional Requirements
@@ -688,7 +712,8 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with six sample clients. Most have pets and appointments, and some pets have notes,
+      with ⚠ on sensitivity and temperament notes. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -697,19 +722,18 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
 
 ### Adding and persisting pets
 
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
 Launch it with `java -jar pawpals.jar`.
 
-Set up two clients using the implemented `add` command:
+Set up two clients using `addc`:
 
 ```text
 clear
-add n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
-add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
 
 | Scenario | Commands or action | Expected result |
@@ -718,6 +742,28 @@ add n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 | Add a pet to another client | `addp c/2 n/Luna s/Cat b/Persian` | Luna appears under Bob. Alice still shows only Milo. |
 | Restart and reload | Run `exit`, relaunch from the same folder, and run `list`. | Milo remains under Alice and Luna remains under Bob. Client details are unchanged. |
 | Legacy client without pets | In a disposable `data/pawpals.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
+
+### Deleting a pet note
+
+Continue from [Adding and persisting pets](#adding-and-persisting-pets), so that Alice has Milo and Bob has Luna.
+Add two notes to Milo first:
+
+```text
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+note c/1 pn/Milo ty/pref nt/Teddy cut
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Delete a note | `delnote c/1 pn/Milo ty/temp` | `Deleted temperament note for Milo`. The ⚠ Temp line disappears from Milo; the Pref line remains. |
+| Pet name and type in any case | `delnote c/1 pn/MILO ty/PREF` | `Deleted preference note for Milo`. Milo now has no notes. |
+| No such note | `delnote c/1 pn/Milo ty/sens` | `Milo has no sensitivity note to delete.` No data changes. |
+| Unknown pet | `delnote c/1 pn/Rex ty/pref` | `This client has no pet named Rex.` No data changes. |
+| Invalid type | `delnote c/1 pn/Milo ty/mood` | `Note type must be pref, sens or temp.` |
+| Missing prefix | `delnote c/1 pn/Milo` | `Invalid command format!` followed by the `delnote` usage. |
+| Repeated prefix | `delnote c/1 pn/Milo ty/pref ty/temp` | `Multiple values specified for the following single-valued field(s): ty/` |
+| Filtered index | `note c/2 pn/Luna ty/sens nt/No perfume`, then `find Bob`, then `delnote c/1 pn/Luna ty/sens`. | Index 1 refers to Bob in the filtered list, so Luna's note is deleted. Run `list`: Alice is unchanged. |
+| Restart | Add a note with `note`, delete a different one with `delnote`, then run `exit`, relaunch and run `list`. | The added note is still shown and the deleted note is still gone. |
 
 ### Deleting a client
 
@@ -826,8 +872,27 @@ Record completed checks and any remaining manual verification in the feature pul
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a disposable copy of the JAR in an empty folder, and keep a backup of `data/pawpals.json` before editing it.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Missing data file
 
-1. _{ more test cases … }_
+   1. Close PawPals, delete `data/pawpals.json`, and relaunch.<br>
+      Expected: The sample clients are shown. Running any command, such as `list`, creates a new `data/pawpals.json`.
+
+1. Corrupted data file
+
+   1. Close PawPals. In `data/pawpals.json`, change a client's `phone` to `abc`, or delete a closing `}`. Relaunch.<br>
+      Expected: PawPals starts with no clients. The file is not changed until you run a command, so restore your
+      backup before running one if you want to keep the data.
+
+1. Data file from an older version
+
+   1. Close PawPals. In `data/pawpals.json`, remove the `notes` field from a pet, and the `endTime` and `pets` fields
+      from an appointment. These fields did not exist in v1.3. Relaunch.<br>
+      Expected: The data loads. That pet shows no notes, and that appointment shows only its date and start time.
+
+1. New data is kept after restarting
+
+   1. Add a pet note with `note`, an appointment with an end time and a linked pet (e.g. `appt c/1 d/FUTURE_DATE
+      t/14:00 et/15:30 pn/Milo`), then run `exit` and relaunch.<br>
+      Expected: The note and appointment are still shown. In `data/pawpals.json`, the appointment has `endTime` and `pets`.
