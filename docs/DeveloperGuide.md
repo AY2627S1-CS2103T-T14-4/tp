@@ -858,6 +858,74 @@ Extensions:
   * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC16 - Cancel appointment
+
+System: PawPals<br>
+Use case: UC16 - Cancel appointment<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to cancel an appointment.
+2. User provides the client's displayed index and the appointment's date and start time.
+3. PawPals removes the selected active appointment, preserving the client's other appointments, pets,
+   notes, contact details and completed history. The current filter is kept.
+4. PawPals displays feedback identifying the cancelled appointment and removes its row from the client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index, date or start time, or an index outside the displayed list.
+  * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The selected client has no active appointment at that date and start time.
+  * 2b1. PawPals identifies the missing appointment and leaves the data unchanged.
+  * Use case ends.
+
+Past and future active appointments can be cancelled. Cancellation does not create a completed session.
+The removed booking no longer reserves its slot; a replacement booking must still start strictly in the future.
+
+#### UC17 - Complete appointment
+
+System: PawPals<br>
+Use case: UC17 - Complete appointment<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to complete an appointment.
+2. User provides the client's displayed index, the appointment's date and start time, and session notes.
+3. PawPals checks that the active appointment exists and has started, using the computer's local time.
+4. PawPals removes the active appointment and adds one completed-session record containing its date,
+   start, optional end, booking details, linked pet names, session notes and logging time. Other client data,
+   earlier history and the current filter are preserved.
+5. PawPals displays feedback identifying the completed appointment and notes; its active row disappears.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index, date, start time or notes, or an index outside the displayed list.
+  * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
+  * 2a2. User provides corrected details. Notes must contain 1 to 200 characters after trimming.
+  * Use case resumes from step 3.
+* 3a. The selected client has no active appointment at the supplied date and start time.
+  * 3a1. If a completed session exists at that slot, PawPals reports that it has already been completed;
+    otherwise, PawPals reports that no active appointment exists there.
+  * 3a2. PawPals leaves active appointments and history unchanged.
+  * Use case ends.
+* 3b. The appointment has not started.
+  * 3b1. PawPals rejects completion and leaves active appointments and history unchanged.
+  * Use case ends.
+
+Completion is allowed at or after the start, even before the planned end. Completed history does not
+reserve booking time, so a future interval released by completion can be booked again. A new active
+appointment takes precedence over a historical record at the same slot when identifying a completion target.
+
 ### Non-Functional Requirements
 
 1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
@@ -1132,6 +1200,76 @@ End times are confirmed in feedback and saved data; the current card shows its d
 nonblank details. To test stored details, use the disposable-file procedure under Adding appointments.
 Automated UI tests verify row replacement, feedback, filtering and retained failed input; these manual
 checks also allow visual inspection in the packaged application.
+
+### Cancelling and completing appointments
+
+Use a disposable copy of the JAR in an empty folder, as in [Adding appointments](#adding-appointments).
+Replace all date and time placeholders below; do not type them literally. Inspect `data/pawpals.json`
+without editing it while PawPals is running. History checks use the saved file because completed sessions
+are not currently displayed on the client card.
+
+**Cancellation setup:** replace `FUTURE_DATE` with a valid future date in `DD-MM-YYYY` format.
+Reset to this setup before each independent table row; perform commands within a row in order.
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/2 n/Luna s/Cat b/Persian
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+appt c/1 d/FUTURE_DATE t/14:00 et/15:00 pn/Milo
+appt c/1 d/FUTURE_DATE t/16:00 et/17:00 pn/Milo
+appt c/2 d/FUTURE_DATE t/18:00 et/19:00 pn/Luna
+```
+
+For every rejected command below, verify that the client cards, current filter and contents of
+`data/pawpals.json` remain unchanged. Cancelling a booking must not add a history record.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Cancel successfully | `cancel c/1 d/FUTURE_DATE t/14:00` | `Cancelled appointment: Alice Test d/FUTURE_DATE t/14:00`. Only Alice's 14:00 booking disappears. Her 16:00 booking, Milo and his note, both clients' contact details and Bob's booking remain. |
+| Unknown slot | `cancel c/1 d/FUTURE_DATE t/13:00` | `Alice Test has no appointment at FUTURE_DATE 13:00.` No data changes. |
+| Wrong index | `cancel c/3 d/FUTURE_DATE t/14:00`, then repeat with `c/0`. | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes. |
+| Repeated prefix | `cancel c/1 d/FUTURE_DATE t/14:00 t/14:00` | `Multiple values specified for the following single-valued field(s): t/`. The booking remains. |
+| Filtered index | `find Bob`, then `cancel c/1 d/FUTURE_DATE t/18:00`, then `list`. | Feedback identifies Bob Test's 18:00 booking. The filter remains active until `list`; Alice's bookings are unchanged. |
+| Rebook the cancelled slot | `cancel c/1 d/FUTURE_DATE t/14:00`, then `appt c/2 d/FUTURE_DATE t/14:00 et/15:00 pn/Luna`. | Both succeed. The released 14:00–15:00 interval now belongs to Bob; Alice's other booking remains. |
+| Cancellation survives restart | `cancel c/1 d/FUTURE_DATE t/14:00`, then `exit`, relaunch from the same folder and run `list`. | Alice's 14:00 booking is still absent from her card and saved `appointments` array. Her other booking, pets and notes and Bob's data remain; cancellation has not added history. |
+
+**Completion setup:** `appt` rejects past starts, so create the appointment before waiting for it to start.
+Use today's local date for `FUTURE_DATE`, a `FUTURE_START_TIME` about two minutes ahead in `HH:mm` format,
+and a `FUTURE_END_TIME` twenty minutes after that start. Both times must fit on today's date without
+crossing midnight. Here `FUTURE_DATE` is the date of the booking whose start is initially in the future;
+the same date and start are used after waiting. Reset to this setup with fresh times before each independent row.
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+addp c/2 n/Luna s/Cat b/Persian
+note c/1 pn/Milo ty/temp nt/Nervous around dryers
+appt c/1 d/FUTURE_DATE t/FUTURE_START_TIME et/FUTURE_END_TIME pn/Milo
+```
+
+Wait until the computer's local clock reaches `FUTURE_START_TIME` before completing the appointment,
+except in the future-completion rejection row. The planned end does not need to have passed.
+Use the recorded **start**, rather than its end, to identify the booking. After a successful `done`,
+inspect Alice's saved `history` array: exactly one new record must contain the original appointment
+snapshot (including end time and `pets: ["Milo"]`), `notes: "Teddy cut"` and an ISO-8601 `loggedAt` instant.
+The matching entry must be absent from her active `appointments` array. Milo and his care note remain.
+For rejection rows, compare the saved file before and after and verify that no history is added or changed.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Reject completion before the start | Immediately after setup, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut` before the start time. | `An appointment cannot be completed before its scheduled start time.` The booking remains active and no history is added. If the start has already passed, reset with fresh times and retry. |
+| Complete successfully | Wait until the start, then run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`. | `Completed session: Alice Test d/FUTURE_DATE t/FUTURE_START_TIME et/FUTURE_END_TIME pn/Milo nt/Teddy cut`. Alice's active row disappears and the saved history contains the snapshot and notes described above. Bob's data is unchanged. |
+| Unknown slot | `done c/2 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut` | `Bob Test has no active appointment at FUTURE_DATE FUTURE_START_TIME.` Alice's booking remains and no history is added. |
+| Wrong index | `done c/3 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat with `c/0`. | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes. |
+| Repeated prefix | `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut nt/Short ears` | `Multiple values specified for the following single-valued field(s): nt/`. No booking or history changes. |
+| Complete twice | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat it. | The first succeeds; the second gives `Alice Test already has a completed session at FUTURE_DATE FUTURE_START_TIME.` Only one history record exists; its notes and logging time are unchanged by the second attempt. |
+| Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt` while `REBOOK_TIME` is still future. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, reset with fresh times; the original start cannot be rebooked because `appt` requires a future start. |
+| Completion survives restart | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`. | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session. |
 
 ### Saving data
 
