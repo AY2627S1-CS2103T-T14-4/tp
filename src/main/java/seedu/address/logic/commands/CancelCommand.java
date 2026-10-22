@@ -27,7 +27,6 @@ public class CancelCommand extends Command {
             + "Use the appointment's date and start time. Past and future appointments can be cancelled.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/14:00";
     public static final String MESSAGE_SUCCESS = "Cancelled appointment: %1$s d/%2$s t/%3$s";
-    public static final String MESSAGE_APPOINTMENT_NOT_FOUND = "%1$s has no appointment at %2$s %3$s.";
 
     private final Index targetIndex;
     private final AppointmentDate date;
@@ -63,7 +62,7 @@ public class CancelCommand extends Command {
         }
         Client client = displayedClients.get(targetIndex.getZeroBased());
         Appointment appointment = client.getAppointment(date, time).orElseThrow(() -> new CommandException(
-                String.format(MESSAGE_APPOINTMENT_NOT_FOUND, client.getName(), date, time)));
+                String.format(Messages.MESSAGE_APPOINTMENT_NOT_FOUND, client.getName(), date, time)));
         model.setClient(client, client.withoutAppointment(date, time));
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 client.getName(), appointment.getDate(), appointment.getTime()));

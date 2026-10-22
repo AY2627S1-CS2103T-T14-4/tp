@@ -90,7 +90,7 @@ public class EditAppointmentCommand extends Command {
         requireNonNull(model);
         Client client = resolveClient(model);
         Appointment original = client.getAppointment(date, time).orElseThrow(() -> new CommandException(
-                String.format(CancelCommand.MESSAGE_APPOINTMENT_NOT_FOUND, client.getName(), date, time)));
+                String.format(Messages.MESSAGE_APPOINTMENT_NOT_FOUND, client.getName(), date, time)));
         Appointment replacement = createReplacement(original);
         validateFutureStart(replacement);
         Optional<Conflict> conflict = model.findAppointmentConflict(replacement, client, original);
@@ -155,7 +155,7 @@ public class EditAppointmentCommand extends Command {
     private void validateFutureStart(Appointment replacement) throws CommandException {
         LocalDateTime start = LocalDateTime.of(replacement.getDate().getValue(), replacement.getTime().getValue());
         if (!start.isAfter(LocalDateTime.now(clock))) {
-            throw new CommandException(AppointmentCommand.MESSAGE_NOT_FUTURE);
+            throw new CommandException(Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
         }
     }
 

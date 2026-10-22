@@ -142,10 +142,10 @@ public class EditAppointmentCommandTest {
     public void execute_resultingStartBeforeOrAtNow_leavesDataUnchanged() {
         for (String start : new String[] {"11:59", "12:00"}) {
             assertCommandFailure(command(ORIGINAL, edits("12-12-2026", start, null)), modelWith(owner(ORIGINAL)),
-                    AppointmentCommand.MESSAGE_NOT_FUTURE);
+                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
         }
         assertCommandFailure(command(ORIGINAL, edits("11-12-2026", null, null)), modelWith(owner(ORIGINAL)),
-                AppointmentCommand.MESSAGE_NOT_FUTURE);
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test
@@ -158,7 +158,7 @@ public class EditAppointmentCommandTest {
     public void execute_unchangedPastStartWithNewEnd_rejectsPastResult() {
         Appointment past = slot("11-12-2026", "09:00", null);
         assertCommandFailure(command(past, edits(null, null, "10:00")), modelWith(owner(past)),
-                AppointmentCommand.MESSAGE_NOT_FUTURE);
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test
@@ -166,7 +166,7 @@ public class EditAppointmentCommandTest {
         Clock clock = Clock.fixed(CLOCK.instant().plusSeconds(30), CLOCK.getZone());
         EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
                 ORIGINAL.getTime(), edits("12-12-2026", "12:00", null), clock);
-        assertCommandFailure(command, modelWith(owner(ORIGINAL)), AppointmentCommand.MESSAGE_NOT_FUTURE);
+        assertCommandFailure(command, modelWith(owner(ORIGINAL)), Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test

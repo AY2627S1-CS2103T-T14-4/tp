@@ -112,7 +112,7 @@ public class AppointmentLinkedPetsCommandTest {
         Appointment past = new Appointment(new AppointmentDate("11-12-2026"), APPOINTMENT.getTime(), "",
                 Set.of(MILO.getName()));
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK), model,
-                AppointmentCommand.MESSAGE_NOT_FUTURE);
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test
