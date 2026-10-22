@@ -252,6 +252,15 @@ Model conflict check as client-only bookings; omitting `pn/` does not infer part
 
 #### Global appointment conflicts
 
+Commands call `Model#findAppointmentConflict(candidate)` through the `Model` facade.
+`ModelManager` delegates the check to `AppointmentConflictChecker`, which returns either
+the first conflicting active appointment and its owning client, or an empty optional.
+
+The activity diagram below shows the global conflict-checking workflow. The check runs before
+`Model#setClient(...)`, so rejected bookings leave the data and current filter unchanged.
+
+<puml src="diagrams/AppointmentConflictActivityDiagram.puml" alt="Activity diagram of the global appointment-conflict check" />
+
 Commands call `Model#findAppointmentConflict(candidate)` to check active bookings through the Model facade.
 `ModelManager` delegates to `AppointmentConflictChecker`, which scans the full client list's active
 appointments using `Appointment#overlaps(...)`. It returns the first conflict with its owning client,
