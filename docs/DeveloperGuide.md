@@ -289,6 +289,36 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Deleting a pet note: `delnote`
+
+`delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE` removes one note from one of a client's pets, keeping the pet's other notes.
+`note` adds or replaces a note, and its `nt/` is required, so `delnote` is the only way to remove one.
+
+The sequence diagram below shows how `delnote c/1 pn/Milo ty/temp` is executed.
+Parsing works as in the `delc` example in the [Logic component](#logic-component), so it is shown as a `ref` frame.
+
+<puml src="diagrams/DeleteNoteSequenceDiagram.puml" alt="Interactions when executing delnote" width="700" />
+
+1. `DeleteNoteCommandParser` parses the client index, pet name and note type into `d:DeleteNoteCommand`.
+   The note type is parsed by `ParserUtil#parseNoteType(...)`, which `note` also uses.
+1. `d` gets the displayed client list from the `Model`, picks client `c` at the given index, and looks up the pet by name, ignoring case.
+1. `d` checks that the pet has a note of that type, then builds the updated objects. `Pet` and `Client` are immutable,
+   so `withoutNote(...)` and `withPetReplaced(...)` return new objects instead of changing `p` and `c`.
+1. `d` calls `Model#setClient(...)` once to swap in the updated client, then returns a `CommandResult`.
+
+All checks happen before the `Model` is changed, so a failed command never leaves partly updated data:
+
+<puml src="diagrams/DeleteNoteActivityDiagram.puml" alt="Checks performed by delnote" width="650" />
+
+**Design consideration: how a user removes a note**
+
+* **Alternative 1 (current choice):** a separate `delnote` command, with `nt/` required in `note`.
+  * Pros: each command does one thing, so a note can never be removed by accident, and the error messages are specific.
+  * Cons: one more command for users to learn.
+* **Alternative 2:** `note` with an empty or missing `nt/` removes the note.
+  * Pros: one command covers adding, replacing and removing.
+  * Cons: a typo such as a forgotten `nt/` silently deletes a note, and "a note with no text" is confusing.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**

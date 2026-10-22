@@ -1,0 +1,32 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+start
+:User enters delnote command;
+
+'Since the beta syntax does not support placing the condition outside the
+'diamond we place it as the true branch instead.
+
+if () then ([format and values are valid])
+  if () then ([client index is in the displayed list])
+    if () then ([client has a pet with that name])
+      if () then ([pet has a note of that type])
+        :Remove the note from a copy of the pet;
+        :Replace the client in the model
+        with an updated copy;
+        :Show success message;
+      else ([else])
+        :Show "no such note" error;
+      endif
+    else ([else])
+      :Show "no pet named ..." error;
+    endif
+  else ([else])
+    :Show invalid index error;
+  endif
+else ([else])
+  :Show format or value error;
+endif
+stop
+@enduml

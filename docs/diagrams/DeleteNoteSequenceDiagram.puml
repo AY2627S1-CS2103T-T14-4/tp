@@ -1,0 +1,67 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "d:DeleteNoteCommand" as DeleteNoteCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "c:Client" as Client MODEL_COLOR
+participant "p:Pet" as Pet MODEL_COLOR
+end box
+
+[-> LogicManager : execute("delnote c/1 pn/Milo ty/temp")
+activate LogicManager
+
+ref over LogicManager, DeleteNoteCommand : parse the command into d
+' Parsing works as in the delc example in the Logic component.
+
+LogicManager -> DeleteNoteCommand : execute(m)
+activate DeleteNoteCommand
+
+DeleteNoteCommand -> Model : getFilteredClientList()
+activate Model
+Model --> DeleteNoteCommand : clients
+deactivate Model
+
+DeleteNoteCommand -> Client : getPet(Milo)
+activate Client
+Client --> DeleteNoteCommand : p
+deactivate Client
+
+DeleteNoteCommand -> Pet : hasNote(TEMP)
+activate Pet
+Pet --> DeleteNoteCommand : true
+deactivate Pet
+
+DeleteNoteCommand -> Pet : withoutNote(TEMP)
+activate Pet
+Pet --> DeleteNoteCommand : updatedPet
+deactivate Pet
+
+DeleteNoteCommand -> Client : withPetReplaced(Milo, updatedPet)
+activate Client
+Client --> DeleteNoteCommand : updatedClient
+deactivate Client
+
+DeleteNoteCommand -> Model : setClient(c, updatedClient)
+activate Model
+Model --> DeleteNoteCommand
+deactivate Model
+
+create CommandResult
+DeleteNoteCommand -> CommandResult
+activate CommandResult
+CommandResult --> DeleteNoteCommand
+deactivate CommandResult
+
+DeleteNoteCommand --> LogicManager : r
+deactivate DeleteNoteCommand
+
+[<-- LogicManager
+deactivate LogicManager
+@enduml
