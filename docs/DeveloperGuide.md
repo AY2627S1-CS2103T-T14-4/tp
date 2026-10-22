@@ -803,12 +803,12 @@ appt c/1 d/FUTURE_DATE t/14:00 pn/Milo pn/Luna
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
 | Delete a pet | `delp c/1 pn/milo` | `Deleted pet: Milo (owner: Alice Test)`. Milo and his note disappear from the card; Luna remains. |
-| Appointment kept, pet unlinked | Look at Alice's appointment after the previous step. | The appointment is still shown and now covers only Luna. |
+| Appointment kept, pet unlinked | Look at Alice's card, then open `data/pawpals.json`. | The appointment is still shown on the card. In the data file, that appointment's `pets` array is now `["Luna"]`. |
 | Unknown pet | `delp c/1 pn/Rex` | `This client has no pet named Rex.` No data changes. |
 | Missing prefix | `delp c/1` | `Invalid command format!` followed by the `delp` usage. |
 | Repeated prefix | `delp c/1 pn/Luna pn/Luna` | `Multiple values specified for the following single-valued field(s): pn/` |
 | Invalid index | `delp c/0 pn/Luna`, then `delp c/2 pn/Luna` | The first gives `Index must be a positive integer.`; the second gives `The client index provided is invalid.` |
-| Restart | Run `exit`, relaunch and run `list`. | Milo is still gone, and the appointment still covers only Luna. |
+| Restart | Run `exit`, relaunch and run `list`. | Milo is still gone and the appointment is still shown. In `data/pawpals.json`, its `pets` array is still `["Luna"]`. |
 
 ### Adding appointments
 
