@@ -625,54 +625,59 @@ Extensions:
   * 2a2. PawPals leaves the data file unchanged.
   * Use case ends.
 
-<<<<<<< HEAD
-#### UC12 - Delete pet
-
-System: PawPals<br>
-Use case: UC12 - Delete pet<br>
-=======
 #### UC11 - Delete pet note
 
 System: PawPals<br>
 Use case: UC11 - Delete pet note<br>
->>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
 Actor: User<br>
 Preconditions: PawPals is running and the client exists in the displayed client list.
 
 MSS:
 
-<<<<<<< HEAD
-1. User requests to delete one of a client's pets.
-2. User provides the client's index and the pet's name.
-3. PawPals removes the pet and its notes from the client, and unlinks the pet from the client's appointments.
-=======
 1. User requests to delete a note of one of a client's pets.
 2. User provides the client's index, the pet's name and the note type.
 3. PawPals removes that note from the pet, keeping the pet's other notes.
->>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
 4. PawPals displays a success message and the updated client card.
 
 Use case ends.
 
 Extensions:
 
-<<<<<<< HEAD
-* 2a. User provides a missing, repeated or invalid index or pet name.
-=======
 * 2a. User provides a missing, repeated or invalid index, pet name or note type.
->>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
   * 2a1. PawPals displays the corresponding validation message.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
 * 2b. The client has no pet with that name.
-<<<<<<< HEAD
-  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
-=======
   * 2b1. PawPals informs the user that the client has no pet with that name.
   * Use case ends.
 * 2c. The pet has no note of that type.
   * 2c1. PawPals informs the user that the pet has no such note, leaving all data unchanged.
->>>>>>> de2da4928f7791597fd974df75b6b139a461c86d
+  * Use case ends.
+
+#### UC12 - Delete pet
+
+System: PawPals<br>
+Use case: UC12 - Delete pet<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to delete one of a client's pets.
+2. User provides the client's index and the pet's name.
+3. PawPals removes the pet and its notes from the client, and unlinks the pet from the client's appointments.
+4. PawPals displays a success message and the updated client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid index or pet name.
+  * 2a1. PawPals displays the corresponding validation message.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The client has no pet with that name.
+  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
   * Use case ends.
 
 ### Non-Functional Requirements
