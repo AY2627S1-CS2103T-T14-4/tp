@@ -61,6 +61,7 @@
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
+        "empty-states-and-command-feedback": "Empty states and command feedback",
         "adding-and-persisting-pets": "Adding and persisting pets",
         "deleting-a-pet-note": "Deleting a pet note",
         "deleting-a-client": "Deleting a client",
@@ -114,6 +115,9 @@
       "headings": {
         "pawpals-user-guide": "PawPals User Guide",
         "quick-start": "Quick start",
+        "understanding-the-display": "Understanding the display",
+        "command-feedback": "Command feedback",
+        "empty-lists-and-client-cards": "Empty lists and client cards",
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
         "adding-a-client-addc": "Adding a client: addc",
