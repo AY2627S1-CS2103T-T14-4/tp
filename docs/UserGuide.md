@@ -191,16 +191,16 @@ Successful output: `Edited pet: Milo (Dog, Toy Poodle)`
 
 If the command fails, the pet is not changed. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions. |
-| None of `n/`, `s/` or `b/` given | `At least one field to edit must be provided.` |
-| Repeated prefix, for example two `b/` values | `Multiple values specified for the following single-valued field(s): b/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Rex.` |
-| Invalid new name, species or breed | The same message as in `addp`. |
-| New name already used by another of the client's pets | `This client already has a pet with the same name.` |
+| Problem                                                      | Feedback                                                                 |
+|--------------------------------------------------------------|--------------------------------------------------------------------------|
+| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions.   |
+| None of `n/`, `s/` or `b/` given                             | `At least one field to edit must be provided.`                           |
+| Repeated prefix, for example two `b/` values                 | `Multiple values specified for the following single-valued field(s): b/` |
+| Zero, negative or non-integer index                          | `Index must be a positive integer.`                                      |
+| Positive index outside the displayed list                    | `The client index provided is invalid.`                                  |
+| No pet with that name                                        | `This client has no pet named Rex.`                                      |
+| Invalid new name, species or breed                           | The same message as in `addp`.                                           |
+| New name already used by another of the client's pets        | `This client already has a pet with the same name.`                      |
 
 ### Adding or updating a pet note: `note`
 
@@ -239,15 +239,15 @@ Successful output: `Deleted temperament note for Milo`
 
 If the command fails, no note is changed. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions. |
-| Repeated prefix, for example two `ty/` values | `Multiple values specified for the following single-valued field(s): ty/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Luna.` |
-| Invalid type | `Note type must be pref, sens or temp.` |
-| The pet has no note of that type | `Milo has no sensitivity note to delete.` |
+| Problem                                              | Feedback                                                                  |
+|------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions.  |
+| Repeated prefix, for example two `ty/` values        | `Multiple values specified for the following single-valued field(s): ty/` |
+| Zero, negative or non-integer index                  | `Index must be a positive integer.`                                       |
+| Positive index outside the displayed list            | `The client index provided is invalid.`                                   |
+| No pet with that name                                | `This client has no pet named Luna.`                                      |
+| Invalid type                                         | `Note type must be pref, sens or temp.`                                   |
+| The pet has no note of that type                     | `Milo has no sensitivity note to delete.`                                 |
 
 ### Deleting a pet: `delp`
 
@@ -267,13 +267,13 @@ Successful output: `Deleted pet: Milo (owner: Alice Tan)`
 
 If the command fails, no pet is deleted. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions. |
-| Repeated prefix, for example two `pn/` values | `Multiple values specified for the following single-valued field(s): pn/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Rex.` |
+| Problem                                              | Feedback                                                                  |
+|------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions.     |
+| Repeated prefix, for example two `pn/` values        | `Multiple values specified for the following single-valued field(s): pn/` |
+| Zero, negative or non-integer index                  | `Index must be a positive integer.`                                       |
+| Positive index outside the displayed list            | `The client index provided is invalid.`                                   |
+| No pet with that name                                | `This client has no pet named Rex.`                                       |
 
 ### Deleting a client: `delc`
 
@@ -347,19 +347,19 @@ their appointments; deleting the client or clearing all records removes them.
 
 If the command is rejected because of invalid input or an overlap, no data is changed. Validation feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `appt` usage instructions. |
-| Repeated prefix, for example two `et/` values | `Multiple values specified for the following single-valued field(s): et/` |
-| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
-| End time equal to or before the start time | `End time must be after the start time.` |
-| Empty or invalid pet name | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.` |
-| Pet not belonging to the selected client | `This client has no pet named Milo.` (with the requested pet name) |
-| Past or current date/time | `Appointment date and time must be strictly in the future.` |
-| Overlap with any client's active booking | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
+| Problem                                                       | Feedback                                                                                                                                                                       |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `appt` usage instructions.                                                                                                          |
+| Repeated prefix, for example two `et/` values                 | `Multiple values specified for the following single-valued field(s): et/`                                                                                                      |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                                                                                            |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                                                                                        |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
+| Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
+| End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
+| Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
+| Past or current date/time                                     | `Appointment date and time must be strictly in the future.`                                                                                                                    |
+| Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
 The example date must still be in the future when you try it. Replace it with a future date if needed.
 
@@ -406,17 +406,17 @@ time to identify that booking in later commands.
 If validation fails, no data changes and the failed input stays in the command box for correction.
 Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions. |
-| No replacement value supplied | `At least one of nd/, ns/ or ne/ must be provided.` |
-| Repeated prefix, for example two `ns/` values | `Multiple values specified for the following single-valued field(s): ns/` |
-| Invalid index, date or time, including empty values | The corresponding index, date or time validation message used by `appt`. |
-| No active appointment at the original slot | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
-| Resulting start is in the past or current minute | `Appointment date and time must be strictly in the future.` |
-| New end is equal to or before the resulting start | `End time must be after the start time.` |
-| Preserving the duration would end after 23:59 | `The appointment would end after 23:59. Give a new end time with ne/.` |
-| Overlap with another active booking | The same conflict message as `appt`, identifying the conflicting client and slot. |
+| Problem                                                       | Feedback                                                                                     |
+|---------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions.                    |
+| No replacement value supplied                                 | `At least one of nd/, ns/ or ne/ must be provided.`                                          |
+| Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
+| Invalid index, date or time, including empty values           | The corresponding index, date or time validation message used by `appt`.                     |
+| No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
+| Resulting start is in the past or current minute              | `Appointment date and time must be strictly in the future.`                                  |
+| New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
+| Preserving the duration would end after 23:59                 | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
+| Overlap with another active booking                           | The same conflict message as `appt`, identifying the conflicting client and slot.            |
 
 The example requires a matching active booking and a resulting start in the future. Replace the example
 date and time as needed. If saving fails, the current session may show the edited booking while the saved
@@ -450,15 +450,15 @@ cancellation is saved so the appointment remains absent after restarting PawPals
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions. |
-| Repeated prefix, for example two `t/` values | `Multiple values specified for the following single-valued field(s): t/` |
-| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Invalid or empty time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
-| No matching appointment, including one already cancelled | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
+| Problem                                                       | Feedback                                                                                               |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                |
+| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                               |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                    |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`  |
+| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                  |
+| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
 
 If saving fails, the appointment may be removed in the current session but remain in the saved file.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
@@ -501,21 +501,39 @@ Completion is saved automatically and retained after restarting PawPals. Later p
 does not change completed records. Other appointments, contact details, tags, pets, pet notes and
 previous history are preserved. Deleting the client removes its history; `clear` removes all history.
 
+**Viewing recent sessions**
+
+The **History** section beneath each client's appointments updates immediately after `done`.
+It shows up to three completed sessions, newest appointment date and start time first;
+logging time breaks ties. Each entry shows the date, start time, optional end time,
+recorded pet names and session notes. Sessions without linked pets show `No pets linked`.
+
+For example, a completed visit appears as:
+
+```text
+20-10-2026 14:00–15:30 · Milo, Luna
+Notes: Teddy cut, short ears
+```
+
+Pet names describe the completed visit: renaming or deleting a pet later does not change them.
+All older sessions remain saved, although only the three most recent are displayed.
+Booking details and logging timestamps are retained in storage but are not shown in this preview.
+
 Completed history never reserves a slot. Completing early releases the remaining planned interval for
 another booking. A new booking must still start strictly in the future and avoid all remaining active
 appointments; completing a visit does not permit rebooking a past or current start time.
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `done` usage instructions. |
-| Repeated prefix, for example two `nt/` values | `Multiple values specified for the following single-valued field(s): nt/` |
-| Invalid index, date or start time | The corresponding index, date or time validation message used by `appt`. |
-| Empty notes or more than 200 characters after trimming | `Session notes should be between 1 and 200 characters long.` |
-| Appointment has not started | `An appointment cannot be completed before its scheduled start time.` |
-| No active appointment at the requested slot | `Ben Lim has no active appointment at 12-12-2026 14:00.` |
-| Already completed slot with no active booking | `Ben Lim already has a completed session at 12-12-2026 14:00.` |
+| Problem                                                       | Feedback                                                                  |
+|---------------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `done` usage instructions.     |
+| Repeated prefix, for example two `nt/` values                 | `Multiple values specified for the following single-valued field(s): nt/` |
+| Invalid index, date or start time                             | The corresponding index, date or time validation message used by `appt`.  |
+| Empty notes or more than 200 characters after trimming        | `Session notes should be between 1 and 200 characters long.`              |
+| Appointment has not started                                   | `An appointment cannot be completed before its scheduled start time.`     |
+| No active appointment at the requested slot                   | `Ben Lim has no active appointment at 12-12-2026 14:00.`                  |
+| Already completed slot with no active booking                 | `Ben Lim already has a completed session at 12-12-2026 14:00.`            |
 
 The example requires a matching active appointment that has already started. Replace the date and
 time with an existing booking when trying the command.

@@ -126,8 +126,8 @@ Both list arguments must be non-null; the UI never changes their contents direct
 `ClientCard` rejects a null client and renders missing pets and active appointments as subdued,
 wrapping labels. A pet gets one empty-note label only when its entire notes map is empty; partial
 notes keep their existing labels and safety markers. `emptyHistory` is visible and managed only while
-history is empty, so it reserves no space after the first completed session. Populated history records
-remain in the model and storage without being rendered here. Model updates replace immutable clients,
+history is empty, so it reserves no space after the first completed session. Populated history displays up to three recent
+session snapshots, while all records remain in the model and storage. Model updates replace immutable clients,
 causing list cells to rebuild their cards and recompute empty sections. No command syntax or storage
 schema changes are required.
 
@@ -363,7 +363,7 @@ Each `CompletedSession` retains:
   `clear` removes every client's history. There is no individual history edit/delete operation in this scope.
 * `Client#getHistory()` returns **all** records, sorted by appointment date and start time descending,
   then logging instant descending. Equal keys retain their insertion order. A UI preview of three
-  records must not discard older stored sessions; history presentation is owned by the UI task.
+  records must not discard older stored sessions; the UI applies its limit only when rendering.
 * `JsonAdaptedCompletedSession` stores the appointment snapshot, notes and an ISO-8601 logging instant.
   `JsonAdaptedClient` stores these records in an optional `history` array. Missing or null history in
   older files loads as empty history; empty history is omitted when saving.
@@ -390,6 +390,30 @@ Example entry in a client's `history` array:
 The single-client update guarantees that active removal and history creation happen together in memory.
 Persistence still uses the existing `LogicManager` save pipeline; this model operation does not introduce
 disk transactions or rollback on save errors.
+
+#### Completed-session rendering
+
+`ClientCard` adds a **History** section beneath active appointments. Its private
+`HISTORY_DISPLAY_LIMIT` is three: it consumes `Client#getHistory()` in the supplied order
+using `stream().limit(...)`, leaving the complete immutable list and storage unchanged.
+Each session is a pair of wrapping labels: snapshot date/start/optional end and recorded
+pet names, followed by `Notes: ...`. An empty pet set renders as `No pets linked`.
+Booking details and `loggedAt` remain stored but are not displayed.
+
+The shared appointment-summary formatter reads `CompletedSession#getAppointment()` directly.
+It never resolves historical names against current pets, so later rename/deletion cannot
+rewrite what the completed visit displays. All labels wrap and grow vertically at narrow widths.
+An empty history shows `No completed sessions` beneath the History heading and has no session rows.
+The placeholder is hidden and unmanaged when completed sessions are present.
+
+The existing JavaFX observable-list mechanism refreshes the card after `DoneCommand` applies
+its single `Model#setClient(...)` replacement. The UI displays active removal and history creation
+from that same replacement without resetting the filter or adding a command-to-UI dependency.
+
+Rendering tests cover zero through four sessions, recorded names, absent end times/pet links,
+ordering ties, client isolation and long wrapping notes. The command-box integration test checks
+immediate refresh under a filter, retention of four records after JSON reload, and subsequent
+pet rename/deletion without changes to displayed historical names.
 
 ### Storage component
 
@@ -896,7 +920,7 @@ Resize to the minimum window width and check that text remains readable.
 | Empty notes | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`. | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`. |
 | Remove last note and pet | Run `delnote c/1 pn/Milo ty/sens`, then `delp c/1 pn/Milo`. | The empty-note message returns after `delnote`; after `delp`, the empty-pets message replaces the pet and its notes. |
 | Last appointment cancelled | Add `appt c/1 d/FUTURE_DATE t/14:00`, using a future date in `DD-MM-YYYY`, then `cancel c/1 d/FUTURE_DATE t/14:00`. | The appointment replaces its empty message; cancellation restores it. |
-| First completed session | Add a future booking, wait until its start, then run `done c/1 d/DATE t/TIME nt/Trim completed` using its recorded date/start. | The active booking disappears and its empty message returns. `No completed sessions` disappears; history details remain unrendered. |
+| First completed session | Add a future booking, wait until its start, then run `done c/1 d/DATE t/TIME nt/Trim completed` using its recorded date/start. | The active booking disappears and its empty message returns. `No completed sessions` disappears and the completed session appears with its recorded times, pet names and notes. |
 | Error and correction | Submit `unknown` twice. Edit it to `list`, then press Enter. | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input. |
 | Error to success | Submit `unknown`, then a valid `addc` for another client. | `Success` replaces `Error` without stale error styling. |
 | Long feedback | Submit `appt` without arguments and scroll within its feedback. Then submit `list`. | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling. |
@@ -998,15 +1022,15 @@ note c/1 pn/Milo ty/temp nt/Nervous around dryers
 appt c/1 d/FUTURE_DATE t/14:00 pn/Milo pn/Luna
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Delete a pet | `delp c/1 pn/milo` | `Deleted pet: Milo (owner: Alice Test)`. Milo and his note disappear from the card; Luna remains. |
-| Appointment kept, pet unlinked | Look at Alice's card, then open `data/pawpals.json`. | The appointment is still shown on the card. In the data file, that appointment's `pets` array is now `["Luna"]`. |
-| Unknown pet | `delp c/1 pn/Rex` | `This client has no pet named Rex.` No data changes. |
-| Missing prefix | `delp c/1` | `Invalid command format!` followed by the `delp` usage. |
-| Repeated prefix | `delp c/1 pn/Luna pn/Luna` | `Multiple values specified for the following single-valued field(s): pn/` |
-| Invalid index | `delp c/0 pn/Luna`, then `delp c/2 pn/Luna` | The first gives `Index must be a positive integer.`; the second gives `The client index provided is invalid.` |
-| Restart | Run `exit`, relaunch and run `list`. | Milo is still gone and the appointment is still shown. In `data/pawpals.json`, its `pets` array is still `["Luna"]`. |
+| Scenario                       | Commands or action                                   | Expected result                                                                                                      |
+|--------------------------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| Delete a pet                   | `delp c/1 pn/milo`                                   | `Deleted pet: Milo (owner: Alice Test)`. Milo and his note disappear from the card; Luna remains.                    |
+| Appointment kept, pet unlinked | Look at Alice's card, then open `data/pawpals.json`. | The appointment is still shown on the card. In the data file, that appointment's `pets` array is now `["Luna"]`.     |
+| Unknown pet                    | `delp c/1 pn/Rex`                                    | `This client has no pet named Rex.` No data changes.                                                                 |
+| Missing prefix                 | `delp c/1`                                           | `Invalid command format!` followed by the `delp` usage.                                                              |
+| Repeated prefix                | `delp c/1 pn/Luna pn/Luna`                           | `Multiple values specified for the following single-valued field(s): pn/`                                            |
+| Invalid index                  | `delp c/0 pn/Luna`, then `delp c/2 pn/Luna`          | The first gives `Index must be a positive integer.`; the second gives `The client index provided is invalid.`        |
+| Restart                        | Run `exit`, relaunch and run `list`.                 | Milo is still gone and the appointment is still shown. In `data/pawpals.json`, its `pets` array is still `["Luna"]`. |
 
 ### Adding appointments
 
@@ -1024,22 +1048,22 @@ addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 
 The separate client-add section of the User Guide also uses `addc`.
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34` | Success names Alice Test; her card shows the date/time. Bob's card is unchanged. |
-| Duplicate for the same client | Repeat the previous command. | Overlap rejection identifies Alice and her existing slot; no extra appointment appears. |
-| Same slot for another client | `appt c/2 d/FUTURE_DATE t/12:34` | Overlap rejection identifies Alice and her existing slot; no data changes. |
-| Invalid date | `appt c/1 d/31-04-2027 t/12:34` | Date-validation message; no data changes. |
-| Invalid time | `appt c/1 d/FUTURE_DATE t/24:00` | Time-validation message; no data changes. |
-| Missing field | `appt c/1 d/FUTURE_DATE` | Invalid-format message and usage instructions; no data changes. |
-| Repeated prefix | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34` | Duplicate-prefix message for `t/`, even though the values match. |
-| Invalid index | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment. | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
-| Past appointment | `appt c/1 d/01-01-2000 t/12:34` | Strictly-future message; no data changes. |
-| Same-day boundary | Use today's date with a time at least five minutes ahead, then with the current minute. | The future minute succeeds; the current minute is rejected. Use the computer's local time. |
-| Filtered indices | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`. |
-| Restart | Run `exit`, relaunch from the same folder, and run `list`. | Each appointment is still displayed under its original client. |
-| Edit preservation | `edit 2 p/93456789`, then restart. | Bob's phone changes, and all his appointments remain. |
-| Delete and clear | `delc 1`, restart; then `clear` and restart. | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments. |
+| Scenario                                | Commands or action                                                                                   | Expected result                                                                                                     |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34`                                                                     | Success names Alice Test; her card shows the date/time. Bob's card is unchanged.                                    |
+| Duplicate for the same client           | Repeat the previous command.                                                                         | Overlap rejection identifies Alice and her existing slot; no extra appointment appears.                             |
+| Same slot for another client            | `appt c/2 d/FUTURE_DATE t/12:34`                                                                     | Overlap rejection identifies Alice and her existing slot; no data changes.                                          |
+| Invalid date                            | `appt c/1 d/31-04-2027 t/12:34`                                                                      | Date-validation message; no data changes.                                                                           |
+| Invalid time                            | `appt c/1 d/FUTURE_DATE t/24:00`                                                                     | Time-validation message; no data changes.                                                                           |
+| Missing field                           | `appt c/1 d/FUTURE_DATE`                                                                             | Invalid-format message and usage instructions; no data changes.                                                     |
+| Repeated prefix                         | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34`                                                             | Duplicate-prefix message for `t/`, even though the values match.                                                    |
+| Invalid index                           | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment.                                     | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
+| Past appointment                        | `appt c/1 d/01-01-2000 t/12:34`                                                                      | Strictly-future message; no data changes.                                                                           |
+| Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | The future minute succeeds; the current minute is rejected. Use the computer's local time.                          |
+| Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.        |
+| Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                      |
+| Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                   | Bob's phone changes, and all his appointments remain.                                                               |
+| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                         | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.      |
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 
