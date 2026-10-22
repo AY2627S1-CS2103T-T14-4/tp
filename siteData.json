@@ -64,6 +64,7 @@
         "adding-and-persisting-pets": "Adding and persisting pets",
         "deleting-a-pet-note": "Deleting a pet note",
         "deleting-a-client": "Deleting a client",
+        "deleting-a-pet": "Deleting a pet",
         "adding-appointments": "Adding appointments",
         "rescheduling-appointments": "Rescheduling appointments",
         "saving-data": "Saving data"
@@ -118,6 +119,7 @@
         "adding-a-pet-addp": "Adding a pet: addp",
         "adding-or-updating-a-pet-note-note": "Adding or updating a pet note: note",
         "deleting-a-pet-note-delnote": "Deleting a pet note: delnote",
+        "deleting-a-pet-delp": "Deleting a pet: delp",
         "deleting-a-client-delc": "Deleting a client: delc",
         "adding-an-appointment-appt": "Adding an appointment: appt",
         "rescheduling-an-appointment-editappt": "Rescheduling an appointment: editappt",
