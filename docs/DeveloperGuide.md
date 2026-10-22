@@ -182,6 +182,12 @@ or an empty optional. It ignores the current UI filter and completed-session his
 `appt` checks this before replacing a client, so rejected bookings leave data and the filter unchanged.
 `Messages#formatAppointmentConflict(...)` supplies feedback including the owner and conflicting slot.
 
+The activity diagram below shows the global conflict check during `appt`. The client index is resolved against the
+currently displayed list, but `AppointmentConflictChecker` scans every client's active appointments. A conflict
+returns before `Model#setClient(...)`, so the rejected command does not mutate data or the current filter.
+
+<puml src="diagrams/AppointmentConflictActivityDiagram.puml" alt="Activity diagram of the global appointment-conflict check" />
+
 The overload `Model#findAppointmentConflict(candidate, originalClient, originalAppointment)` supports `editappt`.
 It excludes only the original owner's booking identified by date and start time, while checking all
 other bookings. The editing command must validate its target, run this check before mutation, then use

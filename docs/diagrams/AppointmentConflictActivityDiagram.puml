@@ -1,0 +1,56 @@
+@startuml
+!include style.puml
+
+title Global appointment-conflict check
+
+start
+
+:Receive candidate appointment;
+
+:Check whether this is a new appointment;
+if () then (yes)
+    :No appointment is excluded;
+else (else)
+    :Remember original client and appointment
+    as the exclusion;
+endif
+
+:Read the complete PawPals client list;
+
+note right
+The full client list is used.
+The current UI filter is ignored.
+end note
+
+:Check whether more clients remain;
+while (More clients?) is (yes)
+    :Read the next client's active appointments;
+
+    :Check whether more active appointments remain;
+    while (More active appointments?) is (yes)
+        :Check whether this is the excluded original appointment;
+        if (Is this the excluded original appointment?) then (yes)
+            :Skip this appointment;
+        else (else)
+            :Check whether the candidate overlaps this appointment;
+            if (Candidate overlaps this appointment?) then (yes)
+                :Return Conflict(owner, appointment);
+                stop
+            else (else)
+                :Continue scanning;
+            endif
+        endif
+    endwhile (no more appointments)
+endwhile (else)
+
+:Return Optional.empty();
+
+note right
+Completed-session history is never scanned.
+Only active appointments reserve booking time.
+Adjacent bookings are allowed according to
+Appointment#overlaps(...).
+end note
+
+stop
+@enduml
