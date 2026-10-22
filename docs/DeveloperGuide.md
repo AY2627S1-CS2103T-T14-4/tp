@@ -175,24 +175,17 @@ Model conflict check as client-only bookings; omitting `pn/` does not infer part
 
 #### Global appointment conflicts
 
-Commands call `Model#findAppointmentConflict(candidate)` to check active bookings through the Model facade.
-`ModelManager` delegates to `AppointmentConflictChecker`, which scans the full client list's active
-appointments using `Appointment#overlaps(...)`. It returns the first conflict with its owning client,
-or an empty optional. It ignores the current UI filter and completed-session history.
-`appt` checks this before replacing a client, so rejected bookings leave data and the filter unchanged.
-`Messages#formatAppointmentConflict(...)` supplies feedback including the owner and conflicting slot.
+Commands call `Model#findAppointmentConflict(candidate)` through the `Model` facade.
+`ModelManager` delegates the check to `AppointmentConflictChecker`, which returns either
+the first conflicting active appointment and its owning client, or an empty optional.
 
-The activity diagram below shows the global conflict check during `appt`. The client index is resolved against the
-currently displayed list, but `AppointmentConflictChecker` scans every client's active appointments. A conflict
-returns before `Model#setClient(...)`, so the rejected command does not mutate data or the current filter.
+The activity diagram below shows the global conflict-checking workflow. The check runs before
+`Model#setClient(...)`, so rejected bookings leave the data and current filter unchanged.
 
 <puml src="diagrams/AppointmentConflictActivityDiagram.puml" alt="Activity diagram of the global appointment-conflict check" />
 
-The overload `Model#findAppointmentConflict(candidate, originalClient, originalAppointment)` supports `editappt`.
-It excludes only the original owner's booking identified by date and start time, while checking all
-other bookings. The editing command must validate its target, run this check before mutation, then use
-`Client#withAppointmentReplaced(...)` and one model update. A client-only appointment and appointments
-for different pets follow the same overlap rules. Editing command integration is handled by the `editappt` command.
+For `editappt`, the overload `Model#findAppointmentConflict(candidate, originalClient, originalAppointment)`
+excludes only the original appointment. All other active appointments are still checked.
 
 #### Completed-session history
 
