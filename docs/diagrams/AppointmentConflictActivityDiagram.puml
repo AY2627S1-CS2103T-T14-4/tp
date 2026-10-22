@@ -16,18 +16,12 @@ endif
 
 :Read the complete PawPals client list;
 
-note right
-The full client list is used.
-The current UI filter is ignored.
-end note
-
 :Compare the candidate with every active appointment
 of every client, ignoring the current UI filter
 and completed-session history;
 
 if () then ([conflict found])
     :Return Conflicted Client and Appointment;
-    stop
 else ([no conflict])
     :Return No Conflict;
 endif
