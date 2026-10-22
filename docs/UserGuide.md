@@ -47,6 +47,51 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Understanding the display
+
+### Command feedback
+
+The feedback area shows the result of your latest command. A text label and colour identify the outcome:
+
+| Label       | Meaning                                                               | Example                                               |
+|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
+| **Info**    | Guidance or the result of `find`, `findp`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`                    |
+| **Success** | A command that changes records completed successfully.                | Adding Alice Tan shows `New client added: Alice Tan`. |
+| **Error**   | The command could not be parsed, completed, or saved.                 | An unrecognised command shows `Unknown command.`      |
+
+When PawPals opens, **Info** shows `Enter a command. Use help to view available commands.`
+A search with no matches also shows **Info**; having no matches is not an error.
+
+After an error, your command stays in the command box for correction. Editing it clears the command box's
+error colour, while the feedback keeps showing the last outcome. Press Enter to submit your correction;
+the next outcome replaces the feedback's text, label, and colour. A successful submission clears the command box.
+
+Long feedback wraps onto additional lines. Scroll within the feedback area to read the rest, and select
+text to copy it. Each new outcome starts at the beginning of its message.
+
+### Empty lists and client cards
+
+Missing records are shown explicitly:
+
+| Where                               | Message                                                | Meaning                                                                                                            |
+|-------------------------------------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| Client list                         | `No clients yet. Use addc to create a client.`         | There are no stored clients, including when searching an empty list.                                               |
+| Client list after `find` or `findp` | `No matching clients. Try another search or use list.` | Clients exist, but none match the search. Use `list` to show all clients again.                                    |
+| Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
+| Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
+| Client card                         | `No appointments scheduled`                            | This client has no active appointments.                                                                            |
+| Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
+
+For example, a newly added client shows the messages for no pets, appointments, and completed sessions.
+Adding a pet replaces `No pets recorded` with that pet's details and `No notes recorded`.
+Adding a note removes the pet's empty-note message; deleting its last note restores it.
+
+Cancelling the last active appointment restores `No appointments scheduled`. Completing it with `done`
+also removes `No completed sessions`. Completed-session records are saved, but their details are not
+currently shown on client cards. Empty messages update immediately after commands; no restart is needed.
+
+--------------------------------------------------------------------------------------------------------------------
+
 ## Features
 
 <box type="info" seamless>

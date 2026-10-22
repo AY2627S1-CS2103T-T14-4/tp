@@ -12,6 +12,7 @@ import seedu.address.commons.util.ToStringBuilder;
 public class CommandResult {
 
     private final String feedbackToUser;
+    private final FeedbackType feedbackType;
 
     /** Help information should be shown to the user. */
     private final boolean showHelp;
@@ -23,7 +24,15 @@ public class CommandResult {
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, FeedbackType.SUCCESS, showHelp, exit);
+    }
+
+    /**
+     * Constructs a result with the specified feedback type and window actions.
+     */
+    public CommandResult(String feedbackToUser, FeedbackType feedbackType, boolean showHelp, boolean exit) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
+        this.feedbackType = requireNonNull(feedbackType);
         this.showHelp = showHelp;
         this.exit = exit;
     }
@@ -34,6 +43,17 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Constructs a result with the specified feedback type and no window actions.
+     */
+    public CommandResult(String feedbackToUser, FeedbackType feedbackType) {
+        this(feedbackToUser, feedbackType, false, false);
+    }
+
+    public FeedbackType getFeedbackType() {
+        return feedbackType;
     }
 
     public String getFeedbackToUser() {
@@ -60,19 +80,21 @@ public class CommandResult {
         }
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
+                && feedbackType == otherCommandResult.feedbackType
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, feedbackType, showHelp, exit);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
+                .add("feedbackType", feedbackType)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
                 .toString();

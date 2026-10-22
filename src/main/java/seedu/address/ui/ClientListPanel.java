@@ -1,10 +1,13 @@
 package seedu.address.ui;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -21,12 +24,32 @@ public class ClientListPanel extends UiPart<Region> {
     @FXML
     private ListView<Client> clientListView;
 
+    @FXML
+    private Label emptyListLabel;
+
     /**
-     * Creates a {@code ClientListPanel} with the given {@code ObservableList}.
+     * Creates a panel for a stored client list that is also the displayed list.
+     *
+     * @throws NullPointerException if {@code clientList} is null.
      */
     public ClientListPanel(ObservableList<Client> clientList) {
+        this(clientList, clientList);
+    }
+
+    /**
+     * Creates a panel showing {@code filteredClients}, using {@code allClients} to distinguish an empty
+     * address book from a search without matches.
+     *
+     * @throws NullPointerException if either list is null.
+     */
+    public ClientListPanel(ObservableList<Client> filteredClients, ObservableList<Client> allClients) {
         super(FXML);
-        clientListView.setItems(clientList);
+        requireAllNonNull(filteredClients, allClients);
+        clientListView.setItems(filteredClients);
+        emptyListLabel.textProperty().bind(Bindings.when(Bindings.isEmpty(allClients))
+                .then("No clients yet. Use addc to create a client.")
+                .otherwise("No matching clients. Try another search or use list."));
+        emptyListLabel.maxWidthProperty().bind(Bindings.max(0, clientListView.widthProperty().subtract(40)));
         clientListView.setCellFactory(listView -> new ClientListViewCell());
     }
 

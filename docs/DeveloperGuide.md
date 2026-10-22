@@ -89,6 +89,56 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Client` objects from the model.
 
+#### Command feedback states
+
+`CommandResult` carries a `FeedbackType` (`NEUTRAL`, `SUCCESS`, or `ERROR`) alongside its unchanged
+feedback string and help/exit flags. Existing constructors default to `SUCCESS`; overloads accept an
+explicit type. Equality, hashing, and the string representation include the type. `find`, `findp`,
+`list`, `help`, and `exit` return `NEUTRAL`; commands that change records use `SUCCESS`.
+
+`MainWindow#executeCommand(...)` passes the result's message and type to
+`ResultDisplay#setFeedbackToUser(String, FeedbackType)`. It catches `ParseException` and
+`CommandException`, displays `ERROR`, and rethrows the exception so `CommandBox` retains failed input.
+Storage failures follow the same error path: `LogicManager` saves before returning the command result,
+so a failed save never displays that result as a success. The existing storage behavior still applies:
+a save failure may occur after the in-memory model has changed; feedback does not roll it back.
+
+`ResultDisplay` owns presentation. It maps the type to an `Info`, `Success`, or `Error` label and one
+of the mutually exclusive `feedback-neutral`, `feedback-success`, and `feedback-error` CSS classes.
+Each update removes previous state classes, preserves the original message, and resets the caret and
+scroll offsets to the beginning. A read-only, wrapping `TextArea` provides selection and vertical
+scrolling for long feedback. The one-argument setter defaults to `SUCCESS` for compatibility.
+Startup guidance is `NEUTRAL`. Feedback arguments are checked for null before changing any visible state.
+
+`CommandBox` keeps input correction separate from the last outcome: editing clears its own error style
+without clearing the feedback, and successful execution clears the input. Repeated failures do not
+add duplicate input error classes. Its executor must be non-null at construction.
+
+#### Empty list and card states
+
+`Logic#getClientList()` exposes the model's unmodifiable observable list of all stored clients.
+`MainWindow` passes this list and `Logic#getFilteredClientList()` to `ClientListPanel`. The `ListView`
+displays the filtered list and uses its placeholder only when that list is empty. The placeholder's
+text is bound to whether the stored list is empty: no stored clients takes precedence over no matches.
+Its width is bounded by the list width, clamped at zero during initial layout, so its text can wrap.
+Both list arguments must be non-null; the UI never changes their contents directly.
+
+`ClientCard` rejects a null client and renders missing pets and active appointments as subdued,
+wrapping labels. A pet gets one empty-note label only when its entire notes map is empty; partial
+notes keep their existing labels and safety markers. `emptyHistory` is visible and managed only while
+history is empty, so it reserves no space after the first completed session. Populated history displays up to three recent
+session snapshots, while all records remain in the model and storage. Model updates replace immutable clients,
+causing list cells to rebuild their cards and recompute empty sections. No command syntax or storage
+schema changes are required.
+
+Tests use the shared `JavaFxTestUtil` toolkit and run new UI scenarios on the JavaFX application thread.
+`ResultDisplayTest` checks all state transitions, rejected null feedback, and long-message scrolling;
+`FeedbackUiIntegrationTest` covers parsing, execution and saving failures plus correction behavior.
+`EmptyStateFixtures` supplies empty and populated sections, including partial/full notes and history.
+`ClientCardEmptyStateTest`, `ClientListPanelTest`, and `EmptyStateUiIntegrationTest` verify placeholders,
+reused cells, filtering, and transitions through real commands. `LogicManagerTest` verifies that the
+stored list stays observable across changes and cannot be modified through the Logic API.
+
 #### Appointment presentation and refresh
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
@@ -344,7 +394,8 @@ Booking details and `loggedAt` remain stored but are not displayed.
 The shared appointment-summary formatter reads `CompletedSession#getAppointment()` directly.
 It never resolves historical names against current pets, so later rename/deletion cannot
 rewrite what the completed visit displays. All labels wrap and grow vertically at narrow widths.
-An empty history has no session rows; empty-state messaging is handled separately in issue #195.
+An empty history shows `No completed sessions` beneath the History heading and has no session rows.
+The placeholder is hidden and unmanaged when completed sessions are present.
 
 The existing JavaFX observable-list mechanism refreshes the card after `DoneCommand` applies
 its single `Model#setClient(...)` replacement. The UI displays active removal and history creation
@@ -845,6 +896,26 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
+
+### Empty states and command feedback
+
+Use a disposable copy of PawPals. The following checks include `clear`, which removes all records.
+Resize to the minimum window width and check that text remains readable.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Initial feedback | Launch PawPals. | `Info` shows the initial command guidance. |
+| Empty database | Run `clear`, then `find Nobody`. | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`. |
+| Empty card | Run `addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road`. | `Success` identifies Alice. Her card shows no pets, appointments, or completed sessions. |
+| Search without matches | Run `find Nobody`, then `findp Nobody`, then `list`. | Each search shows the no-matches placeholder with `Info`; `list` restores Alice's card. |
+| Empty notes | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`. | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`. |
+| Remove last note and pet | Run `delnote c/1 pn/Milo ty/sens`, then `delp c/1 pn/Milo`. | The empty-note message returns after `delnote`; after `delp`, the empty-pets message replaces the pet and its notes. |
+| Last appointment cancelled | Add `appt c/1 d/FUTURE_DATE t/14:00`, using a future date in `DD-MM-YYYY`, then `cancel c/1 d/FUTURE_DATE t/14:00`. | The appointment replaces its empty message; cancellation restores it. |
+| First completed session | Add a future booking, wait until its start, then run `done c/1 d/DATE t/TIME nt/Trim completed` using its recorded date/start. | The active booking disappears and its empty message returns. `No completed sessions` disappears and the completed session appears with its recorded times, pet names and notes. |
+| Error and correction | Submit `unknown` twice. Edit it to `list`, then press Enter. | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input. |
+| Error to success | Submit `unknown`, then a valid `addc` for another client. | `Success` replaces `Error` without stale error styling. |
+| Long feedback | Submit `appt` without arguments and scroll within its feedback. Then submit `list`. | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling. |
+| Last client removed | Run `clear`, add Alice again, then run `delc 1`. | The empty-database message returns after the last client is deleted. |
 
 ### Adding and persisting pets
 

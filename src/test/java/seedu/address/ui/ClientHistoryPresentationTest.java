@@ -52,6 +52,9 @@ public class ClientHistoryPresentationTest {
                 List<CompletedSession> before = List.copyOf(client.getHistory());
                 Node card = new ClientCard(client, 1).getRoot();
                 assertEquals(expected.get(count), historyTexts(card));
+                Label emptyHistory = (Label) card.lookup("#emptyHistory");
+                assertEquals(count == 0, emptyHistory.isVisible());
+                assertEquals(count == 0, emptyHistory.isManaged());
                 assertEquals(before, client.getHistory());
                 assertEquals(count, client.getHistory().size());
             }
