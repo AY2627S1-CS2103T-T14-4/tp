@@ -170,6 +170,32 @@ If the command fails, no note is changed. Feedback includes:
 | Invalid type | `Note type must be pref, sens or temp.` |
 | The pet has no note of that type | `Milo has no sensitivity note to delete.` |
 
+### Deleting a pet: `delp`
+
+Deletes a pet, together with its notes, from a client.
+
+Format: `delp c/CLIENT_INDEX pn/PET_NAME`
+
+Example: `delp c/1 pn/Milo`
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* Both prefixes are required, may appear in any order, and must each appear only once.
+* The pet is also removed from that client's upcoming appointments. The appointments themselves are kept.
+  Completed sessions still show the pet's name, since they record what happened at the time.
+
+Successful output: `Deleted pet: Milo (owner: Alice Tan)`
+
+If the command fails, no pet is deleted. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions. |
+| Repeated prefix, for example two `pn/` values | `Multiple values specified for the following single-valued field(s): pn/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Rex.` |
+
 ### Deleting a client: `delc`
 
 Removes an unwanted client record, all their pets, and all their appointments.
@@ -520,6 +546,7 @@ Action     | Format, Examples
 **Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
+**Delete pet** | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
 **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
 **Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`

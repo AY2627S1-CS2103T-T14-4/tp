@@ -16,6 +16,7 @@ import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.DeleteNoteCommand;
+import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.DoneCommand;
 import seedu.address.logic.commands.EditAppointmentCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -62,6 +63,7 @@ public class PawPalsParser {
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);
+            case DeletePetCommand.COMMAND_WORD -> new DeletePetCommandParser().parse(arguments);
             case AppointmentCommand.COMMAND_WORD -> new AppointmentCommandParser().parse(arguments);
             case CancelCommand.COMMAND_WORD -> new CancelCommandParser().parse(arguments);
             case DoneCommand.COMMAND_WORD -> new DoneCommandParser().parse(arguments);
