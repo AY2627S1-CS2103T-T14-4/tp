@@ -18,6 +18,9 @@ Class JsonPawPalsStorage
 Class JsonSerializablePawPals
 Class JsonAdaptedClient
 Class JsonAdaptedTag
+Class JsonAdaptedPet
+Class JsonAdaptedAppointment
+Class JsonAdaptedCompletedSession
 }
 
 }
@@ -32,5 +35,9 @@ StorageManager -down-> "1" JsonPawPalsStorage
 JsonPawPalsStorage ..> JsonSerializablePawPals
 JsonSerializablePawPals --> "*" JsonAdaptedClient
 JsonAdaptedClient --> "*" JsonAdaptedTag
+JsonAdaptedClient --> "*" JsonAdaptedPet
+JsonAdaptedClient --> "*" JsonAdaptedAppointment
+JsonAdaptedClient --> "*" JsonAdaptedCompletedSession
+JsonAdaptedCompletedSession --> "1" JsonAdaptedAppointment : snapshot >
 
 @enduml
