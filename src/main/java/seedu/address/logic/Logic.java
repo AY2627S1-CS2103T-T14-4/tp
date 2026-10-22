@@ -23,6 +23,9 @@ public interface Logic {
     /** Returns an unmodifiable view of the filtered list of clients */
     ObservableList<Client> getFilteredClientList();
 
+    /** Returns an unmodifiable observable view of all stored clients, regardless of filtering. */
+    ObservableList<Client> getClientList();
+
     /**
      * Returns the user prefs' GUI settings.
      */

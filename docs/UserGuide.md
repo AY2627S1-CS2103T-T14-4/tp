@@ -47,6 +47,51 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Understanding the display
+
+### Command feedback
+
+The feedback area shows the result of your latest command. A text label and colour identify the outcome:
+
+| Label       | Meaning                                                               | Example                                               |
+|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
+| **Info**    | Guidance or the result of `find`, `findp`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`                    |
+| **Success** | A command that changes records completed successfully.                | Adding Alice Tan shows `New client added: Alice Tan`. |
+| **Error**   | The command could not be parsed, completed, or saved.                 | An unrecognised command shows `Unknown command.`      |
+
+When PawPals opens, **Info** shows `Enter a command. Use help to view available commands.`
+A search with no matches also shows **Info**; having no matches is not an error.
+
+After an error, your command stays in the command box for correction. Editing it clears the command box's
+error colour, while the feedback keeps showing the last outcome. Press Enter to submit your correction;
+the next outcome replaces the feedback's text, label, and colour. A successful submission clears the command box.
+
+Long feedback wraps onto additional lines. Scroll within the feedback area to read the rest, and select
+text to copy it. Each new outcome starts at the beginning of its message.
+
+### Empty lists and client cards
+
+Missing records are shown explicitly:
+
+| Where                               | Message                                                | Meaning                                                                                                            |
+|-------------------------------------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| Client list                         | `No clients yet. Use addc to create a client.`         | There are no stored clients, including when searching an empty list.                                               |
+| Client list after `find` or `findp` | `No matching clients. Try another search or use list.` | Clients exist, but none match the search. Use `list` to show all clients again.                                    |
+| Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
+| Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
+| Client card                         | `No appointments scheduled`                            | This client has no active appointments.                                                                            |
+| Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
+
+For example, a newly added client shows the messages for no pets, appointments, and completed sessions.
+Adding a pet replaces `No pets recorded` with that pet's details and `No notes recorded`.
+Adding a note removes the pet's empty-note message; deleting its last note restores it.
+
+Cancelling the last active appointment restores `No appointments scheduled`. Completing it with `done`
+also removes `No completed sessions`. Completed-session records are saved, but their details are not
+currently shown on client cards. Empty messages update immediately after commands; no restart is needed.
+
+--------------------------------------------------------------------------------------------------------------------
+
 ## Features
 
 <box type="info" seamless>
@@ -146,16 +191,16 @@ Successful output: `Edited pet: Milo (Dog, Toy Poodle)`
 
 If the command fails, the pet is not changed. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions. |
-| None of `n/`, `s/` or `b/` given | `At least one field to edit must be provided.` |
-| Repeated prefix, for example two `b/` values | `Multiple values specified for the following single-valued field(s): b/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Rex.` |
-| Invalid new name, species or breed | The same message as in `addp`. |
-| New name already used by another of the client's pets | `This client already has a pet with the same name.` |
+| Problem                                                      | Feedback                                                                 |
+|--------------------------------------------------------------|--------------------------------------------------------------------------|
+| Missing `c/` or `pn/`, or extra text before the first prefix | `Invalid command format!`, followed by the `editp` usage instructions.   |
+| None of `n/`, `s/` or `b/` given                             | `At least one field to edit must be provided.`                           |
+| Repeated prefix, for example two `b/` values                 | `Multiple values specified for the following single-valued field(s): b/` |
+| Zero, negative or non-integer index                          | `Index must be a positive integer.`                                      |
+| Positive index outside the displayed list                    | `The client index provided is invalid.`                                  |
+| No pet with that name                                        | `This client has no pet named Rex.`                                      |
+| Invalid new name, species or breed                           | The same message as in `addp`.                                           |
+| New name already used by another of the client's pets        | `This client already has a pet with the same name.`                      |
 
 ### Adding or updating a pet note: `note`
 
@@ -194,15 +239,15 @@ Successful output: `Deleted temperament note for Milo`
 
 If the command fails, no note is changed. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions. |
-| Repeated prefix, for example two `ty/` values | `Multiple values specified for the following single-valued field(s): ty/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Luna.` |
-| Invalid type | `Note type must be pref, sens or temp.` |
-| The pet has no note of that type | `Milo has no sensitivity note to delete.` |
+| Problem                                              | Feedback                                                                  |
+|------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions.  |
+| Repeated prefix, for example two `ty/` values        | `Multiple values specified for the following single-valued field(s): ty/` |
+| Zero, negative or non-integer index                  | `Index must be a positive integer.`                                       |
+| Positive index outside the displayed list            | `The client index provided is invalid.`                                   |
+| No pet with that name                                | `This client has no pet named Luna.`                                      |
+| Invalid type                                         | `Note type must be pref, sens or temp.`                                   |
+| The pet has no note of that type                     | `Milo has no sensitivity note to delete.`                                 |
 
 ### Deleting a pet: `delp`
 
@@ -222,13 +267,13 @@ Successful output: `Deleted pet: Milo (owner: Alice Tan)`
 
 If the command fails, no pet is deleted. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions. |
-| Repeated prefix, for example two `pn/` values | `Multiple values specified for the following single-valued field(s): pn/` |
-| Zero, negative or non-integer index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| No pet with that name | `This client has no pet named Rex.` |
+| Problem                                              | Feedback                                                                  |
+|------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions.     |
+| Repeated prefix, for example two `pn/` values        | `Multiple values specified for the following single-valued field(s): pn/` |
+| Zero, negative or non-integer index                  | `Index must be a positive integer.`                                       |
+| Positive index outside the displayed list            | `The client index provided is invalid.`                                   |
+| No pet with that name                                | `This client has no pet named Rex.`                                       |
 
 ### Deleting a client: `delc`
 
@@ -302,19 +347,19 @@ their appointments; deleting the client or clearing all records removes them.
 
 If the command is rejected because of invalid input or an overlap, no data is changed. Validation feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `appt` usage instructions. |
-| Repeated prefix, for example two `et/` values | `Multiple values specified for the following single-valued field(s): et/` |
-| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Invalid or empty start/end time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
-| End time equal to or before the start time | `End time must be after the start time.` |
-| Empty or invalid pet name | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.` |
-| Pet not belonging to the selected client | `This client has no pet named Milo.` (with the requested pet name) |
-| Past or current date/time | `Appointment date and time must be strictly in the future.` |
-| Overlap with any client's active booking | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
+| Problem                                                       | Feedback                                                                                                                                                                       |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `appt` usage instructions.                                                                                                          |
+| Repeated prefix, for example two `et/` values                 | `Multiple values specified for the following single-valued field(s): et/`                                                                                                      |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                                                                                            |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                                                                                        |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
+| Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
+| End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
+| Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
+| Past or current date/time                                     | `Appointment date and time must be strictly in the future.`                                                                                                                    |
+| Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
 The example date must still be in the future when you try it. Replace it with a future date if needed.
 
@@ -361,17 +406,17 @@ time to identify that booking in later commands.
 If validation fails, no data changes and the failed input stays in the command box for correction.
 Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions. |
-| No replacement value supplied | `At least one of nd/, ns/ or ne/ must be provided.` |
-| Repeated prefix, for example two `ns/` values | `Multiple values specified for the following single-valued field(s): ns/` |
-| Invalid index, date or time, including empty values | The corresponding index, date or time validation message used by `appt`. |
-| No active appointment at the original slot | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
-| Resulting start is in the past or current minute | `Appointment date and time must be strictly in the future.` |
-| New end is equal to or before the resulting start | `End time must be after the start time.` |
-| Preserving the duration would end after 23:59 | `The appointment would end after 23:59. Give a new end time with ne/.` |
-| Overlap with another active booking | The same conflict message as `appt`, identifying the conflicting client and slot. |
+| Problem                                                       | Feedback                                                                                     |
+|---------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions.                    |
+| No replacement value supplied                                 | `At least one of nd/, ns/ or ne/ must be provided.`                                          |
+| Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
+| Invalid index, date or time, including empty values           | The corresponding index, date or time validation message used by `appt`.                     |
+| No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
+| Resulting start is in the past or current minute              | `Appointment date and time must be strictly in the future.`                                  |
+| New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
+| Preserving the duration would end after 23:59                 | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
+| Overlap with another active booking                           | The same conflict message as `appt`, identifying the conflicting client and slot.            |
 
 The example requires a matching active booking and a resulting start in the future. Replace the example
 date and time as needed. If saving fails, the current session may show the edited booking while the saved
@@ -405,15 +450,15 @@ cancellation is saved so the appointment remains absent after restarting PawPals
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions. |
-| Repeated prefix, for example two `t/` values | `Multiple values specified for the following single-valued field(s): t/` |
-| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
-| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Invalid or empty time | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.` |
-| No matching appointment, including one already cancelled | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
+| Problem                                                       | Feedback                                                                                               |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                |
+| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                               |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                    |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`  |
+| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                  |
+| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
 
 If saving fails, the appointment may be removed in the current session but remain in the saved file.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
@@ -456,21 +501,39 @@ Completion is saved automatically and retained after restarting PawPals. Later p
 does not change completed records. Other appointments, contact details, tags, pets, pet notes and
 previous history are preserved. Deleting the client removes its history; `clear` removes all history.
 
+**Viewing recent sessions**
+
+The **History** section beneath each client's appointments updates immediately after `done`.
+It shows up to three completed sessions, newest appointment date and start time first;
+logging time breaks ties. Each entry shows the date, start time, optional end time,
+recorded pet names and session notes. Sessions without linked pets show `No pets linked`.
+
+For example, a completed visit appears as:
+
+```text
+20-10-2026 14:00–15:30 · Milo, Luna
+Notes: Teddy cut, short ears
+```
+
+Pet names describe the completed visit: renaming or deleting a pet later does not change them.
+All older sessions remain saved, although only the three most recent are displayed.
+Booking details and logging timestamps are retained in storage but are not shown in this preview.
+
 Completed history never reserves a slot. Completing early releases the remaining planned interval for
 another booking. A new booking must still start strictly in the future and avoid all remaining active
 appointments; completing a visit does not permit rebooking a past or current start time.
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem | Feedback |
-| --- | --- |
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `done` usage instructions. |
-| Repeated prefix, for example two `nt/` values | `Multiple values specified for the following single-valued field(s): nt/` |
-| Invalid index, date or start time | The corresponding index, date or time validation message used by `appt`. |
-| Empty notes or more than 200 characters after trimming | `Session notes should be between 1 and 200 characters long.` |
-| Appointment has not started | `An appointment cannot be completed before its scheduled start time.` |
-| No active appointment at the requested slot | `Ben Lim has no active appointment at 12-12-2026 14:00.` |
-| Already completed slot with no active booking | `Ben Lim already has a completed session at 12-12-2026 14:00.` |
+| Problem                                                       | Feedback                                                                  |
+|---------------------------------------------------------------|---------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `done` usage instructions.     |
+| Repeated prefix, for example two `nt/` values                 | `Multiple values specified for the following single-valued field(s): nt/` |
+| Invalid index, date or start time                             | The corresponding index, date or time validation message used by `appt`.  |
+| Empty notes or more than 200 characters after trimming        | `Session notes should be between 1 and 200 characters long.`              |
+| Appointment has not started                                   | `An appointment cannot be completed before its scheduled start time.`     |
+| No active appointment at the requested slot                   | `Ben Lim has no active appointment at 12-12-2026 14:00.`                  |
+| Already completed slot with no active booking                 | `Ben Lim already has a completed session at 12-12-2026 14:00.`            |
 
 The example requires a matching active appointment that has already started. Replace the date and
 time with an existing booking when trying the command.
@@ -589,23 +652,23 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 ## Command summary
 
-Action     | Format, Examples
------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
-**Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
-**Edit pet** | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`
-**Add/update pet note** | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
-**Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
-**Clear**  | `clear`
-**Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
-**Delete pet** | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`
-**Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
-**Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
-**Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
-**Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Exit**   | `exit`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`
-**Find pet owners** | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`
-**List**   | `list`
-**Help**   | `help`
+| Action                     | Format, Examples                                                                                                                             |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Add client**             | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`  |
+| **Add pet**                | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`                                                    |
+| **Edit pet**               | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`                                 |
+| **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                         |
+| **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                         |
+| **Clear**                  | `clear`                                                                                                                                      |
+| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                       |
+| **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                               |
+| **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`   |
+| **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` |
+| **Cancel appointment**     | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`                                                    |
+| **Complete appointment**   | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`                      |
+| **Edit**                   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`                |
+| **Exit**                   | `exit`                                                                                                                                       |
+| **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                  |
+| **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                  |
+| **List**                   | `list`                                                                                                                                       |
+| **Help**                   | `help`                                                                                                                                       |
