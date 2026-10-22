@@ -20,6 +20,7 @@ import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
 import seedu.address.logic.commands.DeleteNoteCommand;
+import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.DoneCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
@@ -105,6 +106,13 @@ public class PawPalsParserTest {
         DeleteClientCommand command = (DeleteClientCommand) parser.parseCommand(
                 DeleteClientCommand.COMMAND_WORD + " " + INDEX_FIRST_CLIENT.getOneBased());
         assertEquals(new DeleteClientCommand(INDEX_FIRST_CLIENT), command);
+    }
+
+    @Test
+    public void parseCommand_deletePet() throws Exception {
+        DeletePetCommand command = (DeletePetCommand) parser.parseCommand("delp c/1 pn/Milo");
+
+        assertEquals(new DeletePetCommand(INDEX_FIRST_CLIENT, new PetName("Milo")), command);
     }
 
     @Test
