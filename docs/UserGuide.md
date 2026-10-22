@@ -373,9 +373,9 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd client to be `Betsy Crower` and clears all existing tags.
 
-### Locating clients by name: `find`
+### Locating clients by name or contact: `find`
 
-Finds clients whose names contain any of the given keywords.
+Finds all clients whose names, phone numbers, or emails match any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -387,6 +387,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find 91234567` returns all clients with that exact phone number
+* `find alice@example.com` returns all clients with that exact email
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 

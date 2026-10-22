@@ -17,7 +17,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.PawPals;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.NameContainsKeywordsPredicate;
+import seedu.address.model.client.ClientContainsKeywordsPredicate;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
 /**
@@ -119,7 +119,7 @@ public class CommandTestUtil {
 
         Client client = model.getFilteredClientList().get(targetIndex.getZeroBased());
         final String[] splitName = client.getName().fullName.split("\\s+");
-        model.updateFilteredClientList(new NameContainsKeywordsPredicate(List.of(splitName[0])));
+        model.updateFilteredClientList(new ClientContainsKeywordsPredicate(List.of(splitName[0])));
 
         assertEquals(1, model.getFilteredClientList().size());
     }
