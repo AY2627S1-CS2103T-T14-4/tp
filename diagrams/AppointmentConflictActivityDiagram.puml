@@ -1,0 +1,35 @@
+@startuml
+!include style.puml
+
+title Global appointment-conflict check
+
+start
+
+:Receive candidate appointment;
+
+if () then ([new appointment])
+    :No appointment is excluded;
+else ([rescheduled appointment])
+    :Remember original client and appointment
+    as the exclusion;
+endif
+
+:Read the complete PawPals client list;
+
+:Compare the candidate with every active appointment
+of every client, ignoring the current UI filter
+and completed-session history;
+
+if () then ([conflict found])
+    :Return Conflicted Client and Appointment;
+else ([no conflict])
+    :Return No Conflict;
+endif
+
+note right
+Adjacent bookings are allowed according to
+Appointment#overlaps(...).
+end note
+
+stop
+@enduml
