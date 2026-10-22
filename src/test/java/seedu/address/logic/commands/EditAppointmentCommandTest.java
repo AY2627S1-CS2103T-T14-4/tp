@@ -88,7 +88,7 @@ public class EditAppointmentCommandTest {
     @Test
     public void execute_missingAppointment_leavesDataUnchanged() {
         assertCommandFailure(command(ORIGINAL, MOVE_START), modelWith(ALICE),
-                "Alice Pauline has no appointment at 13-12-2026 14:00.");
+                ALICE.getName() + " has no appointment at 13-12-2026 14:00.");
     }
 
     @Test
@@ -185,7 +185,7 @@ public class EditAppointmentCommandTest {
         assertEquals(owner, model.targetClient);
         assertEquals(new ClientBuilder(owner).withAppointments(expected).build(), model.editedClient);
         assertEquals(List.of(ORIGINAL), owner.getAppointments());
-        assertEquals("Rescheduled appointment: Alice Pauline 13-12-2026 14:00 → 13-12-2026 16:00 et/17:30",
+        assertEquals("Rescheduled appointment: " + ALICE.getName() + " 13-12-2026 14:00 → 13-12-2026 16:00 et/17:30",
                 result.getFeedbackToUser());
     }
 
@@ -195,7 +195,7 @@ public class EditAppointmentCommandTest {
         model.conflict = Optional.of(new Conflict(BENSON, slot("13-12-2026", "16:00", "17:00")));
 
         assertCommandFailure(command(ORIGINAL, MOVE_START), model,
-                "Appointment overlaps with Benson Meier's appointment: d/13-12-2026 t/16:00 et/17:00.");
+                "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/13-12-2026 t/16:00 et/17:00.");
 
         assertEquals(1, model.conflictCheckCount);
     }

@@ -3,17 +3,14 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
@@ -32,18 +29,7 @@ public class ClientCardTest {
 
     @BeforeAll
     public static void setUpJavaFxToolkit() throws InterruptedException {
-        CountDownLatch toolkitReady = new CountDownLatch(1);
-        try {
-            Platform.startup(toolkitReady::countDown);
-        } catch (IllegalStateException e) {
-            toolkitReady.countDown();
-        }
-        assertTrue(toolkitReady.await(10, TimeUnit.SECONDS));
-    }
-
-    @AfterAll
-    public static void tearDownJavaFxToolkit() {
-        Platform.exit();
+        initializeToolkit();
     }
 
     @Test

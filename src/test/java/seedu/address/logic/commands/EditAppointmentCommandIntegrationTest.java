@@ -64,7 +64,7 @@ public class EditAppointmentCommandIntegrationTest {
                 Optional.of(new AppointmentTime("17:30")), original.getDetails(), original.getPetNames());
         assertEquals(List.of(new ClientBuilder(owner).withAppointments(other, expected).build(), BENSON),
                 model.getPawPals().getClientList());
-        assertEquals("Rescheduled appointment: Alice Pauline 13-12-2026 14:00 → 13-12-2026 16:00 et/17:30",
+        assertEquals("Rescheduled appointment: " + ALICE.getName() + " 13-12-2026 14:00 → 13-12-2026 16:00 et/17:30",
                 result.getFeedbackToUser());
         assertEquals(List.of(other, original), owner.getAppointments());
     }
@@ -80,7 +80,7 @@ public class EditAppointmentCommandIntegrationTest {
     public void execute_conflictWithSameClient_rejectsOtherBooking() {
         Appointment other = slot("13-12-2026", "16:00", "17:00");
         assertCommandFailure(command(ORIGINAL, MOVE_START), modelWith(owner(ORIGINAL, other)),
-                "Appointment overlaps with Alice Pauline's appointment: d/13-12-2026 t/16:00 et/17:00.");
+                "Appointment overlaps with " + ALICE.getName() + "'s appointment: d/13-12-2026 t/16:00 et/17:00.");
     }
 
     @Test
@@ -93,7 +93,7 @@ public class EditAppointmentCommandIntegrationTest {
                 model.updateFilteredClientList(client -> client.isSameClient(ALICE));
             }
             assertCommandFailure(command(ORIGINAL, MOVE_START), model,
-                    "Appointment overlaps with Benson Meier's appointment: d/13-12-2026 t/16:00 et/17:00.");
+                    "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/13-12-2026 t/16:00 et/17:00.");
         }
     }
 
@@ -101,7 +101,7 @@ public class EditAppointmentCommandIntegrationTest {
     public void execute_otherOwnerAtOriginalSlot_isNotExcluded() {
         Model model = modelWith(owner(ORIGINAL), new ClientBuilder(BENSON).withAppointments(ORIGINAL).build());
         assertCommandFailure(command(ORIGINAL, edits(null, "14:30", null)), model,
-                "Appointment overlaps with Benson Meier's appointment: d/13-12-2026 t/14:00 et/15:30.");
+                "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/13-12-2026 t/14:00 et/15:30.");
     }
 
     @Test
@@ -122,7 +122,7 @@ public class EditAppointmentCommandIntegrationTest {
         Appointment other = slot("13-12-2026", "16:00", null);
         Model model = modelWith(owner(original, other));
         assertCommandFailure(command(original, MOVE_START), model,
-                "Appointment overlaps with Alice Pauline's appointment: d/13-12-2026 t/16:00.");
+                "Appointment overlaps with " + ALICE.getName() + "'s appointment: d/13-12-2026 t/16:00.");
         command(original, edits(null, "16:01", null)).execute(model);
         assertEquals(List.of(slot("13-12-2026", "16:01", null), other),
                 model.getFilteredClientList().getFirst().getAppointments());
