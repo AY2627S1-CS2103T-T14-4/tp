@@ -245,6 +245,63 @@ The example date must still be in the future when you try it. Replace it with a 
 
 If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
 
+### Rescheduling an appointment: `editappt`
+
+Moves an existing appointment to a new date or time, or changes its end time, while keeping its linked pets
+and booking details.
+
+Format: `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]`
+
+Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
+
+* `c/`, `d/` and `t/` identify the original **active** appointment. Use its date and start time, even if
+  it also has an end time. An original appointment may be in the past; completed history cannot be rescheduled.
+* `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` refers to
+  the first matching client. The current filter is kept after both successful and rejected edits.
+* Supply at least one of `nd/` (new date), `ns/` (new start) or `ne/` (new end). Prefixes may appear in
+  any order, but each may appear only once. Empty values and extra text before the first prefix are rejected.
+* Dates and times use the same strict formats as `appt`: valid `DD-MM-YYYY` dates with years `0001`–`9999`
+  and 24-hour `HH:mm` times from `00:00` to `23:59`.
+* Omitted values are kept. When the start moves without `ne/`, an existing end moves with it to preserve
+  the duration. For example, moving `14:00–15:30` to `16:00` produces `16:00–17:30`.
+* `ne/` sets the end explicitly and overrides duration preservation. It must be after the resulting start
+  on the same date. Overnight bookings are not supported. An appointment without an end stays without one
+  unless `ne/` adds an end; there is no option to remove an existing end time.
+* The resulting date and start must be strictly in the future when the command executes, using the
+  computer's local time zone. This also applies to end-only edits and edits supplying unchanged values.
+* The resulting slot must not overlap any other active booking, including those belonging to clients
+  hidden by filtering. The original booking is excluded from this check. Adjacent slots are allowed,
+  start-only bookings occupy their starting minute, and completed history does not block slots, as in `appt`.
+
+Successful output, if Ben Lim's original booking was `14:00–15:30`:
+`Rescheduled appointment: Ben Lim 12-12-2026 14:00 → 12-12-2026 16:00 et/17:30`
+
+Feedback includes the resulting end time when one exists, including for end-only edits. The client card
+refreshes its date and start time immediately; its current format shows the start time and any nonblank
+booking details. End times are shown in feedback and saved data. Linked pets, their order, booking details,
+history, other appointments, contact details, tags and pet notes are preserved. Changes are saved
+automatically and retained after restarting PawPals. After a successful move, use the **new** date and start
+time to identify that booking in later commands.
+
+If validation fails, no data changes and the failed input stays in the command box for correction.
+Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions. |
+| No replacement value supplied | `At least one of nd/, ns/ or ne/ must be provided.` |
+| Repeated prefix, for example two `ns/` values | `Multiple values specified for the following single-valued field(s): ns/` |
+| Invalid index, date or time, including empty values | The corresponding index, date or time validation message used by `appt`. |
+| No active appointment at the original slot | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
+| Resulting start is in the past or current minute | `Appointment date and time must be strictly in the future.` |
+| New end is equal to or before the resulting start | `End time must be after the start time.` |
+| Preserving the duration would end after 23:59 | `The appointment would end after 23:59. Give a new end time with ne/.` |
+| Overlap with another active booking | The same conflict message as `appt`, identifying the conflicting client and slot. |
+
+The example requires a matching active booking and a resulting start in the future. Replace the example
+date and time as needed. If saving fails, the current session may show the edited booking while the saved
+file retains the original. Resolve the reported file or folder access problem before relying on the change.
+
 ### Cancelling an appointment: `cancel`
 
 Removes one existing appointment from a client using its date and **start time**.
@@ -464,6 +521,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
+**Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
 **Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
 **Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
