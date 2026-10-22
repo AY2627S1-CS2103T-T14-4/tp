@@ -123,7 +123,7 @@
         "completing-an-appointment-done": "Completing an appointment: done",
         "listing-all-clients-list": "Listing all clients: list",
         "editing-a-client-edit": "Editing a client: edit",
-        "locating-clients-by-name-find": "Locating clients by name: find",
+        "locating-clients-by-name-or-contact-find": "Locating clients by name or contact: find",
         "locating-pet-owners-by-pet-name-findp": "Locating pet owners by pet name: findp",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
