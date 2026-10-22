@@ -21,32 +21,18 @@ The full client list is used.
 The current UI filter is ignored.
 end note
 
-:Check whether more clients remain;
-while () is ([more clients])
-    :Read the next client's active appointments;
+:Compare the candidate with every active appointment
+of every client, ignoring the current UI filter
+and completed-session history;
 
-    :Check whether more active appointments remain;
-    while () is ([more active appointments])
-        :Check whether this is the excluded original appointment;
-        if () then ([is excluded original appointment])
-            :Skip this appointment;
-        else ([else])
-            :Check whether the candidate overlaps this appointment;
-            if () then ([overlaps])
-                :Return Conflict(owner, appointment);
-                stop
-            else ([else])
-                :Continue scanning;
-            endif
-        endif
-    endwhile ([else])
-endwhile ([else])
-
-:Return Optional.empty();
+if () then ([conflict found])
+    :Return Conflicted Client and Appointment;
+    stop
+else ([no conflict])
+    :Return No Conflict;
+endif
 
 note right
-Completed-session history is never scanned.
-Only active appointments reserve booking time.
 Adjacent bookings are allowed according to
 Appointment#overlaps(...).
 end note
