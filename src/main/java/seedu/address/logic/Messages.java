@@ -19,10 +19,14 @@ public class Messages {
     public static final String MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX = "The client index provided is invalid.";
     public static final String MESSAGE_UNKNOWN_PET = "This client has no pet named %1$s.";
     public static final String MESSAGE_CLIENTS_LISTED_OVERVIEW = "%1$d client(s) listed!";
+    public static final String MESSAGE_PETS_FOUND = "%1$d pet(s) found.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_APPOINTMENT_CONFLICT =
             "Appointment overlaps with %1$s's appointment: d/%2$s t/%3$s%4$s.";
+    public static final String MESSAGE_APPOINTMENT_NOT_FOUND = "%1$s has no appointment at %2$s %3$s.";
+    public static final String MESSAGE_APPOINTMENT_NOT_FUTURE =
+            "Appointment date and time must be strictly in the future.";
 
     /**
      * Identifies a conflicting booking, including its end time when one is recorded.

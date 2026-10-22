@@ -3,6 +3,8 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
+import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,20 +23,19 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
-import seedu.address.testutil.JavaFxTestUtil;
 
 public class ClientCardTest {
     private static final Pet MILO = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
     private static final Pet LUNA = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
 
     @BeforeAll
-    public static void setUpJavaFxToolkit() throws Exception {
-        JavaFxTestUtil.startToolkit();
+    public static void setUpJavaFxToolkit() throws InterruptedException {
+        initializeToolkit();
     }
 
     @Test
     public void constructor_clientWithPets_displaysPetDetailsInOrder() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Client client = new ClientBuilder().withPets(MILO, LUNA).build();
 
             List<String> labels = getSmallLabelTexts(new ClientCard(client, 1).getRoot());
@@ -44,23 +45,25 @@ public class ClientCardTest {
             assertTrue(labels.contains(miloText));
             assertTrue(labels.contains(lunaText));
             assertTrue(labels.indexOf(miloText) < labels.indexOf(lunaText));
+            return null;
         });
     }
 
     @Test
     public void constructor_clientWithoutPets_doesNotDisplayPetDetails() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Client client = new ClientBuilder().build();
 
             List<String> labels = getSmallLabelTexts(new ClientCard(client, 1).getRoot());
 
             assertFalse(labels.stream().anyMatch(label -> label.startsWith("Pet: ")));
+            return null;
         });
     }
 
     @Test
     public void constructor_differentClients_displayOnlyTheirOwnPets() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Client alice = new ClientBuilder().withName("Alice Test").withPets(MILO).build();
             Client bob = new ClientBuilder().withName("Bob Test").withPets(LUNA).build();
 
@@ -71,12 +74,13 @@ public class ClientCardTest {
             assertFalse(aliceLabels.contains("Pet: Luna (Cat, Persian)"));
             assertTrue(bobLabels.contains("Pet: Luna (Cat, Persian)"));
             assertFalse(bobLabels.contains("Pet: Milo (Dog, Poodle)"));
+            return null;
         });
     }
 
     @Test
     public void constructor_petWithNotes_displaysLabelsAndSafetyMarkers() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Pet pet = MILO.withNote(NoteType.PREF, new PetNote("Likes quiet grooming"))
                     .withNote(NoteType.SENS, new PetNote("Sensitive paws"))
                     .withNote(NoteType.TEMP, new PetNote("Anxious around dryers"));
@@ -91,12 +95,13 @@ public class ClientCardTest {
             assertTrue(noteLabels.contains("⚠ Temp: Anxious around dryers"));
             assertTrue(safetyLabels.contains("⚠ Sens: Sensitive paws"));
             assertTrue(safetyLabels.contains("⚠ Temp: Anxious around dryers"));
+            return null;
         });
     }
 
     @Test
     public void constructor_petWithOneNote_omitsMissingNoteLabels() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Pet pet = MILO.withNote(NoteType.SENS, new PetNote("Sensitive paws"));
             Client client = new ClientBuilder().withPets(pet).build();
 
@@ -105,12 +110,13 @@ public class ClientCardTest {
             assertTrue(noteLabels.contains("⚠ Sens: Sensitive paws"));
             assertFalse(noteLabels.stream().anyMatch(label -> label.startsWith("Pref: ")));
             assertFalse(noteLabels.stream().anyMatch(label -> label.startsWith("⚠ Temp: ")));
+            return null;
         });
     }
 
     @Test
     public void constructor_multiplePets_keepsNotesWithTheirPet() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Pet milo = MILO.withNote(NoteType.SENS, new PetNote("Sensitive paws"));
             Pet luna = LUNA.withNote(NoteType.PREF, new PetNote("Likes short trims"));
             Client client = new ClientBuilder().withPets(milo, luna).build();
@@ -120,12 +126,13 @@ public class ClientCardTest {
             assertTrue(labels.contains("⚠ Sens: Sensitive paws"));
             assertTrue(labels.contains("Pref: Likes short trims"));
             assertEquals(2, labels.size());
+            return null;
         });
     }
 
     @Test
     public void constructor_longNote_preservesTextAndEnablesWrapping() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             String longNote = "a".repeat(PetNote.MAX_LENGTH);
             Pet pet = MILO.withNote(NoteType.PREF, new PetNote(longNote));
             Client client = new ClientBuilder().withPets(pet).build();
@@ -139,6 +146,7 @@ public class ClientCardTest {
 
             assertTrue(noteLabel.isWrapText());
             assertTrue(noteLabel.getText().contains(longNote));
+            return null;
         });
     }
 

@@ -194,7 +194,7 @@ public class DoneCommandTest {
         assertEquals(next, model.getPawPals().getClientList().getFirst().getAppointments().getLast());
         assertEquals(TARGET, model.getPawPals().getClientList().get(1).getHistory().getFirst().getAppointment());
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, TARGET, CLOCK), model,
-                AppointmentCommand.MESSAGE_NOT_FUTURE);
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
     }
 
     @Test

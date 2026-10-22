@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -19,11 +20,16 @@ import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.CancelCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteClientCommand;
+import seedu.address.logic.commands.DeleteNoteCommand;
+import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.DoneCommand;
+import seedu.address.logic.commands.EditAppointmentCommand;
+import seedu.address.logic.commands.EditAppointmentCommand.EditAppointmentDescriptor;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FindPetCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
@@ -32,11 +38,12 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.NameContainsKeywordsPredicate;
+import seedu.address.model.client.ClientContainsKeywordsPredicate;
 import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetContainsKeywordsPredicate;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
@@ -47,6 +54,19 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class PawPalsParserTest {
 
     private final PawPalsParser parser = new PawPalsParser();
+
+    @Test
+    public void parseCommand_editAppointment() throws Exception {
+        EditAppointmentDescriptor edits = new EditAppointmentDescriptor(Optional.of(new AppointmentDate("13-12-2026")),
+                Optional.of(new AppointmentTime("16:00")), Optional.of(new AppointmentTime("17:00")));
+        assertEquals(new EditAppointmentCommand(INDEX_FIRST_CLIENT, new AppointmentDate("29-02-2024"),
+                new AppointmentTime("14:00"), edits), parser.parseCommand(
+                        "editappt c/1 d/29-02-2024 t/14:00 nd/13-12-2026 ns/16:00 ne/17:00"));
+        assertThrows(ParseException.class, EditAppointmentCommand.MESSAGE_NOT_EDITED, () -> parser.parseCommand(
+                "editappt c/1 d/29-02-2024 t/14:00"));
+        assertThrows(ParseException.class, AppointmentTime.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
+                "editappt c/1 d/29-02-2024 t/14:00 ns/24:00"));
+    }
 
     @Test
     public void parseCommand_appointmentWithLinkedPetsAndEndTime() throws Exception {
@@ -105,6 +125,13 @@ public class PawPalsParserTest {
     }
 
     @Test
+    public void parseCommand_deletePet() throws Exception {
+        DeletePetCommand command = (DeletePetCommand) parser.parseCommand("delp c/1 pn/Milo");
+
+        assertEquals(new DeletePetCommand(INDEX_FIRST_CLIENT, new PetName("Milo")), command);
+    }
+
+    @Test
     public void parseCommand_edit() throws Exception {
         Client client = new ClientBuilder().build();
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(client).build();
@@ -124,7 +151,15 @@ public class PawPalsParserTest {
         List<String> keywords = List.of("foo", "bar", "baz");
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+        assertEquals(new FindCommand(new ClientContainsKeywordsPredicate(keywords)), command);
+    }
+
+    @Test
+    public void parseCommand_findPet() throws Exception {
+        List<String> keywords = List.of("Milo", "Luna");
+        FindPetCommand command = (FindPetCommand) parser.parseCommand(
+                FindPetCommand.COMMAND_WORD + " " + String.join(" ", keywords));
+        assertEquals(new FindPetCommand(new PetContainsKeywordsPredicate(keywords)), command);
     }
 
     @Test
@@ -166,5 +201,12 @@ public class PawPalsParserTest {
 
         assertEquals(new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"),
                 NoteType.TEMP, new PetNote("Anxious around loud dryers")), command);
+    }
+
+    @Test
+    public void parseCommand_deleteNote() throws Exception {
+        DeleteNoteCommand command = (DeleteNoteCommand) parser.parseCommand("delnote c/1 pn/Milo ty/temp");
+
+        assertEquals(new DeleteNoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.TEMP), command);
     }
 }

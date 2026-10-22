@@ -1,5 +1,8 @@
 package seedu.address.testutil;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -7,39 +10,41 @@ import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
 
 /**
- * Runs UI assertions on a shared JavaFX toolkit that remains available across test classes.
+ * Shares one JavaFX toolkit across UI test classes in a test worker and runs assertions on its application thread.
+ * Individual classes must not call Platform.exit(), because JavaFX cannot be restarted in the same worker.
  */
 public final class JavaFxTestUtil {
+    private static final long TIMEOUT_SECONDS = 10;
+
     private JavaFxTestUtil() {
     }
 
     /**
-     * Starts JavaFX if needed and prevents closing a test window from stopping the toolkit.
+     * Starts the toolkit or waits for the existing toolkit to process the initialization callback.
      */
-    public static void startToolkit() throws Exception {
-        CountDownLatch ready = new CountDownLatch(1);
+    public static void initializeToolkit() throws InterruptedException {
+        CountDownLatch toolkitReady = new CountDownLatch(1);
+        Runnable initialize = () -> {
+            Platform.setImplicitExit(false);
+            toolkitReady.countDown();
+        };
         try {
-            Platform.startup(ready::countDown);
+            Platform.startup(initialize);
         } catch (IllegalStateException e) {
-            // Another UI test has already started the toolkit.
-            ready.countDown();
+            Platform.runLater(initialize);
         }
-        if (!ready.await(10, TimeUnit.SECONDS)) {
-            throw new AssertionError("JavaFX toolkit did not start");
-        }
-        runAndWait(() -> Platform.setImplicitExit(false));
+        assertTrue(toolkitReady.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "JavaFX toolkit did not initialize");
     }
 
     /**
-     * Runs an action on the JavaFX application thread and propagates failures to the test runner.
+     * Runs a task on the initialized JavaFX application thread, propagating failures to the calling test.
      */
-    public static void runAndWait(Runnable action) throws Exception {
+    public static <T> T runOnFxThread(Callable<T> task) throws Exception {
         if (Platform.isFxApplicationThread()) {
-            action.run();
-            return;
+            return task.call();
         }
-        FutureTask<Void> task = new FutureTask<>(action, null);
-        Platform.runLater(task);
-        task.get(10, TimeUnit.SECONDS);
+        FutureTask<T> future = new FutureTask<>(task);
+        Platform.runLater(future);
+        return future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 }

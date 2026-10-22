@@ -62,7 +62,7 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `t/` means **time**, not tag.
+* Tags (`t/TAG`) can be set using `addc` and `edit`. In `appt`, `cancel` and `done`, `t/` means the appointment's start **time**, not a tag.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -122,6 +122,79 @@ After a successful command, the pet appears under the selected client's card in 
 `Pet: Milo (Dog, Poodle)`. The pet is saved as part of that client and remains available after restarting PawPals.
 
 If the command fails, the corresponding validation message is displayed and no pet is added. A pet is a duplicate only when it has the same name as another pet belonging to the same client, ignoring name capitalisation and repeated spaces.
+
+### Adding or updating a pet note: `note`
+
+Records a note about one of a client's pets. Each pet can have one note of each type:
+
+* `pref`: grooming preference, e.g. preferred cut
+* `sens`: sensitivity, e.g. allergies or skin conditions
+* `temp`: temperament, e.g. nervous around dryers
+
+Sensitivity and temperament notes are safety information and are marked with ⚠ on the client card.
+
+Format: `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`
+
+Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
+* `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
+* If the pet already has a note of that type, the new note replaces it. Other notes are kept.
+
+Successful output: `Updated temperament note for Milo: Anxious around loud dryers`
+
+### Deleting a pet note: `delnote`
+
+Deletes one note from one of a client's pets. The pet's other notes are kept.
+
+Format: `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`
+
+Example: `delnote c/1 pn/Milo ty/temp`
+
+* `CLIENT_INDEX`, `PET_NAME` and `TYPE` follow the same rules as `note`.
+* All three prefixes are required, may appear in any order, and must each appear only once.
+
+Successful output: `Deleted temperament note for Milo`
+
+If the command fails, no note is changed. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delnote` usage instructions. |
+| Repeated prefix, for example two `ty/` values | `Multiple values specified for the following single-valued field(s): ty/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Luna.` |
+| Invalid type | `Note type must be pref, sens or temp.` |
+| The pet has no note of that type | `Milo has no sensitivity note to delete.` |
+
+### Deleting a pet: `delp`
+
+Deletes a pet, together with its notes, from a client.
+
+Format: `delp c/CLIENT_INDEX pn/PET_NAME`
+
+Example: `delp c/1 pn/Milo`
+
+* `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
+* `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
+* Both prefixes are required, may appear in any order, and must each appear only once.
+* The pet is also removed from that client's upcoming appointments. The appointments themselves are kept.
+  Completed sessions still show the pet's name, since they record what happened at the time.
+
+Successful output: `Deleted pet: Milo (owner: Alice Tan)`
+
+If the command fails, no pet is deleted. Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing prefix or extra text before the first prefix | `Invalid command format!`, followed by the `delp` usage instructions. |
+| Repeated prefix, for example two `pn/` values | `Multiple values specified for the following single-valued field(s): pn/` |
+| Zero, negative or non-integer index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
+| No pet with that name | `This client has no pet named Rex.` |
 
 ### Deleting a client: `delc`
 
@@ -212,6 +285,63 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 The example date must still be in the future when you try it. Replace it with a future date if needed.
 
 If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
+
+### Rescheduling an appointment: `editappt`
+
+Moves an existing appointment to a new date or time, or changes its end time, while keeping its linked pets
+and booking details.
+
+Format: `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]`
+
+Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
+
+* `c/`, `d/` and `t/` identify the original **active** appointment. Use its date and start time, even if
+  it also has an end time. An original appointment may be in the past; completed history cannot be rescheduled.
+* `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` refers to
+  the first matching client. The current filter is kept after both successful and rejected edits.
+* Supply at least one of `nd/` (new date), `ns/` (new start) or `ne/` (new end). Prefixes may appear in
+  any order, but each may appear only once. Empty values and extra text before the first prefix are rejected.
+* Dates and times use the same strict formats as `appt`: valid `DD-MM-YYYY` dates with years `0001`–`9999`
+  and 24-hour `HH:mm` times from `00:00` to `23:59`.
+* Omitted values are kept. When the start moves without `ne/`, an existing end moves with it to preserve
+  the duration. For example, moving `14:00–15:30` to `16:00` produces `16:00–17:30`.
+* `ne/` sets the end explicitly and overrides duration preservation. It must be after the resulting start
+  on the same date. Overnight bookings are not supported. An appointment without an end stays without one
+  unless `ne/` adds an end; there is no option to remove an existing end time.
+* The resulting date and start must be strictly in the future when the command executes, using the
+  computer's local time zone. This also applies to end-only edits and edits supplying unchanged values.
+* The resulting slot must not overlap any other active booking, including those belonging to clients
+  hidden by filtering. The original booking is excluded from this check. Adjacent slots are allowed,
+  start-only bookings occupy their starting minute, and completed history does not block slots, as in `appt`.
+
+Successful output, if Ben Lim's original booking was `14:00–15:30`:
+`Rescheduled appointment: Ben Lim 12-12-2026 14:00 → 12-12-2026 16:00 et/17:30`
+
+Feedback includes the resulting end time when one exists, including for end-only edits. The client card
+refreshes its date and start time immediately; its current format shows the start time and any nonblank
+booking details. End times are shown in feedback and saved data. Linked pets, their order, booking details,
+history, other appointments, contact details, tags and pet notes are preserved. Changes are saved
+automatically and retained after restarting PawPals. After a successful move, use the **new** date and start
+time to identify that booking in later commands.
+
+If validation fails, no data changes and the failed input stays in the command box for correction.
+Feedback includes:
+
+| Problem | Feedback |
+| --- | --- |
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions. |
+| No replacement value supplied | `At least one of nd/, ns/ or ne/ must be provided.` |
+| Repeated prefix, for example two `ns/` values | `Multiple values specified for the following single-valued field(s): ns/` |
+| Invalid index, date or time, including empty values | The corresponding index, date or time validation message used by `appt`. |
+| No active appointment at the original slot | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
+| Resulting start is in the past or current minute | `Appointment date and time must be strictly in the future.` |
+| New end is equal to or before the resulting start | `End time must be after the start time.` |
+| Preserving the duration would end after 23:59 | `The appointment would end after 23:59. Give a new end time with ne/.` |
+| Overlap with another active booking | The same conflict message as `appt`, identifying the conflicting client and slot. |
+
+The example requires a matching active booking and a resulting start in the future. Replace the example
+date and time as needed. If saving fails, the current session may show the edited booking while the saved
+file retains the original. Resolve the reported file or folder access problem before relying on the change.
 
 ### Cancelling an appointment: `cancel`
 
@@ -323,7 +453,8 @@ Format: `list`
 Example: `list`
 
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
-under its client with its name, species, and breed. Clients without pets continue to display without a pet entry.
+under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
+are marked with ⚠. Clients without pets continue to display without a pet entry.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
 
@@ -343,22 +474,39 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd client to be `Betsy Crower` and clears all existing tags.
 
-### Locating clients by name: `find`
+### Locating clients by name or contact: `find`
 
-Finds clients whose names contain any of the given keywords.
+Finds all clients whose names, phone numbers, or emails match any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* A keyword matches a client if it matches their name, phone number, or email:
+  * **Name:** only full words match; for example, `Han` does not match `Hans`.
+  * **Phone number:** the whole number must match exactly; for example, `9123` does not match `91234567`.
+  * **Email:** the whole email must match, ignoring case; for example, `ALICE@example.com` matches `alice@example.com`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find 91234567` returns all clients with that exact phone number
+* `find alice@example.com` returns all clients with that exact email
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+### Locating pet owners by pet name: `findp`
+
+Finds all clients who own pets whose names match any of the given keywords.
+
+Format: `findp KEYWORD [MORE_KEYWORDS]`
+
+Pet-name matching is case-insensitive and requires a full-name match. Multiple keywords use OR search.
+The displayed client cards remain unchanged, so client indexes can be used with other commands.
+
+Examples:
+* `findp Milo` returns the owners of pets named `Milo`
+* `findp Milo Luna` returns the owners of pets named `Milo` or `Luna`
 
 ### Clearing all entries: `clear`
 
@@ -374,8 +522,9 @@ Format: `exit`
 
 ### Saving the data
 
-PawPals automatically saves client, pet, and appointment data after every command. Pets are saved under their
-owning client and remain available after restarting PawPals. You do not need to save manually.
+PawPals automatically saves all data after every command, including clients, pets, pet notes, appointments, and
+completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
+available after restarting PawPals. You do not need to save manually.
 
 ### Editing the data file
 
@@ -387,10 +536,6 @@ PawPals data is saved automatically as a JSON file `[JAR file location]/data/paw
 If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you run a command (PawPals saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -414,13 +559,18 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add client** | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`
 **Add pet** | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`
+**Add/update pet note** | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
+**Delete pet note** | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`
 **Clear**  | `clear`
 **Delete client** | `delc CLIENT_INDEX`<br> e.g., `delc 3`
+**Delete pet** | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`
 **Add appointment** | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`
+**Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
 **Cancel appointment** | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`
 **Complete appointment** | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Exit**   | `exit`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`
+**Find pet owners** | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`
 **List**   | `list`
 **Help**   | `help`

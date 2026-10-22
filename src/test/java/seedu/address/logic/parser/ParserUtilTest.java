@@ -22,6 +22,7 @@ import seedu.address.model.client.Email;
 import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 import seedu.address.model.tag.Tag;
@@ -270,5 +271,17 @@ public class ParserUtilTest {
         Breed expected = new Breed("Golden Retriever");
 
         assertEquals(expected, ParserUtil.parseBreed(input));
+    }
+
+    @Test
+    public void parseNoteType_validKeyword_returnsNoteType() throws Exception {
+        assertEquals(NoteType.PREF, ParserUtil.parseNoteType("pref"));
+        assertEquals(NoteType.TEMP, ParserUtil.parseNoteType(" TEMP "));
+    }
+
+    @Test
+    public void parseNoteType_invalidKeyword_throwsParseException() {
+        assertThrows(ParseException.class, NoteType.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseNoteType("mood"));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseNoteType(null));
     }
 }

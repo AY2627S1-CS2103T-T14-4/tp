@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
+import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,7 +34,6 @@ import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
-import seedu.address.testutil.JavaFxTestUtil;
 
 public class ClientAppointmentPresentationTest {
     private static final Pet MILO = new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle"));
@@ -42,13 +43,13 @@ public class ClientAppointmentPresentationTest {
     private static final String START_TEXT = "Appointment: 12-12-2026 14:00";
 
     @BeforeAll
-    public static void setUpJavaFxToolkit() throws Exception {
-        JavaFxTestUtil.startToolkit();
+    public static void setUpJavaFxToolkit() throws InterruptedException {
+        initializeToolkit();
     }
 
     @Test
     public void constructor_petAndEndTimePartitions_displaysRecordedNamesInOrder() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             List<List<PetName>> links = List.of(List.of(), List.of(MILO.getName()),
                     List.of(LUNA.getName(), MILO.getName()));
             List<String> expectedPets = List.of("No pets linked", "Milo", "Luna, Milo");
@@ -64,12 +65,13 @@ public class ClientAppointmentPresentationTest {
                     assertEquals(List.of(expected), appointmentTexts(new ClientCard(client, 1).getRoot()));
                 }
             }
+            return null;
         });
     }
 
     @Test
     public void constructor_detailsPartitions_preservesOnlyNonblankDetails() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             for (String details : List.of("", " \t", "  Full groom (gentle shampoo)  ")) {
                 Appointment appointment = new Appointment(DATE, START, details);
                 Client client = new ClientBuilder().withAppointments(appointment).build();
@@ -77,12 +79,13 @@ public class ClientAppointmentPresentationTest {
                         + (details.isBlank() ? "" : " (  Full groom (gentle shampoo)  )");
                 assertEquals(List.of(expected), appointmentTexts(new ClientCard(client, 1).getRoot()));
             }
+            return null;
         });
     }
 
     @Test
     public void constructor_multipleAppointments_preservesOrderAndUnresolvedRecordedNames() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Appointment first = new Appointment(DATE, START, "Legacy booking", Set.of(new PetName("Missing")));
             Appointment second = new Appointment(DATE, new AppointmentTime("09:00"));
             Client client = new ClientBuilder().withPets(MILO).withAppointments(first, second).build();
@@ -90,12 +93,13 @@ public class ClientAppointmentPresentationTest {
                     "Appointment: 12-12-2026 09:00 · No pets linked"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
             assertTrue(appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()).isEmpty());
+            return null;
         });
     }
 
     @Test
     public void layout_longAppointmentAndPetName_wrapsAndGrowsAtNarrowWidths() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             Pet longNamedPet = new Pet(new PetName("A".repeat(40)), new Species("Dog"), new Breed("Poodle"));
             String details = "Full groom with gentle shampoo and careful trimming. ".repeat(5);
             Appointment appointment = new Appointment(DATE, START, details,
@@ -128,12 +132,13 @@ public class ClientAppointmentPresentationTest {
             layout(root, oneLineWidth + 10, 1200);
             assertTrue(petLabel.getHeight() > oneLineHeight);
             assertFits(petLabel, card);
+            return null;
         });
     }
 
     @Test
     public void modelUpdates_existingList_refreshesAppointmentRows() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             ModelManager model = new ModelManager();
             Client initial = new ClientBuilder().withPets(MILO).build();
             model.addClient(initial);
@@ -167,12 +172,13 @@ public class ClientAppointmentPresentationTest {
             Client cancelled = unlinked.withoutAppointment(DATE, START);
             model.setClient(unlinked, cancelled);
             assertDisplayedAppointments(root, List.of());
+            return null;
         });
     }
 
     @Test
     public void layout_longRowsInScrollableList_wrapsWithinViewportAfterResizeAndScroll() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             ModelManager model = new ModelManager();
             Pet longNamedPet = new Pet(new PetName("A".repeat(40)), new Species("Dog"), new Breed("Poodle"));
             for (int i = 0; i < 15; i++) {
@@ -202,12 +208,13 @@ public class ClientAppointmentPresentationTest {
             list.lookupAll(".scroll-bar").stream().map(node -> (ScrollBar) node)
                     .filter(bar -> bar.getOrientation() == Orientation.HORIZONTAL)
                     .forEach(bar -> assertFalse(bar.isVisible()));
+            return null;
         });
     }
 
     @Test
     public void updateItem_reusedCell_releasesBindingsAndClearsOldRows() throws Exception {
-        JavaFxTestUtil.runAndWait(() -> {
+        runOnFxThread(() -> {
             ModelManager model = new ModelManager();
             Client first = new ClientBuilder().withPets(MILO)
                     .withAppointments(new Appointment(DATE, START, "", Set.of(MILO.getName()))).build();
@@ -230,6 +237,7 @@ public class ClientAppointmentPresentationTest {
             assertNull(cell.getText());
             assertFalse(nextCard.prefWidthProperty().isBound());
             assertFalse(nextCard.maxWidthProperty().isBound());
+            return null;
         });
     }
 
