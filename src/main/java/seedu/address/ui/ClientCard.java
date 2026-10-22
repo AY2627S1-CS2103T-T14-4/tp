@@ -1,6 +1,9 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -8,6 +11,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
@@ -53,7 +57,7 @@ public class ClientCard extends UiPart<Region> {
      */
     public ClientCard(Client client, int displayedIndex) {
         super(FXML);
-        this.client = client;
+        this.client = requireNonNull(client);
         id.setText(displayedIndex + ". ");
         name.setText(client.getName().fullName);
         phone.setText(client.getPhone().value);
@@ -65,21 +69,39 @@ public class ClientCard extends UiPart<Region> {
         client.getPets().forEach(pet -> {
             String petText = "Pet: " + pet.getName() + " (" + pet.getSpecies() + ", " + pet.getBreed() + ")";
             VBox petDetails = new VBox();
-            Label label = new Label(petText);
-            label.getStyleClass().add("cell_small_label");
-            petDetails.getChildren().add(label);
+            petDetails.setMinWidth(0);
+            petDetails.getChildren().add(createWrappingLabel(petText, "cell_small_label"));
             addNoteLabels(petDetails, pet);
             pets.getChildren().add(petDetails);
         });
-        client.getAppointments().forEach(appointment -> {
-            String appointmentText = "Appointment: " + appointment.getDate() + " " + appointment.getTime();
-            if (!appointment.getDetails().isBlank()) {
-                appointmentText += " (" + appointment.getDetails() + ")";
-            }
-            Label label = new Label(appointmentText);
-            label.getStyleClass().add("cell_small_label");
-            appointments.getChildren().add(label);
-        });
+        client.getAppointments().forEach(appointment -> appointments.getChildren().add(
+                createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
+    }
+
+    /**
+     * Returns the booking's times, recorded pet names in order and any nonblank details.
+     * Empty pet links are explicit and never inferred from the client's pets.
+     */
+    private static String formatAppointment(Appointment appointment) {
+        String endTime = appointment.getEndTime().map(time -> "–" + time).orElse("");
+        String petNames = appointment.getPetNames().isEmpty() ? "No pets linked"
+                : appointment.getPetNames().stream().map(Object::toString).collect(Collectors.joining(", "));
+        String details = appointment.getDetails().isBlank() ? "" : " (" + appointment.getDetails() + ")";
+        return "Appointment: " + appointment.getDate() + " " + appointment.getTime() + endTime
+                + " · " + petNames + details;
+    }
+
+    /**
+     * Creates a label that wraps within its parent and grows vertically to display all its text.
+     */
+    private static Label createWrappingLabel(String text, String styleClass) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMinWidth(0);
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setMinHeight(Region.USE_PREF_SIZE);
+        label.getStyleClass().add(styleClass);
+        return label;
     }
 
     private static void addNoteLabels(VBox petDetails, Pet pet) {
@@ -91,10 +113,7 @@ public class ClientCard extends UiPart<Region> {
     private static void addNoteLabel(VBox petDetails, Pet pet, NoteType type, String prefix,
                                      boolean safetyNote) {
         pet.getNote(type).ifPresent(note -> {
-            Label noteLabel = new Label(prefix + note);
-            noteLabel.setWrapText(true);
-            noteLabel.setMaxWidth(Double.MAX_VALUE);
-            noteLabel.getStyleClass().add("cell_note_label");
+            Label noteLabel = createWrappingLabel(prefix + note, "cell_note_label");
             if (safetyNote) {
                 noteLabel.getStyleClass().add("cell_safety_note_label");
             }

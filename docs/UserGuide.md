@@ -283,7 +283,22 @@ When pets are linked: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34 
 
 Linked pet names and optional end times are retained after restarting PawPals. Creating an appointment preserves the client's existing appointments, contact details, pets, pet notes and completed history.
 
-The appointment's date and start time appear under the selected client's contact information. All appointment data, including an optional end time, is saved automatically and retained after restarting PawPals. End times are included in command feedback; the current client card shows the start time only. Stored nonblank details are also displayed when present. Appointments remain available after their scheduled time has passed. Editing the client's contact information preserves their appointments; deleting the client or clearing all records removes them.
+Appointments appear under the selected client's pets in the client list. Each row shows the date,
+start time, optional end time, and linked pet names in their recorded order. For example:
+
+* `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna`
+* `Appointment: 12-12-2026 16:00 · Milo`
+* `Appointment: 13-12-2026 09:00 · No pets linked`
+
+`No pets linked` means no individual pets were selected for that appointment, even if the client has
+pets. Stored nonblank booking details appear in parentheses after the pet names, for example
+`Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)`. The `appt` command does not accept
+booking details, but existing stored details remain visible. Long appointment rows and pet names wrap
+to keep their full text visible; scroll down to see additional appointments.
+
+All appointment data is saved automatically and retained after restarting PawPals. Appointments remain
+available after their scheduled time has passed. Editing the client's contact information preserves
+their appointments; deleting the client or clearing all records removes them.
 
 If the command is rejected because of invalid input or an overlap, no data is changed. Validation feedback includes:
 
@@ -337,8 +352,8 @@ Successful output, if Ben Lim's original booking was `14:00–15:30`:
 `Rescheduled appointment: Ben Lim 12-12-2026 14:00 → 12-12-2026 16:00 et/17:30`
 
 Feedback includes the resulting end time when one exists, including for end-only edits. The client card
-refreshes its date and start time immediately; its current format shows the start time and any nonblank
-booking details. End times are shown in feedback and saved data. Linked pets, their order, booking details,
+updates immediately to show the new date, start time and any end time, along with the appointment's linked
+pet names and any nonblank booking details. Linked pets, their order, booking details,
 history, other appointments, contact details, tags and pet notes are preserved. Changes are saved
 automatically and retained after restarting PawPals. After a successful move, use the **new** date and start
 time to identify that booking in later commands.
@@ -474,6 +489,8 @@ Example: `list`
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
 under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
 are marked with ⚠. Clients without pets continue to display without a pet entry.
+Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
+and any stored booking details. Pet names and appointment rows wrap within the card.
 
 ### Editing a client: `edit`
 

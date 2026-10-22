@@ -89,6 +89,33 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Client` objects from the model.
 
+#### Appointment presentation and refresh
+
+`ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
+`ClientCard` renders `Client#getAppointments()` in insertion order. Its private appointment formatter
+reads the date, start time, optional end time, recorded linked names and booking details directly from
+`Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
+end-time range when no end time exists and omits parentheses for blank details.
+
+The formatter uses `Appointment#getPetNames()` in recorded order, rather than looking up the client's
+current pets. An empty collection displays `No pets linked`; it never implies all the client's pets.
+Unresolved names in existing records remain visible, so displaying a card does not lose booking information.
+
+Pet summaries, appointment rows and pet notes share wrapping-label configuration. The FXML containers
+allow content to shrink horizontally, while labels keep their computed preferred height. Each list
+cell binds its card's preferred and maximum widths to its available width after insets, allowing
+wrapping and variable row heights. Replacing or clearing a cell unbinds its previous card.
+
+Model updates replace immutable clients through `Model#setClient(...)`, which replaces an element in
+the observable client list. The displayed list then updates its cells and recreates affected cards.
+`Client#withPetReplaced(...)` updates active appointment names after a rename, and `Client#withoutPet(...)`
+removes deleted pets from active links. Removing the final link displays `No pets linked` on the next
+card update. Presentation adds no per-pet listeners or separate refresh mechanism.
+
+Rendering tests cover linked/unlinked rows with optional end times, stored details, ordered names and
+unresolved names. Layout tests exercise wrapping at narrow widths; list tests verify model-driven
+refresh and binding cleanup during cell reuse. UI assertions run on the JavaFX application thread.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T14-4/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
