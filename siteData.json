@@ -115,6 +115,8 @@
         "viewing-help-help": "Viewing help: help",
         "adding-a-client-addc": "Adding a client: addc",
         "adding-a-pet-addp": "Adding a pet: addp",
+        "adding-or-updating-a-pet-note-note": "Adding or updating a pet note: note",
+        "deleting-a-pet-note-delnote": "Deleting a pet note: delnote",
         "deleting-a-client-delc": "Deleting a client: delc",
         "adding-an-appointment-appt": "Adding an appointment: appt",
         "cancelling-an-appointment-cancel": "Cancelling an appointment: cancel",
