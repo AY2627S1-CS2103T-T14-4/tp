@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -37,11 +38,20 @@ public class ClientListPanel extends UiPart<Region> {
         protected void updateItem(Client client, boolean empty) {
             super.updateItem(client, empty);
 
+            if (getGraphic() instanceof Region previousCard) {
+                previousCard.prefWidthProperty().unbind();
+                previousCard.maxWidthProperty().unbind();
+            }
+            setText(null);
             if (empty || client == null) {
                 setGraphic(null);
-                setText(null);
             } else {
-                setGraphic(new ClientCard(client, getIndex() + 1).getRoot());
+                Region card = new ClientCard(client, getIndex() + 1).getRoot();
+                card.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
+                        getWidth() - getInsets().getLeft() - getInsets().getRight()),
+                        widthProperty(), insetsProperty()));
+                card.maxWidthProperty().bind(card.prefWidthProperty());
+                setGraphic(card);
             }
         }
     }
