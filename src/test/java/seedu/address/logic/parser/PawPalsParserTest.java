@@ -25,6 +25,7 @@ import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FindPetCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
@@ -38,6 +39,7 @@ import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetContainsKeywordsPredicate;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.PetNote;
 import seedu.address.model.pet.Species;
@@ -126,6 +128,14 @@ public class PawPalsParserTest {
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
         assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+    }
+
+    @Test
+    public void parseCommand_findPet() throws Exception {
+        List<String> keywords = List.of("Milo", "Luna");
+        FindPetCommand command = (FindPetCommand) parser.parseCommand(
+                FindPetCommand.COMMAND_WORD + " " + String.join(" ", keywords));
+        assertEquals(new FindPetCommand(new PetContainsKeywordsPredicate(keywords)), command);
     }
 
     @Test
