@@ -64,6 +64,8 @@
         "empty-states-and-command-feedback": "Empty states and command feedback",
         "adding-and-persisting-pets": "Adding and persisting pets",
         "deleting-a-pet-note": "Deleting a pet note",
+        "finding-clients": "Finding clients",
+        "finding-pets": "Finding pets",
         "deleting-a-client": "Deleting a client",
         "editing-a-pet": "Editing a pet",
         "deleting-a-pet": "Deleting a pet",
