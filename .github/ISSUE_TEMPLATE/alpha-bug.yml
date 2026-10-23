@@ -49,11 +49,10 @@ body:
     id: type
     attributes:
       label: Type
-      description: The feature's author adds the matching type.* label when triaging.
+      description: Sets the type.* label automatically.
       options:
-        - FunctionalityBug (wrong behaviour)
-        - FeatureFlaw (works as designed, but the design hinders users)
-        - DocumentationBug (UG or DG is wrong)
+        - Bug (something doesn't work, or the UG or DG is wrong)
+        - Enhancement (works as designed, but the design hinders users, or a suggestion)
         - Not sure
     validations:
       required: true
@@ -61,7 +60,7 @@ body:
     id: severity
     attributes:
       label: Severity
-      description: The feature's author adds the matching severity.* label when triaging.
+      description: Sets the severity.* label automatically.
       options:
         - VeryLow (cosmetic)
         - Low (rare or minor)
