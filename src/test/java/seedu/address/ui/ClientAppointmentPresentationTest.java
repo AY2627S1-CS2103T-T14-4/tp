@@ -214,6 +214,26 @@ public class ClientAppointmentPresentationTest {
     }
 
     @Test
+    public void layout_wideList_cellHeightMatchesCardContent() throws Exception {
+        runOnFxThread(() -> {
+            ModelManager model = new ModelManager();
+            model.addClient(new ClientBuilder().withPets(MILO, LUNA).withAppointments(
+                    new Appointment(DATE, START, "", Set.of(MILO.getName(), LUNA.getName()))).build());
+            ClientListPanel panel = new ClientListPanel(model.getFilteredClientList());
+            StackPane root = sceneRoot(panel.getRoot());
+            for (double width : List.of(600.0, 320.0)) {
+                layout(root, width, 900);
+                ListView<?> list = (ListView<?>) root.lookup("#clientListView");
+                ListCell<?> cell = list.lookupAll(".list-cell").stream().map(node -> (ListCell<?>) node)
+                        .filter(c -> c.getIndex() == 0).findFirst().orElseThrow();
+                Region content = (Region) ((Region) cell.getGraphic()).getChildrenUnmodifiable().get(0);
+                assertEquals(content.prefHeight(content.getWidth()), cell.getHeight(), 1, "width " + width);
+            }
+            return null;
+        });
+    }
+
+    @Test
     public void updateItem_reusedCell_releasesBindingsAndClearsOldRows() throws Exception {
         runOnFxThread(() -> {
             ModelManager model = new ModelManager();
