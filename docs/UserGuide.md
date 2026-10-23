@@ -638,8 +638,32 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 ## FAQ
 
+**Q**: I double-clicked `pawpals.jar` and nothing happened, or I got an error. What should I do?<br>
+**A**: Double-clicking may start PawPals with a different Java version, or without permission to create its data
+folder. Launch it from a terminal instead:
+1. Open a terminal and `cd` to the folder containing the JAR file.
+1. Run `java -version` and check that it shows version `25` or later.
+1. Run `java -jar "pawpals.jar"`. The quotes help if your file name contains spaces.
+
+**Q**: PawPals starts, but shows an error when I run commands, or my changes are gone after restarting.<br>
+**A**: PawPals saves to a `data` folder inside the folder you launched it from. If that folder is write-protected,
+saving fails. This can happen with system folders such as `Program Files`, a folder opened directly from a zip
+file, or a synced or shared folder. Move `pawpals.jar` into a folder you own (for example `Documents/PawPals`)
+and launch it from there.
+
+**Q**: All my clients disappeared after I started PawPals.<br>
+**A**: First check that you launched PawPals from the same folder as before. PawPals reads `data/pawpals.json`
+relative to the folder you launch it from, so starting it from another folder opens a different, empty data file.
+If you launched it from the right folder, the data file may have been edited into an invalid state; see
+[Editing the data file](#editing-the-data-file).
+
+**Q**: I see `UnsupportedClassVersionError` when starting PawPals.<br>
+**A**: Your computer is running an older version of Java. Install Java `25` (see [Quick start](#quick-start)),
+then check with `java -version` before trying again.
+
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install PawPals on the other computer and overwrite the data file it creates with the data file from your previous PawPals home folder.
+**A**: Install PawPals on the other computer and run it once. Then close it and replace its `data/pawpals.json`
+file with the `data/pawpals.json` file from your previous PawPals home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -647,6 +671,7 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **On macOS, if PawPals is in full-screen mode**, the Help Window opens in its own full-screen space, which takes you away from the main window. Closing the Help Window then leaves you on the desktop rather than in PawPals. To get back, open Mission Control (swipe up with three or four fingers, or press `F3`) and select the PawPals space. To avoid this, exit full-screen mode before opening help.
 
 --------------------------------------------------------------------------------------------------------------------
 
