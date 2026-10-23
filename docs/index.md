@@ -3,19 +3,25 @@
   title: ""
 ---
 
-# PawPals Level-3
+# PawPals
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
+[![CI Status](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-T14-4/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp/graph/badge.svg?token=ZQ7UEO7OJX)](https://codecov.io/gh/AY2627S1-CS2103T-T14-4/tp)
 
-![Ui](images/Ui.png)
+![PawPals user interface](images/Ui.png)
 
-**PawPals is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+**PawPals is a desktop app for independent mobile pet groomers.** Keep every client, their pets and your upcoming visits in one place, and get through admin quickly by typing short commands instead of clicking through forms.
 
-* If you are interested in using PawPals, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing PawPals, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+* **Know each pet before you arrive.** Record grooming preferences, sensitivities and temperament, with safety notes marked ⚠ on the client's card.
+* **Never double-book.** Appointments can have an end time and the pets attending, and PawPals rejects bookings that overlap any other client's.
+* **Keep a grooming history.** Mark a visit as done with notes on what you did, and see the most recent sessions on the client's card.
+* **Find people fast.** Search clients by name, phone number or email, or find owners by their pet's name.
 
+Ready to try it? Head to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
+
+Interested in developing PawPals? The [**Developer Guide**](DeveloperGuide.html) is a good place to start.
 
 **Acknowledgements**
 
+* PawPals is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
