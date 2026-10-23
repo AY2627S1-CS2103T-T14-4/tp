@@ -680,8 +680,11 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to find clients using one or more keywords.
-2. PawPals searches client names without regard to letter case.
-3. PawPals displays the matching clients and their information.
+2. PawPals searches client names using full-word matching without regard to letter case.
+3. PawPals searches phone numbers for exact matches.
+4. PawPals searches email addresses for exact matches without regard to letter case.
+5. PawPals uses OR matching when multiple keywords are provided.
+6. PawPals displays all matching clients and their information.
 
 Use case ends.
 
@@ -689,6 +692,10 @@ Extensions:
 
 * 1a. User provides no keywords.
   * 1a1. PawPals displays an error message explaining that at least one keyword is required.
+  * Use case ends.
+
+* 1b. User provides a partial phone number, email address, or name word.
+  * 1b1. PawPals displays no client for that partial match.
   * Use case ends.
 
 #### UC07 - View help
@@ -858,6 +865,22 @@ Extensions:
   * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC15 - Find pet owners
+
+System: PawPals<br>
+Use case: UC15 - Find pet owners<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS:
+
+1. User requests to find pet owners using one or more pet-name keywords.
+2. PawPals searches all pets using full-name matching without regard to letter case.
+3. PawPals uses OR matching when multiple keywords are provided.
+4. PawPals displays each client who owns at least one matching pet.
+5. PawPals displays each matching owner only once, even if multiple pets match.
+6. PawPals keeps the displayed client indexes available for subsequent client commands.
+
 #### UC16 - Cancel appointment
 
 System: PawPals<br>
@@ -876,6 +899,14 @@ MSS:
 Use case ends.
 
 Extensions:
+
+* 1a. User provides no keywords.
+  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
+  * Use case ends.
+
+* 1b. No pets match the given keywords.
+  * 1b1. PawPals displays an empty client list and reports that no pets were found.
+  * Use case ends.
 
 * 2a. User provides a missing, repeated or invalid index, date or start time, or an index outside the displayed list.
   * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
@@ -1035,6 +1066,32 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
 | Repeated prefix | `delnote c/1 pn/Milo ty/pref ty/temp` | `Multiple values specified for the following single-valued field(s): ty/` |
 | Filtered index | `note c/2 pn/Luna ty/sens nt/No perfume`, then `find Bob`, then `delnote c/1 pn/Luna ty/sens`. | Index 1 refers to Bob in the filtered list, so Luna's note is deleted. Run `list`: Alice is unchanged. |
 | Restart | Add a note with `note`, delete a different one with `delnote`, then run `exit`, relaunch and run `list`. | The added note is still shown and the deleted note is still gone. |
+
+### Finding clients
+
+Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
+Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future appointment date where needed.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Find by name | `find Alice` | Clients whose names contain the full word `Alice` are listed. |
+| Find by phone | `find 91234567` | Clients with that exact phone number are listed. |
+| Find by email | `find alice@example.com` | Clients with that exact email are listed. |
+| Partial phone | `find 9123` | No client is returned for the partial phone number. |
+| Partial email | `find alice@example` | No client is returned for the partial email address. |
+| Partial name | `find Ali` | No client is returned unless `Ali` is a complete name word. |
+| Filtered index | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list. |
+
+### Finding pets
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Find one pet | `findp Milo` | Owners of pets named `Milo` are listed. |
+| Find several pets | `findp Milo Luna` | Owners of pets named `Milo` or `Luna` are listed. |
+| No match | `findp Rex` | No clients are listed and the result reports zero pets found. |
+| No keyword | `findp` | An invalid command format message is shown. |
+| Filtered index | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
+| Future appointment | `findp Milo`, then `appt c/1 d/FUTURE_DATE t/12:00` | The appointment is added to the filtered owner. |
 
 ### Deleting a client
 
