@@ -43,6 +43,13 @@ public class BreedTest {
     }
 
     @Test
+    public void constructor_repeatedSpaces_collapsesToOneSpace() {
+        Breed breed = new Breed("Golden    Retriever");
+        assertEquals("Golden Retriever", breed.value);
+        assertEquals(new Breed("Golden Retriever"), breed);
+    }
+
+    @Test
     public void constructor_leadingAndTrailingSpaces_trimsSpaces() {
         Breed breed = new Breed("  Golden Retriever  ");
 
