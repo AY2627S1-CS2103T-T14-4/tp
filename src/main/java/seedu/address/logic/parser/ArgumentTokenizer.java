@@ -30,10 +30,10 @@ public class ArgumentTokenizer {
     }
 
     /**
-     * Tokenizes like {@link #tokenize}, except that when {@code textPrefix} comes after every one of
+     * Tokenizes like {@link #tokenize}, except that when {@code textPrefix} appears once, after every one of
      * {@code otherPrefixes}, everything after {@code textPrefix} is taken as its value. Free text such as notes
      * can then contain prefix-like words, e.g. "d/c", without being split. Otherwise, all the prefixes are
-     * tokenized as usual.
+     * tokenized as usual, so a repeated {@code textPrefix} is still reported as a duplicate.
      *
      * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}
      * @param textPrefix Prefix of the free-text argument
@@ -43,7 +43,9 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenizeWithTrailingText(String argsString, Prefix textPrefix,
                                                             Prefix... otherPrefixes) {
         int textPosition = findPrefixPosition(argsString, textPrefix.getPrefix(), 0);
-        if (textPosition != -1) {
+        boolean appearsOnce = textPosition != -1
+                && findPrefixPosition(argsString, textPrefix.getPrefix(), textPosition) == -1;
+        if (appearsOnce) {
             ArgumentMultimap arguments = tokenize(argsString.substring(0, textPosition), otherPrefixes);
             if (Arrays.stream(otherPrefixes).allMatch(prefix -> arguments.getValue(prefix).isPresent())) {
                 arguments.put(textPrefix, argsString.substring(textPosition + textPrefix.getPrefix().length()).trim());

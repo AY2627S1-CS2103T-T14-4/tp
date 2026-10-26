@@ -139,9 +139,9 @@ public class ArgumentTokenizerTest {
     @Test
     public void tokenizeWithTrailingText_textPrefixAfterOthers_restIsOneValue() {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithTrailingText(
-                " p/1 -t note with p/2 and -t inside ", dashT, pSlash);
+                " p/1 -t note with p/2 inside ", dashT, pSlash);
         assertArgumentPresent(argMultimap, pSlash, "1");
-        assertArgumentPresent(argMultimap, dashT, "note with p/2 and -t inside");
+        assertArgumentPresent(argMultimap, dashT, "note with p/2 inside");
     }
 
     @Test
@@ -149,6 +149,11 @@ public class ArgumentTokenizerTest {
         ArgumentMultimap textFirst = ArgumentTokenizer.tokenizeWithTrailingText(" -t note p/1", dashT, pSlash);
         assertArgumentPresent(textFirst, dashT, "note");
         assertArgumentPresent(textFirst, pSlash, "1");
+
+        ArgumentMultimap repeatedText = ArgumentTokenizer.tokenizeWithTrailingText(
+                " p/1 -t note -t more", dashT, pSlash);
+        assertArgumentPresent(repeatedText, dashT, "note", "more");
+        assertArgumentPresent(repeatedText, pSlash, "1");
 
         ArgumentMultimap noText = ArgumentTokenizer.tokenizeWithTrailingText(" p/1 p/2", dashT, pSlash);
         assertArgumentPresent(noText, pSlash, "1", "2");
