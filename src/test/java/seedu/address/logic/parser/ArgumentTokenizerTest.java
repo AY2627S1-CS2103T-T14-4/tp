@@ -137,6 +137,25 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenizeWithTrailingText_textPrefixAfterOthers_restIsOneValue() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithTrailingText(
+                " p/1 -t note with p/2 and -t inside ", dashT, pSlash);
+        assertArgumentPresent(argMultimap, pSlash, "1");
+        assertArgumentPresent(argMultimap, dashT, "note with p/2 and -t inside");
+    }
+
+    @Test
+    public void tokenizeWithTrailingText_textPrefixNotLastOrAbsent_tokenizesAsUsual() {
+        ArgumentMultimap textFirst = ArgumentTokenizer.tokenizeWithTrailingText(" -t note p/1", dashT, pSlash);
+        assertArgumentPresent(textFirst, dashT, "note");
+        assertArgumentPresent(textFirst, pSlash, "1");
+
+        ArgumentMultimap noText = ArgumentTokenizer.tokenizeWithTrailingText(" p/1 p/2", dashT, pSlash);
+        assertArgumentPresent(noText, pSlash, "1", "2");
+        assertArgumentAbsent(noText, dashT);
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 

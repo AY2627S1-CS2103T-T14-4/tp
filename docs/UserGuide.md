@@ -474,6 +474,8 @@ Example: `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 
 * All four prefixes are required and may appear in any order. Each must appear exactly once, even if
   repeated values are identical. Do not put extra text before the first prefix.
+* If `nt/` comes after `c/`, `d/` and `t/`, everything after `nt/` is taken as the notes. Notes can then
+  contain text that looks like a prefix, e.g. `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, d/c brushing`.
 * `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` means the
   first matching client. Completion preserves the filter and all other clients.
 * Use the appointment's date and **start time**, with the same `DD-MM-YYYY` and `HH:mm` formats as `appt`.

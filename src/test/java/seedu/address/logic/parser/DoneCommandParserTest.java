@@ -59,10 +59,21 @@ public class DoneCommandParserTest {
         String[] values = {"1", "12-12-2026", "14:00", "Notes"};
         for (int i = 0; i < prefixes.length; i++) {
             for (String value : new String[] {values[i], "different", ""}) {
-                assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 nt/Notes " + prefixes[i] + value,
+                assertParseFailure(parser, " nt/Notes c/1 d/12-12-2026 t/14:00 " + prefixes[i] + value,
                         Messages.getErrorMessageForDuplicatePrefixes(prefixes[i]));
             }
         }
+        assertParseFailure(parser, " c/1 c/2 d/12-12-2026 t/14:00 nt/Notes",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_CLIENT));
+    }
+
+    @Test
+    public void parse_prefixLikeTextInTrailingNotes_keptInNotes() {
+        String notes = "Teddy cut, d/c brushing, c/o owner, t/ trim, nt/ more";
+        DoneCommand expected = new DoneCommand(INDEX_FIRST_CLIENT, new AppointmentDate("12-12-2026"),
+                new AppointmentTime("14:00"), new SessionNotes(notes));
+        assertParseSuccess(parser, " c/1 d/12-12-2026 t/14:00 nt/" + notes, expected);
+        assertParseSuccess(parser, " t/14:00 c/1 d/12-12-2026 nt/" + notes, expected);
     }
 
     @Test
