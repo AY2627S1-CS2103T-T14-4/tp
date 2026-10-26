@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,6 +23,11 @@ import seedu.address.model.pet.PetName;
 public final class Appointment {
 
     public static final String MESSAGE_END_NOT_AFTER_START = "End time must be after the start time.";
+
+    /** Orders appointments by date, then start time, earliest first. */
+    public static final Comparator<Appointment> CHRONOLOGICAL = Comparator
+            .comparing((Appointment appointment) -> appointment.getDate().getValue())
+            .thenComparing(appointment -> appointment.getTime().getValue());
 
     private final AppointmentDate date;
     private final AppointmentTime time;

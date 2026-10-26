@@ -142,7 +142,8 @@ stored list stays observable across changes and cannot be modified through the L
 #### Appointment presentation and refresh
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
-`ClientCard` renders `Client#getAppointments()` in insertion order. Its private appointment formatter
+`ClientCard` renders `Client#getAppointments()` sorted by `Appointment.CHRONOLOGICAL` (date, then start time);
+the model keeps insertion order. Its private appointment formatter
 reads the date, start time, optional end time, recorded linked names and booking details directly from
 `Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
 end-time range when no end time exists and omits parentheses for blank details.

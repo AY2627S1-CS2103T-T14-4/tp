@@ -328,7 +328,7 @@ When pets are linked: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34 
 
 Linked pet names and optional end times are retained after restarting PawPals. Creating an appointment preserves the client's existing appointments, contact details, pets, pet notes and completed history.
 
-Appointments appear under the selected client's pets in the client list. Each row shows the date,
+Appointments appear under the selected client's pets in the client list, earliest first. Each row shows the date,
 start time, optional end time, and linked pet names in their recorded order. For example:
 
 * `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna`

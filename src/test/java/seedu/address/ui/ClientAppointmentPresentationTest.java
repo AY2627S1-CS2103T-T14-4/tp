@@ -84,13 +84,16 @@ public class ClientAppointmentPresentationTest {
     }
 
     @Test
-    public void constructor_multipleAppointments_preservesOrderAndUnresolvedRecordedNames() throws Exception {
+    public void constructor_multipleAppointments_displaysChronologicallyWithUnresolvedRecordedNames() throws Exception {
         runOnFxThread(() -> {
-            Appointment first = new Appointment(DATE, START, "Legacy booking", Set.of(new PetName("Missing")));
-            Appointment second = new Appointment(DATE, new AppointmentTime("09:00"));
-            Client client = new ClientBuilder().withPets(MILO).withAppointments(first, second).build();
-            assertEquals(List.of(START_TEXT + " · Missing (Legacy booking)",
-                    "Appointment: 12-12-2026 09:00 · No pets linked"),
+            Appointment afternoon = new Appointment(DATE, START, "Legacy booking", Set.of(new PetName("Missing")));
+            Appointment morning = new Appointment(DATE, new AppointmentTime("09:00"));
+            Appointment earlierDay = new Appointment(new AppointmentDate("05-12-2026"), START);
+            Client client = new ClientBuilder().withPets(MILO)
+                    .withAppointments(afternoon, morning, earlierDay).build();
+            assertEquals(List.of("Appointment: 05-12-2026 14:00 · No pets linked",
+                    "Appointment: 12-12-2026 09:00 · No pets linked",
+                    START_TEXT + " · Missing (Legacy booking)"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
             assertEquals(List.of("No appointments scheduled"),
                     appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()));
