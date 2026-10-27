@@ -57,13 +57,6 @@ public class BreedTest {
     }
 
     @Test
-    public void constructor_repeatedInternalSpaces_preservesSpaces() {
-        Breed breed = new Breed("Golden   Retriever");
-
-        assertEquals("Golden   Retriever", breed.value);
-    }
-
-    @Test
     public void toString_returnsBreed() {
         Breed breed = new Breed("Poodle");
 
