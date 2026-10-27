@@ -19,6 +19,7 @@ import seedu.address.model.history.SessionNotes;
 public class DoneCommandParser implements Parser<DoneCommand> {
     /**
      * Parses exactly one client index, date, start time and session-notes value, with no preamble.
+     * When the notes follow all target fields, prefix-like text such as "d/c" remains part of the notes.
      *
      * @throws NullPointerException if {@code args} is null.
      * @throws ParseException if required prefixes are missing or repeated, the preamble is non-empty,
@@ -27,8 +28,8 @@ public class DoneCommandParser implements Parser<DoneCommand> {
     @Override
     public DoneCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
-                PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_NOTE);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingText(args,
+                PREFIX_NOTE, PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
         if (!arguments.getPreamble().isEmpty() || Stream.of(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_NOTE)
                 .anyMatch(prefix -> arguments.getValue(prefix).isEmpty())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, DoneCommand.MESSAGE_USAGE));
