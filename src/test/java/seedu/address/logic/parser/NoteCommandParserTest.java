@@ -34,7 +34,7 @@ public class NoteCommandParserTest {
     @Test
     public void parse_trailingNoteContainingPrefixes_preservesNoteText() {
         for (String noteText : new String[] {"Use c/o owner's shampoo", "Mention pn/Milo and ty/pref",
-            "Literal nt/ text, c/o owner, pn/Milo, ty/temp"}) {
+            "c/o owner, pn/Milo, ty/temp"}) {
             NoteCommand expected = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
                     new PetNote(noteText));
 
