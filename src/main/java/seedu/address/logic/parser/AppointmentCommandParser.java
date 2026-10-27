@@ -26,7 +26,7 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
     /**
      * Parses exactly one client index, date and start time, and at most one end time,
      * and any number of pet names, in any order, with no preamble.
-     * Validates date/time format here; the command checks whether it is in the future at execution.
+     * Validates date/time format here; past, current and future starts are accepted.
      *
      * @param args The arguments following the {@code appt} command word.
      * @return A command targeting the supplied displayed client index.

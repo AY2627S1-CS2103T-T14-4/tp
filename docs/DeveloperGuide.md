@@ -240,6 +240,10 @@ order. This reuses existing case-insensitive pet identity rules and preserves th
 Missing pets reject the command before any model update. The resolved appointment uses the same global
 Model conflict check as client-only bookings; omitting `pn/` does not infer participating pets.
 
+`appt` accepts past, current and future starts. Its injected clock is used only to add an informational
+note to success feedback for past starts. Past appointments use the same pet validation and active-booking
+conflict checks as future appointments, and remain active until cancelled or recorded with `done`.
+
 **Design consideration: how an appointment refers to its pets**
 
 * **Alternative 1 (current choice):** store the pet's name.
@@ -352,7 +356,7 @@ Each `CompletedSession` retains:
   lets `DoneCommand` distinguish an already logged slot from one that never existed.
   Always look for an active appointment first; an old history record must not block a new booking at that slot.
 * History has no date/start-time uniqueness constraint and never reserves time. Booking and conflict
-  checks use active appointments only; the normal future-start rule for `appt` still applies.
+  checks use active appointments only; `appt` also accepts past and current starts.
 * An appointment without linked pets remains a client-only session. Current pets are not inferred as participants.
   A visit covering several pets creates one record with all its recorded pet names.
 
@@ -631,7 +635,7 @@ MSS:
 
 1. User requests to add an appointment.
 2. User identifies the client and provides a date, start time, and optional end time and pet names.
-3. PawPals validates the future appointment, the linked pets' ownership, and global booking conflicts.
+3. PawPals validates the appointment's date and times, the linked pets' ownership, and global booking conflicts.
 4. PawPals adds the appointment to the client.
 5. PawPals displays a success message and the appointment under the client.
 
@@ -643,15 +647,15 @@ Extensions:
   * 2b1. PawPals displays the corresponding date or time validation message.
   * 2b2. User provides corrected details.
   * Use case resumes from step 3.
-* 3a. The appointment is not strictly in the future.
-  * 3a1. PawPals informs the user that the appointment must be scheduled in the future.
-  * Use case ends.
-* 3b. A requested pet does not belong to the selected client.
-  * 3b1. PawPals identifies the unknown pet and leaves all data unchanged.
+* 3a. A requested pet does not belong to the selected client.
+  * 3a1. PawPals identifies the unknown pet and leaves all data unchanged.
   * Use case ends.
 * 4a. The appointment overlaps an active booking for any client.
   * 4a1. PawPals identifies the conflicting client and booking slot, leaving all data unchanged.
   * Use case ends.
+* 5a. The appointment starts in the past.
+  * 5a1. PawPals adds an informational note to the success feedback suggesting `done` to record the completed visit.
+  * Use case ends successfully.
 
 #### UC05 - List clients, pets, and appointments
 
@@ -920,7 +924,8 @@ Extensions:
   * Use case ends.
 
 Past and future active appointments can be cancelled. Cancellation does not create a completed session.
-The removed booking no longer reserves its slot; a replacement booking must still start strictly in the future.
+The removed booking no longer reserves its slot; a replacement may start in the past, present or future,
+provided it does not overlap any remaining active booking.
 
 #### UC17 - Complete appointment
 
@@ -972,7 +977,7 @@ appointment takes precedence over a historical record at the same slot when iden
 
 * **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have one or more pets.
 * **Pet**: An animal belonging to a client whose grooming-related information is managed in PawPals.
-* **Appointment**: A scheduled future grooming visit associated with a client.
+* **Appointment**: A grooming visit associated with a client that remains active until completed or cancelled. Its start may be in the past, present or future.
 * **Grooming session**: A completed grooming service whose details and notes are recorded for future reference.
 * **Safety information**: Information about a pet that may affect how it should be handled or groomed, such as temperament, behavioural concerns, or grooming-related sensitivities.
 * **Client index**: A positive integer identifying a client in the currently displayed client list. It is used by commands that require the user to specify a particular client.
@@ -1186,8 +1191,8 @@ The separate client-add section of the User Guide also uses `addc`.
 | Missing field                           | `appt c/1 d/FUTURE_DATE`                                                                             | Invalid-format message and usage instructions; no data changes.                                                     |
 | Repeated prefix                         | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34`                                                             | Duplicate-prefix message for `t/`, even though the values match.                                                    |
 | Invalid index                           | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment.                                     | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
-| Past appointment                        | `appt c/1 d/01-01-2000 t/12:34`                                                                      | Strictly-future message; no data changes.                                                                           |
-| Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | The future minute succeeds; the current minute is rejected. Use the computer's local time.                          |
+| Past appointment                        | `appt c/1 d/01-01-2000 t/12:34`                                                                      | Appointment is added with the past-appointment note. Use `done c/1 d/01-01-2000 t/12:34 nt/Recorded visit` to move it into completed history. |
+| Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | Both succeed when the slots do not overlap. A start earlier than the computer's local time includes the informational note. |
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.        |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                      |
 | Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                   | Bob's phone changes, and all his appointments remain.                                                               |
@@ -1297,7 +1302,8 @@ For every rejected command below, verify that the client cards, current filter a
 | Rebook the cancelled slot | `cancel c/1 d/FUTURE_DATE t/14:00`, then `appt c/2 d/FUTURE_DATE t/14:00 et/15:00 pn/Luna`. | Both succeed. The released 14:00–15:00 interval now belongs to Bob; Alice's other booking remains. |
 | Cancellation survives restart | `cancel c/1 d/FUTURE_DATE t/14:00`, then `exit`, relaunch from the same folder and run `list`. | Alice's 14:00 booking is still absent from her card and saved `appointments` array. Her other booking, pets and notes and Bob's data remain; cancellation has not added history. |
 
-**Completion setup:** `appt` rejects past starts, so create the appointment before waiting for it to start.
+**Completion setup:** create a future appointment to exercise both the pre-start rejection and completion boundary.
+Past appointments can also be added with `appt` and completed immediately using their recorded date and start time.
 Use today's local date for `FUTURE_DATE`, a `FUTURE_START_TIME` about two minutes ahead in `HH:mm` format,
 and a `FUTURE_END_TIME` twenty minutes after that start. Both times must fit on today's date without
 crossing midnight. Here `FUTURE_DATE` is the date of the booking whose start is initially in the future;
@@ -1329,7 +1335,7 @@ For rejection rows, compare the saved file before and after and verify that no h
 | Wrong index | `done c/3 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat with `c/0`. | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes. |
 | Repeated prefix | `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut nt/Short ears` | `Multiple values specified for the following single-valued field(s): nt/`. No booking or history changes. |
 | Complete twice | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat it. | The first succeeds; the second gives `Alice Test already has a completed session at FUTURE_DATE FUTURE_START_TIME.` Only one history record exists; its notes and logging time are unchanged by the second attempt. |
-| Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt` while `REBOOK_TIME` is still future. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, reset with fresh times; the original start cannot be rebooked because `appt` requires a future start. |
+| Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt`. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, the booking is still accepted with an informational note. |
 | Completion survives restart | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`. | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session. |
 
 ### Saving data

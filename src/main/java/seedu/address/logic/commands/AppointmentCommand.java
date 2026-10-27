@@ -31,12 +31,14 @@ public class AppointmentCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Adds an appointment to the client identified by their displayed index.\n"
             + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...\n"
-            + "The index must be positive and the combined date and time must be strictly in the future.\n"
+            + "The index must be positive. Past, current and future appointments can be recorded.\n"
             + "The optional end time must be after the start time on the same date.\n"
             + "Each pet must belong to the selected client. Repeated references to the same pet are ignored.\n"
             + "Appointments must not overlap any client's active bookings. Adjacent appointments are allowed.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna";
     public static final String MESSAGE_SUCCESS = "Added appointment: %1$s d/%2$s t/%3$s";
+    public static final String MESSAGE_PAST_APPOINTMENT =
+            "This appointment is in the past. Use done to record it as a completed session.";
 
     private final Index targetIndex;
     private final Appointment appointment;
@@ -44,7 +46,7 @@ public class AppointmentCommand extends Command {
 
     /**
      * Creates a command using the system clock and default time zone.
-     * Whether the appointment is in the future is checked at execution.
+     * Past appointments are accepted with an informational note in the success feedback.
      *
      * @param targetIndex The client's index in the currently displayed list.
      * @param appointment The appointment to add.
@@ -55,7 +57,7 @@ public class AppointmentCommand extends Command {
     }
 
     /**
-     * Creates a command using the supplied clock for execution-time validation.
+     * Creates a command using the supplied clock to identify past appointments in the success feedback.
      *
      * @param targetIndex The client's index in the currently displayed list.
      * @param appointment The appointment to add.
@@ -75,8 +77,8 @@ public class AppointmentCommand extends Command {
      * @param model The model containing the displayed clients.
      * @return Feedback identifying the client, times and linked pets if supplied.
      * @throws NullPointerException if {@code model} is null.
-     * @throws CommandException if the displayed index is invalid, the appointment is not strictly
-     *     in the future, a linked pet does not belong to the client, or the appointment overlaps an active booking.
+     * @throws CommandException if the displayed index is invalid, a linked pet does not belong to the client,
+     *     or the appointment overlaps an active booking.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -85,10 +87,6 @@ public class AppointmentCommand extends Command {
         if (targetIndex.getZeroBased() >= displayedClients.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
         }
-        LocalDateTime dateTime = LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue());
-        if (!dateTime.isAfter(LocalDateTime.now(clock))) {
-            throw new CommandException(Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
-        }
         Client client = displayedClients.get(targetIndex.getZeroBased());
         Appointment resolvedAppointment = resolvePetNames(client);
         Optional<Conflict> conflict = model.findAppointmentConflict(resolvedAppointment);
@@ -96,10 +94,15 @@ public class AppointmentCommand extends Command {
             throw new CommandException(Messages.formatAppointmentConflict(conflict.get()));
         }
         model.setClient(client, client.copyWithAppointment(resolvedAppointment));
-        return new CommandResult(String.format(MESSAGE_SUCCESS,
+        String feedback = String.format(MESSAGE_SUCCESS,
                 client.getName(), appointment.getDate(), appointment.getTime())
                 + appointment.getEndTime().map(endTime -> " et/" + endTime).orElse("")
-                + resolvedAppointment.getPetNames().stream().map(name -> " pn/" + name).collect(Collectors.joining()));
+                + resolvedAppointment.getPetNames().stream().map(name -> " pn/" + name).collect(Collectors.joining());
+        LocalDateTime dateTime = LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue());
+        if (dateTime.isBefore(LocalDateTime.now(clock))) {
+            feedback += "\n" + MESSAGE_PAST_APPOINTMENT;
+        }
+        return new CommandResult(feedback);
     }
 
     /**

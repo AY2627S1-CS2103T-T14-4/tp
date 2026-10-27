@@ -314,10 +314,11 @@ Rules:
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
 * `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
-* The **combined date and time** must be strictly later than the computer's current date and time when the command executes, using its local time zone. Later today is valid. For example, at 10:30 today, today's `t/10:31` is valid but `t/10:30` is not.
+* Past, current and future dates and times are accepted. Use `appt` to record a visit after it happened, then `done` with the same date and start time to save its session notes in completed history. A past appointment remains active until you complete or cancel it.
+* If the start is earlier than the computer's current local date and time, the success feedback adds: `This appointment is in the past. Use done to record it as a completed session.` This is informational; the appointment is added successfully.
 * An appointment must not overlap **any active appointment across all clients**, including clients hidden by the current search filter. Overlaps are rejected for both the same client and different clients, regardless of appointment details or linked pets. The rejection identifies the conflicting client and booking slot.
 * An appointment with an end time occupies its start time up to, but not including, its end time. Adjacent bookings such as `14:00–15:00` and `15:00–16:00` are allowed. Without an end time, a booking occupies its starting minute: `t/14:00` conflicts with a range containing 14:00 or another `t/14:00`, but permits a booking starting at 14:01. Appointments on different dates do not conflict.
-* Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must still satisfy the future-date/time rule and avoid remaining active bookings.
+* Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must avoid remaining active bookings, including when recording a past appointment.
 * `t/` means time in `appt`. It means a tag in commands that accept tags. The `appt` command does not accept tags or appointment details.
 
 Successful output, if the selected client's name is Ben Lim: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
@@ -358,10 +359,9 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
 | Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
-| Past or current date/time                                     | `Appointment date and time must be strictly in the future.`                                                                                                                    |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
-The example date must still be in the future when you try it. Replace it with a future date if needed.
+The example date may be in the past, current or future; choose a slot that does not overlap an active booking.
 
 If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
 
@@ -526,8 +526,8 @@ All older sessions remain saved, although only the three most recent are display
 Booking details and logging timestamps are retained in storage but are not shown in this preview.
 
 Completed history never reserves a slot. Completing early releases the remaining planned interval for
-another booking. A new booking must still start strictly in the future and avoid all remaining active
-appointments; completing a visit does not permit rebooking a past or current start time.
+another booking. A new booking may start in the past, present or future, but must avoid all remaining
+active appointments.
 
 If validation fails, no data changes. Feedback includes:
 

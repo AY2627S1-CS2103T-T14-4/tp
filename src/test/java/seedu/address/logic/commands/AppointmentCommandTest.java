@@ -115,17 +115,18 @@ public class AppointmentCommandTest {
     }
 
     @Test
-    public void execute_withEndTimePastOrPresentStart_doesNotChangeData() {
-        for (String startTime : new String[] {"11:59", "12:00"}) {
-            Appointment appointment = createAppointment("12-12-2026", startTime)
-                    .withEndTime(new AppointmentTime("13:00"));
-            assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
-                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+    public void execute_pastStartWithEndTime_addsAppointmentWithNotice() {
+        for (Appointment appointment : new Appointment[] {
+            createAppointment("11-12-2026", "12:00").withEndTime(new AppointmentTime("13:00")),
+            createAppointment("12-12-2026", "11:59").withEndTime(new AppointmentTime("13:00"))}) {
+            assertAppointmentAdded(appointment, " et/13:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT);
         }
-        Appointment past = createAppointment("11-12-2026", "12:00")
-                .withEndTime(new AppointmentTime("13:00"));
-        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK), model,
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+    }
+
+    @Test
+    public void execute_presentStartWithEndTime_addsWithoutPastNotice() {
+        assertAppointmentAdded(createAppointment("12-12-2026", "12:00")
+                .withEndTime(new AppointmentTime("13:00")), " et/13:00");
     }
 
     @Test
@@ -152,12 +153,27 @@ public class AppointmentCommandTest {
     }
 
     @Test
-    public void execute_pastOrPresent_doesNotChangeData() {
+    public void execute_pastStart_addsAppointmentWithNotice() {
         for (Appointment appointment : new Appointment[] {createAppointment("11-12-2026", "23:59"),
-            createAppointment("12-12-2026", "11:59"), createAppointment("12-12-2026", "12:00")}) {
-            assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), model,
-                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+            createAppointment("12-12-2026", "11:59"), createAppointment("01-01-0001", "00:00")}) {
+            assertAppointmentAdded(appointment, "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT);
         }
+    }
+
+    @Test
+    public void execute_presentStart_addsWithoutPastNotice() {
+        assertAppointmentAdded(createAppointment("12-12-2026", "12:00"), "");
+    }
+
+    private void assertAppointmentAdded(Appointment appointment, String feedbackSuffix) {
+        Model actual = new ModelManager(getTypicalPawPals(), new UserPrefs());
+        Client original = actual.getFilteredClientList().getFirst();
+        Model expected = new ModelManager(actual.getPawPals(), new UserPrefs());
+        expected.setClient(original, original.copyWithAppointment(appointment));
+        String feedback = String.format(AppointmentCommand.MESSAGE_SUCCESS, original.getName(),
+                appointment.getDate(), appointment.getTime()) + feedbackSuffix;
+        assertCommandSuccess(new AppointmentCommand(INDEX_FIRST_CLIENT, appointment, CLOCK), actual,
+                feedback, expected);
     }
 
     @Test

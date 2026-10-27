@@ -10,20 +10,26 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.AppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.PawPals;
 import seedu.address.model.ReadOnlyPawPals;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.history.CompletedSession;
+import seedu.address.model.history.SessionNotes;
+import seedu.address.model.pet.PetName;
 import seedu.address.storage.JsonPawPalsStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -96,11 +102,63 @@ public class AppointmentIntegrationTest {
             assertEquals(original, model.getPawPals());
             assertEquals(savedJson, Files.readString(dataFile));
         }
-        for (String input : new String[] {appointmentCommand(3), "appt c/1 d/01-01-2000 t/12:34"}) {
-            assertThrows(CommandException.class, () -> logic.execute(input));
-            assertEquals(original, model.getPawPals());
-            assertEquals(savedJson, Files.readString(dataFile));
-        }
+        assertThrows(CommandException.class, () -> logic.execute(appointmentCommand(3)));
+        assertEquals(original, model.getPawPals());
+        assertEquals(savedJson, Files.readString(dataFile));
+    }
+
+    @Test
+    public void execute_pastAppointment_savesAndCanBeCompletedAfterReload() throws Exception {
+        String pastDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu"));
+        Appointment past = new Appointment(new AppointmentDate(pastDate), new AppointmentTime("14:00"))
+                .withEndTime(new AppointmentTime("15:00")).withPetNames(Set.of(new PetName("Milo")));
+        logic.execute("addp c/1 n/Milo s/Dog b/Poodle");
+        logic.execute("find Alice");
+        ReadOnlyPawPals original = new PawPals(model.getPawPals());
+
+        String feedback = logic.execute("appt c/1 d/" + pastDate + " t/14:00 et/15:00 pn/milo").getFeedbackToUser();
+
+        assertEquals("Added appointment: Alice Test d/" + pastDate + " t/14:00 et/15:00 pn/Milo\n"
+                + AppointmentCommand.MESSAGE_PAST_APPOINTMENT, feedback);
+        ReadOnlyPawPals saved = readSavedPawPals();
+        assertEquals(List.of(past), saved.getClientList().getFirst().getAppointments());
+        assertTrue(saved.getClientList().getFirst().getHistory().isEmpty());
+        assertEquals(original.getClientList().get(1), saved.getClientList().get(1));
+        assertEquals(List.of(saved.getClientList().getFirst()), model.getFilteredClientList());
+        assertEquals(model.getPawPals(), saved);
+
+        Model reloaded = new ModelManager(saved, new UserPrefs());
+        Logic reloadedLogic = new LogicManager(reloaded, new StorageManager(new JsonPawPalsStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+        reloadedLogic.execute("done c/1 d/" + pastDate + " t/14:00 nt/Teddy cut");
+
+        ReadOnlyPawPals completed = readSavedPawPals();
+        assertTrue(completed.getClientList().getFirst().getAppointments().isEmpty());
+        assertEquals(1, completed.getClientList().getFirst().getHistory().size());
+        CompletedSession session = completed.getClientList().getFirst().getHistory().getFirst();
+        assertEquals(past, session.getAppointment());
+        assertEquals(new SessionNotes("Teddy cut"), session.getNotes());
+        assertEquals(saved.getClientList().getFirst().getPets(), completed.getClientList().getFirst().getPets());
+        assertEquals(original.getClientList().get(1), completed.getClientList().get(1));
+        assertEquals(reloaded.getPawPals(), completed);
+    }
+
+    @Test
+    public void execute_pastAppointmentOverlap_preservesModelFilterAndSavedFile() throws Exception {
+        String pastDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu"));
+        logic.execute("appt c/1 d/" + pastDate + " t/14:00 et/15:00");
+        logic.execute("find Bob");
+        ReadOnlyPawPals original = new PawPals(model.getPawPals());
+        String savedJson = Files.readString(dataFile);
+
+        CommandException exception = assertThrows(
+                CommandException.class, () -> logic.execute("appt c/1 d/" + pastDate + " t/14:30 et/15:30"));
+
+        assertEquals("Appointment overlaps with Alice Test's appointment: d/" + pastDate + " t/14:00 et/15:00.",
+                exception.getMessage());
+        assertEquals(original, model.getPawPals());
+        assertEquals(List.of(original.getClientList().get(1)), model.getFilteredClientList());
+        assertEquals(savedJson, Files.readString(dataFile));
     }
 
     @Test
