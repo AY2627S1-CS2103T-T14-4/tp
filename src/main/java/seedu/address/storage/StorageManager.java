@@ -60,6 +60,12 @@ public class StorageManager implements Storage {
     }
 
     @Override
+    public Path backupCorruptedData() throws IOException {
+        logger.fine("Backing up corrupted data file: " + pawPalsStorage.getPawPalsFilePath());
+        return pawPalsStorage.backupCorruptedData();
+    }
+
+    @Override
     public void savePawPals(ReadOnlyPawPals pawPals) throws IOException {
         logger.fine("Attempting to write to data file: " + pawPalsStorage.getPawPalsFilePath());
         pawPalsStorage.savePawPals(pawPals);

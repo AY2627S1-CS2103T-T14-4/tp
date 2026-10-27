@@ -1,17 +1,20 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import seedu.address.MainApp;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
+import seedu.address.storage.DataRecoveryInfo;
 
 /**
  * The manager of the UI component.
@@ -25,15 +28,17 @@ public class UiManager implements Ui {
 
     private Logic logic;
     private Path dataFilePath;
+    private Optional<DataRecoveryInfo> dataRecoveryInfo;
     private MainWindow mainWindow;
 
     /**
      * Creates a {@code UiManager} with the given {@code Logic} and the data file path
      * to show in the status bar.
      */
-    public UiManager(Logic logic, Path dataFilePath) {
+    public UiManager(Logic logic, Path dataFilePath, Optional<DataRecoveryInfo> dataRecoveryInfo) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.dataRecoveryInfo = dataRecoveryInfo;
     }
 
     @Override
@@ -47,11 +52,38 @@ public class UiManager implements Ui {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
+            if (dataRecoveryInfo.isPresent() && !showDataRecoveryWarning(dataRecoveryInfo.get())) {
+                primaryStage.close();
+                Platform.exit();
+            }
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));
             showFatalErrorDialogAndShutdown("Fatal error during initializing", e);
         }
+    }
+
+    /**
+     * Warns the user before an empty recovery model can overwrite a rejected data file.
+     *
+     * @return true if the user explicitly chooses to continue
+     */
+    private boolean showDataRecoveryWarning(DataRecoveryInfo recoveryInfo) {
+        String backupMessage = recoveryInfo.backupFilePath()
+                .map(path -> "A backup was created at:\n" + path)
+                .orElse("PawPals could not create a backup of the rejected file.");
+        ButtonType continueButton = new ButtonType("Continue");
+        ButtonType exitButton = new ButtonType("Exit");
+        Alert alert = new Alert(AlertType.WARNING, backupMessage, continueButton, exitButton);
+        alert.getDialogPane().getStylesheets().add("view/DarkTheme.css");
+        alert.initOwner(mainWindow.getPrimaryStage());
+        alert.setTitle("Data recovery required");
+        alert.setHeaderText("PawPals could not load " + recoveryInfo.dataFilePath());
+        alert.setContentText("The application is using an empty client list. "
+                + "Choose Continue to allow future commands to replace the rejected data file, "
+                + "or Exit to close without saving.\n\n" + backupMessage);
+        alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
+        return alert.showAndWait().filter(continueButton::equals).isPresent();
     }
 
     private Image getImage(String imagePath) {
