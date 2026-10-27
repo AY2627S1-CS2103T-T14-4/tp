@@ -26,7 +26,7 @@ public class DeleteNoteCommand extends Command {
     public static final String COMMAND_WORD = "delnote";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Deletes a note of a client's pet.\n"
             + "Parameters: c/CLIENT_INDEX pn/PET_NAME ty/TYPE\n"
-            + "TYPE is pref, sens or temp.\n"
+            + NoteType.MESSAGE_CONSTRAINTS + "\n"
             + "Example: " + COMMAND_WORD + " c/1 pn/Milo ty/temp";
     public static final String MESSAGE_SUCCESS = "Deleted %1$s note for %2$s";
     public static final String MESSAGE_NO_SUCH_NOTE = "%1$s has no %2$s note to delete.";
@@ -67,6 +67,7 @@ public class DeleteNoteCommand extends Command {
             throw new CommandException(String.format(MESSAGE_NO_SUCH_NOTE, targetPet.getName(), displayType));
         }
 
+        // withPetReplaced also relinks appointments under the same name; harmless, but it logs a "rename"
         Client updatedClient = targetClient.withPetReplaced(petName, targetPet.withoutNote(noteType));
         model.setClient(targetClient, updatedClient);
         logger.fine("Deleted " + displayType + " note of " + targetPet.getName() + " for " + targetClient.getName());

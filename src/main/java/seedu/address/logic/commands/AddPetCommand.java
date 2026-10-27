@@ -4,9 +4,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.client.Client;
@@ -28,6 +31,8 @@ public class AddPetCommand extends Command {
     public static final String MESSAGE_SUCCESS = "New pet added: %1$s";
     public static final String MESSAGE_DUPLICATE_PET = "This client already has a pet with the same name.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddPetCommand.class);
+
     private final Index clientIndex;
     private final Pet petToAdd;
 
@@ -47,7 +52,7 @@ public class AddPetCommand extends Command {
         List<Client> displayedClients = model.getFilteredClientList();
 
         if (clientIndex.getZeroBased() >= displayedClients.size()) {
-            throw new CommandException(seedu.address.logic.Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+            throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
         }
 
         Client targetClient = displayedClients.get(clientIndex.getZeroBased());
@@ -59,6 +64,7 @@ public class AddPetCommand extends Command {
         }
 
         model.setClient(targetClient, updatedClient);
+        logger.fine("Added pet " + petToAdd.getName() + " to " + targetClient.getName());
         return new CommandResult(String.format(MESSAGE_SUCCESS, petToAdd.getName()));
     }
 
