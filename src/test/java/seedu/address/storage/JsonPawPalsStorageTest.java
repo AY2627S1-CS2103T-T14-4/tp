@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
@@ -10,6 +11,7 @@ import static seedu.address.testutil.TypicalClients.IDA;
 import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -71,6 +73,22 @@ public class JsonPawPalsStorageTest {
     @Test
     public void readPawPals_invalidAndValidClientPawPals_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readPawPals("invalidAndValidClientPawPals.json"));
+    }
+
+    @Test
+    public void backupCorruptedData_createsUniqueCopy() throws Exception {
+        Path filePath = testFolder.resolve("pawpals.json");
+        String corruptedContents = "{\"clients\": [invalid]}";
+        Files.writeString(filePath, corruptedContents);
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(filePath);
+
+        Path firstBackup = storage.backupCorruptedData();
+        Path secondBackup = storage.backupCorruptedData();
+
+        assertNotEquals(firstBackup, secondBackup);
+        assertEquals(corruptedContents, Files.readString(firstBackup));
+        assertEquals(corruptedContents, Files.readString(secondBackup));
+        assertEquals(corruptedContents, Files.readString(filePath));
     }
 
     @Test
