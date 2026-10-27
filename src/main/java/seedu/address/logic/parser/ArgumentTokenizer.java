@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -26,6 +27,32 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenize(String argsString, Prefix... prefixes) {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         return extractArguments(argsString, positions);
+    }
+
+    /**
+     * Tokenizes arguments while preserving prefix-like text in a trailing free-text value.
+     * If {@code textPrefix} occurs exactly once and every other prefix appears before it, the remainder
+     * is its value. Otherwise, tokenizes normally to support other field orders and duplicate detection.
+     *
+     * @param argsString Arguments to tokenize
+     * @param textPrefix Prefix identifying the free-text field
+     * @param otherPrefixes Required prefixes that must precede the free-text field to preserve its value
+     * @return The prefixes mapped to their argument values
+     */
+    public static ArgumentMultimap tokenizeWithTrailingText(String argsString, Prefix textPrefix,
+            Prefix... otherPrefixes) {
+        int textPosition = findPrefixPosition(argsString, textPrefix.getPrefix(), 0);
+        boolean hasSingleTextPrefix = textPosition != -1
+                && findPrefixPosition(argsString, textPrefix.getPrefix(), textPosition) == -1;
+        if (hasSingleTextPrefix) {
+            ArgumentMultimap arguments = tokenize(argsString.substring(0, textPosition), otherPrefixes);
+            if (Arrays.stream(otherPrefixes).allMatch(prefix -> arguments.getValue(prefix).isPresent())) {
+                arguments.put(textPrefix, argsString.substring(textPosition + textPrefix.getPrefix().length()).trim());
+                return arguments;
+            }
+        }
+        Prefix[] prefixes = Stream.concat(Arrays.stream(otherPrefixes), Stream.of(textPrefix)).toArray(Prefix[]::new);
+        return tokenize(argsString, prefixes);
     }
 
     /**

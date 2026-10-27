@@ -320,7 +320,10 @@ the active appointments returned by `Client#getAppointments()`. The `done` comma
 foundation; history presentation is handled by the UI.
 
 `DoneCommandParser` reuses `ParserUtil#parseAppointmentTarget(...)` for client/date/start parsing and
-the existing `PREFIX_NOTE` for required `nt/` session notes. `SessionNotes` handles trimming and length
+the existing `PREFIX_NOTE` for required `nt/` session notes. It uses
+`ArgumentTokenizer#tokenizeWithTrailingText(...)` to preserve prefix-like note text when a single `nt/`
+follows all three target fields. Other field orders use normal tokenization, and duplicate prefixes
+before the notes or a repeated `nt/` are still rejected. `SessionNotes` handles trimming and length
 validation. `PawPalsParser` dispatches `done` to this parser.
 
 `DoneCommand` resolves the target against the displayed client list, checks active appointments first,
