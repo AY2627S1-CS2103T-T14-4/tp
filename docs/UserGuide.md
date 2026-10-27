@@ -439,7 +439,7 @@ Example: `cancel c/1 d/12-12-2026 t/14:00`
   (years `0001` to `9999`) and a 24-hour time in `HH:mm` format (`00:00` to `23:59`).
   The appointment does not need to be in the future.
 * Use the appointment's start time, even when it has an end time. An end time and pet names are not
-  needed to identify it.
+  needed to identify it. Do not include `et/`: `cancel` rejects this prefix and asks you to remove it.
 
 Successful output, if the selected client's name is Ben Lim:
 `Cancelled appointment: Ben Lim d/12-12-2026 t/14:00`
@@ -454,6 +454,7 @@ If validation fails, no data changes. Feedback includes:
 |---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                |
 | Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                               |
+| End-time prefix `et/`, including an empty or invalid value   | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. |
 | Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                    |
 | Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                |
 | Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`  |

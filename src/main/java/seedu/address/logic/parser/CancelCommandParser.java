@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_END_TIME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
 import java.util.stream.Stream;
@@ -21,12 +22,16 @@ public class CancelCommandParser implements Parser<CancelCommand> {
      *
      * @throws NullPointerException if {@code args} is null.
      * @throws ParseException if a required prefix is missing or repeated, the preamble is non-empty,
-     *     or the index, date or time is invalid.
+     *     an unsupported end-time prefix is supplied, or the index, date or time is invalid.
      */
     @Override
     public CancelCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
+                PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_END_TIME);
+        if (arguments.getValue(PREFIX_END_TIME).isPresent()) {
+            throw new ParseException(CancelCommand.MESSAGE_END_TIME_NOT_SUPPORTED + "\n" + CancelCommand.MESSAGE_USAGE);
+        }
         if (!arguments.getPreamble().isEmpty() || Stream.of(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME)
                 .anyMatch(prefix -> arguments.getValue(prefix).isEmpty())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, CancelCommand.MESSAGE_USAGE));
