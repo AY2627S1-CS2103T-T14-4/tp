@@ -68,6 +68,15 @@ public class JsonAdaptedClientTest {
     }
 
     @Test
+    public void toModelType_nullTagEntry_throwsIllegalValueException() {
+        List<JsonAdaptedTag> tags = new ArrayList<>(VALID_TAGS);
+        tags.add(null);
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, tags, List.of(), List.of());
+        assertThrows(IllegalValueException.class, "Tag entry is missing!", client::toModelType);
+    }
+
+    @Test
     public void toModelType_nullPetEntry_throwsIllegalValueException() {
         List<JsonAdaptedPet> pets = new ArrayList<>();
         pets.add(null);
