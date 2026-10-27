@@ -435,6 +435,37 @@ The `Storage` component,
 * stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved in its `notes` object, keyed by note type, e.g. `"notes": {"pref": "Teddy cut", "temp": "Nervous around dryers"}`.
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
+#### Corrupted-data recovery
+
+When `JsonPawPalsStorage` cannot convert `data/pawpals.json` into a valid `PawPals` model,
+`MainApp` must not immediately treat the empty recovery model as ordinary data. The recovery flow is:
+
+1. `JsonPawPalsStorage.readPawPals()` throws `DataLoadingException` after JSON or model validation fails.
+2. `MainApp.initModelManager(...)` asks the `Storage` component to create a backup before constructing an
+   empty `PawPals` model. The backup is created by `JsonPawPalsStorage.backupCorruptedData()` using a
+   unique temporary name based on the original file, such as `pawpals.json.corrupt-12345.bak`. The
+   original rejected file is never used as the backup destination and is not overwritten during this step.
+3. `DataRecoveryInfo` carries the original path, the optional backup path, and the loading error from
+   `MainApp` to `UiManager`.
+4. After the main window is created, `UiManager` shows a modal warning before the command box can be used.
+   It explains that the application is using an empty client list and identifies the backup file when one
+   was created.
+5. The user must choose **Continue** or **Exit**. Continuing permits normal commands and therefore permits
+   the existing auto-save pipeline to replace the rejected file with the user's new empty-data state.
+   Exiting closes the application before any command can trigger an auto-save, preserving the rejected file
+   and its backup.
+
+If backup creation fails, the warning explicitly says that no backup was created. The application still
+requires the same confirmation before continuing, so the user is aware that the rejected file cannot be
+recovered automatically. Missing data files are not considered corruption: they continue to load sample
+data without a recovery warning. Valid files, including valid files containing zero clients, also follow the
+normal startup path.
+
+The storage tests verify that backups preserve the exact rejected bytes, that repeated recovery attempts
+receive different backup paths, and that the original file remains unchanged. Manual testing should verify
+both confirmation choices: **Exit** must leave the rejected file unchanged, while **Continue** followed by
+a successful command may replace it with the current model.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -1350,8 +1381,13 @@ Use a disposable copy of the JAR in an empty folder, and keep a backup of `data/
 1. Corrupted data file
 
    1. Close PawPals. In `data/pawpals.json`, change a client's `phone` to `abc`, or delete a closing `}`. Relaunch.<br>
-      Expected: PawPals starts with no clients. The file is not changed until you run a command, so restore your
-      backup before running one if you want to keep the data.
+      Expected: PawPals creates a uniquely named `.corrupt-*.bak` backup and shows a recovery warning before
+      accepting commands. The warning identifies the backup and offers **Continue** or **Exit**.
+   1. Repeat the corrupted-data test and choose **Exit**. Relaunch or inspect the files.<br>
+      Expected: The rejected data file and its backup remain unchanged, and no empty replacement is written.
+   1. Repeat the corrupted-data test and choose **Continue**, then run `list`.<br>
+      Expected: The command is accepted, the empty client list is shown, and the data file is replaced only
+      after the explicit confirmation.
 
 1. Data file from an older version
 
