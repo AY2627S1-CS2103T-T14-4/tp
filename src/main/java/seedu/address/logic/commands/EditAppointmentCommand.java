@@ -31,9 +31,10 @@ public class EditAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "editappt";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Reschedules an appointment for the client identified by their displayed index.\n"
-            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]\n"
+            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]\n"
             + "Provide at least one new value. The resulting start must be strictly in the future.\n"
             + "Without ne/, an existing duration is preserved; appointments must end on the same day.\n"
+            + "Use ne/ with no value to remove the end time, or ne/HH:mm to set it.\n"
             + "Linked pets and booking details are kept. Overlaps with other active bookings are rejected.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/14:00 ns/16:00";
     public static final String MESSAGE_NOT_EDITED = "At least one of nd/, ns/ or ne/ must be provided.";

@@ -283,18 +283,23 @@ for different pets follow the same overlap rules.
 
 `PawPalsParser` dispatches `editappt` to `EditAppointmentCommandParser`. The parser reuses
 `ParserUtil#parseAppointmentTarget(...)` for required `c/`, `d/` and `t/`, and the existing validated
-date/time types for optional `nd/`, `ns/` and `ne/`. It rejects duplicate prefixes, non-empty preambles,
+date/time types for optional `nd/`, `ns/` and nonempty `ne/`. Empty `ne/` sets the descriptor's `clearEnd`
+flag; omitted `ne/` preserves duration. Tokenization trims whitespace, so whitespace-only `ne/` also clears.
+It rejects duplicate prefixes, non-empty preambles,
 missing target fields and invalid values. The immutable `EditAppointmentDescriptor` requires at least
-one replacement value, including when a command is constructed directly. Ordering and future-start
+one replacement value or `clearEnd`, including when a command is constructed directly. Supplying both
+an explicit end and `clearEnd` is rejected. The three-argument constructor defaults `clearEnd` to false.
+Ordering and future-start
 checks belong to execution because omitted values depend on the original appointment.
 
 `EditAppointmentCommand` performs these steps:
 
 1. Resolve the client from the displayed list and look up its active appointment by original date/start.
 2. Construct a replacement using the supplied values and the original details and ordered pet links.
-   Without a supplied end, retain a missing end or preserve the existing duration. Compute the proposed
+   When `clearEnd` is true, use no end time and skip duration preservation. Otherwise, without a supplied
+   end, retain a missing end or preserve the existing duration. Compute the proposed
    end in minutes and reject an end at or after midnight before converting it to `LocalTime`, avoiding
-   wraparound. Exactly 23:59 is valid. A supplied `ne/` overrides this calculation.
+   wraparound. Exactly 23:59 is valid. A supplied `ne/HH:mm` overrides this calculation.
 3. Validate the end through `Appointment`'s constructor, then require the resulting start to be strictly
    after `LocalDateTime.now(clock)`. The default clock uses the system's local zone; tests inject a fixed
    clock. Past originals may be moved, but an end-only edit still requires a future resulting start.
