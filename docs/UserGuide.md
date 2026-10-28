@@ -637,7 +637,11 @@ PawPals data is saved automatically as a JSON file `[JAR file location]/data/paw
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you run a command (PawPals saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, PawPals preserves it in a uniquely named `.corrupt-*.bak` backup
+and shows a recovery warning at the next run. You must choose **Continue** before commands can be entered;
+choosing **Exit** leaves the rejected file unchanged. Closing the warning with the window’s X counts as **Exit**, because showAndWait returns empty.
+If you continue, PawPals starts with an empty client list
+and later commands may replace the rejected file through the normal auto-save process.<br>
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 

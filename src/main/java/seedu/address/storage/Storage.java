@@ -48,6 +48,14 @@ public interface Storage {
     Optional<ReadOnlyPawPals> readPawPals() throws DataLoadingException;
 
     /**
+     * Creates a unique backup of the current PawPals data file before recovery replaces it.
+     *
+     * @return the backup file path
+     * @throws IOException if the backup cannot be created
+     */
+    Path backupCorruptedData() throws IOException;
+
+    /**
      * Saves the given {@link ReadOnlyPawPals} to the storage.
      * @param pawPals cannot be null.
      * @throws IOException if there was any problem writing to the file.
