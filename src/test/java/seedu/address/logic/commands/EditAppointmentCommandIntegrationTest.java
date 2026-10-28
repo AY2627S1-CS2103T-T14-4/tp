@@ -154,6 +154,34 @@ public class EditAppointmentCommandIntegrationTest {
                 model.getFilteredClientList().getFirst());
     }
 
+    @Test
+    public void execute_clearEnd_checksOnlyResultingMinuteAgainstHiddenBooking() throws Exception {
+        Client hidden = new ClientBuilder(BENSON).withAppointments(slot("13-12-2026", "16:00", "17:00")).build();
+        Model model = modelWith(owner(ORIGINAL), hidden);
+        model.updateFilteredClientList(client -> client.isSameClient(ALICE));
+
+        EditAppointmentDescriptor clear = new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("15:59")), Optional.empty(), true);
+        command(ORIGINAL, clear).execute(model);
+
+        Appointment expected = slot("13-12-2026", "15:59", null);
+        Client expectedOwner = owner(expected);
+        assertEquals(List.of(expectedOwner), model.getFilteredClientList());
+        assertEquals(List.of(expectedOwner, hidden), model.getPawPals().getClientList());
+    }
+
+    @Test
+    public void execute_clearEndAtHiddenBooking_rejectsWithoutChangingDataOrFilter() {
+        Client hidden = new ClientBuilder(BENSON).withAppointments(slot("13-12-2026", "16:00", "17:00")).build();
+        Model model = modelWith(owner(ORIGINAL), hidden);
+        model.updateFilteredClientList(client -> client.isSameClient(ALICE));
+        EditAppointmentDescriptor clear = new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("16:00")), Optional.empty(), true);
+
+        assertCommandFailure(command(ORIGINAL, clear), model,
+                "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/13-12-2026 t/16:00 et/17:00.");
+    }
+
     private static void assertReplacement(Appointment original, EditAppointmentDescriptor edits, Appointment expected)
             throws Exception {
         Model model = modelWith(owner(original));

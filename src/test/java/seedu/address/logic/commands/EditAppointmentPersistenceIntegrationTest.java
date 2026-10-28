@@ -163,6 +163,34 @@ public class EditAppointmentPersistenceIntegrationTest {
                 booking(originalDate, "18:00", "19:30")).build(), reloadSelected());
     }
 
+    @Test
+    public void execute_clearEndAndReload_preservesAllUneditedData() throws Exception {
+        CommandResult result = logic.execute(target() + " ne/");
+
+        Appointment expected = booking(originalDate, "14:00", null);
+        assertPersistedReplacement(expected);
+        assertEquals("Rescheduled appointment: " + selectedClient.getName() + " " + originalDate
+                + " 14:00 → " + originalDate + " 14:00", result.getFeedbackToUser());
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(expected);
+    }
+
+    @Test
+    public void execute_clearEndWithMove_checksHiddenConflictAndPersistsStartOnlyBooking() throws Exception {
+        String saved = Files.readString(dataFile());
+        assertThrows(CommandException.class, () -> logic.execute(target() + " ns/16:00 ne/"));
+        assertUnchanged(saved);
+
+        logic.execute(target() + " ns/15:59 ne/");
+
+        Appointment expected = booking(originalDate, "15:59", null);
+        assertPersistedReplacement(expected);
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(expected);
+    }
+
     private void assertPersistedReplacement(Appointment expected) throws Exception {
         Client expectedClient = new ClientBuilder(selectedClient).withAppointments(otherAppointment, expected).build();
         assertEquals(List.of(expectedClient), model.getFilteredClientList());
