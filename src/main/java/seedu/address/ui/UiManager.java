@@ -74,14 +74,15 @@ public class UiManager implements Ui {
                 .orElse("PawPals could not create a backup of the rejected file.");
         ButtonType continueButton = new ButtonType("Continue");
         ButtonType exitButton = new ButtonType("Exit");
-        Alert alert = new Alert(AlertType.WARNING, backupMessage, continueButton, exitButton);
+        Alert alert = new Alert(AlertType.WARNING, "", continueButton, exitButton);
         alert.getDialogPane().getStylesheets().add("view/DarkTheme.css");
         alert.initOwner(mainWindow.getPrimaryStage());
         alert.setTitle("Data recovery required");
         alert.setHeaderText("PawPals could not load " + recoveryInfo.dataFilePath());
         alert.setContentText("The application is using an empty client list. "
                 + "Choose Continue to allow future commands to replace the rejected data file, "
-                + "or Exit to close without saving.\n\n" + backupMessage);
+                + "or Exit to close without saving.\n\nReason: " + recoveryInfo.loadingError()
+                + "\n\n" + backupMessage);
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
         return alert.showAndWait().filter(continueButton::equals).isPresent();
     }
