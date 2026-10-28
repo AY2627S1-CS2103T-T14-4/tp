@@ -20,6 +20,7 @@ import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
+import seedu.address.storage.DataRecoveryInfo;
 import seedu.address.storage.JsonPawPalsStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -42,6 +43,7 @@ public class MainApp extends Application {
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+    private DataRecoveryInfo dataRecoveryInfo;
 
     @Override
     public void init() throws Exception {
@@ -57,7 +59,7 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getPawPalsFilePath());
+        ui = new UiManager(logic, storage.getPawPalsFilePath(), Optional.ofNullable(dataRecoveryInfo));
     }
 
     /**
@@ -65,7 +67,7 @@ public class MainApp extends Application {
      * The data from the sample PawPals data will be used instead if {@code storage}'s PawPals data is not found,
      * or an empty PawPals data will be used instead if errors occur when reading {@code storage}'s PawPals data.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getPawPalsFilePath());
 
         Optional<ReadOnlyPawPals> pawPalsOptional;
@@ -80,6 +82,16 @@ public class MainApp extends Application {
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getPawPalsFilePath() + " could not be loaded."
                     + " Will be starting with empty client data.");
+            Optional<Path> backupPath = Optional.empty();
+            try {
+                backupPath = Optional.of(storage.backupCorruptedData());
+                logger.warning("Preserved the rejected data file at " + backupPath.get());
+            } catch (IOException backupException) {
+                logger.warning("Could not preserve the rejected data file: "
+                        + StringUtil.getDetails(backupException));
+            }
+            dataRecoveryInfo = new DataRecoveryInfo(storage.getPawPalsFilePath(), backupPath,
+                    StringUtil.getDetails(e));
             initialData = new PawPals();
         }
 

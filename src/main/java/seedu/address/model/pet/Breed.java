@@ -11,12 +11,12 @@ import seedu.address.commons.util.AppUtil;
 public class Breed {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Breed should be 1 to 60 characters long and contain only "
-                    + "letters, numbers, spaces, apostrophes and hyphens.";
+            "Breed should be 1 to 60 characters long, contain at least one letter or number, "
+                    + "and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.";
 
     private static final int MAX_LENGTH = 60;
 
-    private static final String VALIDATION_REGEX = "[\\p{L}\\p{N}' -]+";
+    private static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{N}])[\\p{L}\\p{N}' .-]+";
 
     public final String value;
 

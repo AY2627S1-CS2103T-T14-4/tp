@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -29,6 +30,25 @@ public class JsonPawPalsStorage {
 
     public Path getPawPalsFilePath() {
         return filePath;
+    }
+
+    /**
+     * Creates a unique backup of the current data file before recovery replaces it.
+     *
+     * @return the path of the created backup
+     * @throws IOException if the backup cannot be created
+     */
+    public Path backupCorruptedData() throws IOException {
+        requireNonNull(filePath);
+        Path parent = filePath.toAbsolutePath().getParent();
+        Path backup = Files.createTempFile(parent, filePath.getFileName() + ".corrupt-", ".bak");
+        try {
+            Files.copy(filePath, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return backup;
+        } catch (IOException e) {
+            Files.deleteIfExists(backup);
+            throw e;
+        }
     }
 
     /**
