@@ -57,7 +57,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delc 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delc c/1`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
@@ -174,9 +174,9 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delc 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delc c/1")` API call as an example.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delc 1` Command" />
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delc c/1` Command" />
 
 <box type="info" seamless>
 
@@ -1031,7 +1031,7 @@ Resize to the minimum window width and check that text remains readable.
 | Error and correction | Submit `unknown` twice. Edit it to `list`, then press Enter. | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input. |
 | Error to success | Submit `unknown`, then a valid `addc` for another client. | `Success` replaces `Error` without stale error styling. |
 | Long feedback | Submit `appt` without arguments and scroll within its feedback. Then submit `list`. | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling. |
-| Last client removed | Run `clear`, add Alice again, then run `delc 1`. | The empty-database message returns after the last client is deleted. |
+| Last client removed | Run `clear`, add Alice again, then run `delc c/1`. | The empty-database message returns after the last client is deleted. |
 
 ### Adding and persisting pets
 
@@ -1107,14 +1107,23 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 
    1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
-   1. Test case: `delc 1`<br>
+   1. Test case: `delc c/1`<br>
       Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
 
-   1. Test case: `delc 0`<br>
-      Expected: No client is deleted. The status message shows error details.
+   1. Test case: `delc c/0`<br>
+      Expected: No client is deleted. The status message shows `Index must be a positive integer.`
+      Also try `delc c/` and `delc c/abc` for empty and non-integer indices.
 
-   1. Other incorrect delete commands to try: `delc`, `delc x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+   1. Test case: `delc 1` (missing prefix)<br>
+      Expected: No client is deleted. The status message shows `Invalid command format!` and the prefixed usage.
+      Also try `delc` and `delc text c/1` for missing arguments and a nonempty preamble.
+
+   1. Test case: `delc c/1 c/1` (duplicate prefix)<br>
+      Expected: No client is deleted. The status message shows
+      `Multiple values specified for the following single-valued field(s): c/`.
+
+   1. Test case: `delc c/X` (replace X with a positive integer larger than the displayed list size)<br>
+      Expected: No client is deleted. The status message shows `The client index provided is invalid.`
 
 1. _{ more test cases … }_
 
@@ -1196,7 +1205,7 @@ The separate client-add section of the User Guide also uses `addc`.
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.        |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                      |
 | Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                   | Bob's phone changes, and all his appointments remain.                                                               |
-| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                         | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.      |
+| Delete and clear                        | `delc c/1`, restart; then `clear` and restart.                                                         | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.      |
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 

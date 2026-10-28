@@ -37,7 +37,7 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
    * `appt c/1 d/12-12-2026 t/14:00` : Adds an appointment for the 1st client shown.
 
-   * `delc 3` : Deletes the 3rd client shown in the current list.
+   * `delc c/3` : Deletes the 3rd client shown in the current list.
 
    * `clear` : Deletes all clients, pets, and appointments.
 
@@ -280,10 +280,11 @@ If the command fails, no pet is deleted. Feedback includes:
 
 Removes an unwanted client record, all their pets, and all their appointments.
 
-Format: `delc CLIENT_INDEX`
+Format: `delc c/CLIENT_INDEX`
 
-Example: `delc 2`
+Example: `delc c/2`
 
+* The `c/` prefix is required and must appear exactly once. Do not put text before it.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 
 Successful output, if the selected client is Ben Lim:<br>
@@ -292,6 +293,13 @@ Successful output, if the selected client is Ben Lim:<br>
 The message lists the deleted client's details so you can confirm the right client was removed.
 
 The deleted client disappears from the client list, and the remaining clients are renumbered. If the command fails, no client, pet, or appointment is deleted.
+
+| Problem                                                              | Feedback                                                                 |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Missing `c/`, including the old `delc 1` syntax, or text before `c/` | `Invalid command format!`, followed by the `delc` usage instructions.    |
+| Repeated `c/`, even with identical values                            | `Multiple values specified for the following single-valued field(s): c/` |
+| Empty, zero, negative, non-integer, or too-large index               | `Index must be a positive integer.`                                      |
+| Positive index outside the displayed list                            | `The client index provided is invalid.`                                  |
 
 ### Adding an appointment: `appt`
 
@@ -692,7 +700,7 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                         |
 | **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                         |
 | **Clear**                  | `clear`                                                                                                                                      |
-| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                       |
+| **Delete client**          | `delc c/CLIENT_INDEX`<br> e.g., `delc c/3`                                                                                                       |
 | **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                               |
 | **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`   |
 | **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` |
