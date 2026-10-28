@@ -35,10 +35,12 @@ public class PetNameTest {
         assertTrue(PetName.isValidName("Milo 2"));
         assertTrue(PetName.isValidName("Mr-Paws"));
         assertTrue(PetName.isValidName("O'Malley"));
+        assertTrue(PetName.isValidName("Mr. Biscuit"));
 
         // no letter or number
         assertFalse(PetName.isValidName("---"));
         assertFalse(PetName.isValidName("'"));
+        assertFalse(PetName.isValidName(". -"));
     }
 
     @Test

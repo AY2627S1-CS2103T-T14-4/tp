@@ -157,9 +157,9 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 **Note:** `CLIENT_INDEX` refers to the index shown in the currently displayed client list. After using `find`, the index refers to the filtered search results, not the original full list.
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
-* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 
 Successful output: `New pet added: Milo`
 
@@ -358,7 +358,7 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
 | Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
-| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes and hyphens.` |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.` |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
