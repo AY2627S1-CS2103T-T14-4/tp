@@ -122,6 +122,9 @@ class JsonAdaptedClient {
     public Client toModelType() throws IllegalValueException {
         final List<Tag> clientTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException("Tag entry is missing!");
+            }
             clientTags.add(tag.toModelType());
         }
 

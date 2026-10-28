@@ -20,6 +20,7 @@ import seedu.address.model.client.Client;
 class JsonSerializablePawPals {
 
     public static final String MESSAGE_DUPLICATE_CLIENT = "Clients list contains duplicate client(s).";
+    public static final String MESSAGE_MISSING_CLIENT = "Client entry is missing!";
 
     private final List<JsonAdaptedClient> clients = new ArrayList<>();
 
@@ -48,6 +49,9 @@ class JsonSerializablePawPals {
     public PawPals toModelType() throws IllegalValueException {
         PawPals pawPals = new PawPals();
         for (JsonAdaptedClient jsonAdaptedClient : clients) {
+            if (jsonAdaptedClient == null) {
+                throw new IllegalValueException(MESSAGE_MISSING_CLIENT);
+            }
             Client client = jsonAdaptedClient.toModelType();
             if (pawPals.hasClient(client)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_CLIENT);
