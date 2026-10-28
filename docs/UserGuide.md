@@ -161,9 +161,10 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 **Note:** `CLIENT_INDEX` refers to the index shown in the currently displayed client list. After using `find`, the index refers to the filtered search results, not the original full list.
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
-* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
+
+* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 
 Successful output: `New pet added: Milo`
 
@@ -316,7 +317,7 @@ Rules:
 * `c/`, `d/`, and `t/` are required; `et/` and `pn/` are optional. Fields may appear in any order. Each prefix except `pn/` may appear at most once, even if repeated values are identical. Repeat `pn/` for additional pets. Do not put extra text before the first prefix.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the **currently displayed** list. After `find`, index `1` refers to the first matching client, rather than the first client in the full list. Adding an appointment keeps the current filter.
 * Each `pn/` must name a pet belonging to the selected client. Names are matched ignoring case, leading/trailing spaces and repeated spaces. For example, `pn/sir   FLUFFY` matches the recorded name `Sir Fluffy`. Unknown pets and pets belonging only to another client are rejected; add them to the selected client with `addp` first if appropriate.
-* Repeated references to the same pet are ignored, including references with different casing or spacing. Linked pets are stored and reported using their recorded names, in first-reference order. An empty or invalid `pn/` is an error, even after a valid name. Pet names must be 1–40 characters after space normalization and contain only letters, numbers, spaces, apostrophes and hyphens.
+* Repeated references to the same pet are ignored, including references with different casing or spacing. Linked pets are stored and reported using their recorded names, in first-reference order. An empty or invalid `pn/` is an error, even after a valid name. Pet names follow the same rules as in `addp`.
 * Omitting `pn/` creates an appointment without links to individual pets. It does not automatically select every pet belonging to the client.
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
@@ -364,7 +365,7 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
 | Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
-| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.` |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
@@ -659,7 +660,12 @@ back it up first.
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, PawPals starts with an empty client list at the next run. The invalid file remains on disk until you successfully execute a command (including `list`), which overwrites it with the current data. Restore your backup before executing a command if you want to recover the original records.<br>
+If your changes make the data file invalid, PawPals preserves it in a uniquely named `.corrupt-*.bak` backup
+and shows a recovery warning at the next run. You must choose **Continue** before commands can be entered;
+choosing **Exit** leaves the rejected file unchanged. Closing the warning with the window’s X counts as **Exit**, because showAndWait returns empty.
+If you continue, PawPals starts with an empty client list
+and later commands may replace the rejected file through the normal auto-save process.<br>
+
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 

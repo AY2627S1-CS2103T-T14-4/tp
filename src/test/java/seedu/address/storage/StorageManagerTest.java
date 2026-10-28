@@ -65,4 +65,16 @@ public class StorageManagerTest {
         assertNotNull(storageManager.getPawPalsFilePath());
     }
 
+    @Test
+    public void backupCorruptedData_delegatesToPawPalsStorage() throws Exception {
+        Path dataFile = getTempFilePath("data.json");
+        java.nio.file.Files.writeString(dataFile, "corrupted");
+        storageManager = new StorageManager(new JsonPawPalsStorage(dataFile),
+                new JsonUserPrefsStorage(getTempFilePath("prefs")));
+
+        Path backup = storageManager.backupCorruptedData();
+
+        assertEquals("corrupted", java.nio.file.Files.readString(backup));
+    }
+
 }
