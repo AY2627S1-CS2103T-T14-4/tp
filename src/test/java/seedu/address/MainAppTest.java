@@ -25,7 +25,7 @@ public class MainAppTest {
 
         Model model = app.initModelManager(storage, new UserPrefs());
 
-        assertTrue(model.getClientList().isEmpty());
+        assertTrue(model.getPawPals().getClientList().isEmpty());
     }
 
     @Test
@@ -35,7 +35,7 @@ public class MainAppTest {
 
         Model model = app.initModelManager(storage, new UserPrefs());
 
-        assertTrue(model.getClientList().isEmpty());
+        assertTrue(model.getPawPals().getClientList().isEmpty());
     }
 
     private Storage failingStorage(Path dataFile, boolean backupFails) {
