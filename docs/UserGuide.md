@@ -163,7 +163,7 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
 * `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
 
 Successful output: `New pet added: Milo`
 
@@ -320,10 +320,11 @@ Rules:
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
 * `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
-* The **combined date and time** must be strictly later than the computer's current date and time when the command executes, using its local time zone. Later today is valid. For example, at 10:30 today, today's `t/10:31` is valid but `t/10:30` is not.
+* Past, current and future dates and times are accepted. Use `appt` to record a visit after it happened, then `done` with the same date and start time to save its session notes in completed history. A past appointment remains active until you complete or cancel it.
+* If the start is earlier than the computer's current local date and time, the success feedback adds: `This appointment is in the past. Use done to record it as a completed session.` This is informational; the appointment is added successfully.
 * An appointment must not overlap **any active appointment across all clients**, including clients hidden by the current search filter. Overlaps are rejected for both the same client and different clients, regardless of appointment details or linked pets. The rejection identifies the conflicting client and booking slot.
 * An appointment with an end time occupies its start time up to, but not including, its end time. Adjacent bookings such as `14:00–15:00` and `15:00–16:00` are allowed. Without an end time, a booking occupies its starting minute: `t/14:00` conflicts with a range containing 14:00 or another `t/14:00`, but permits a booking starting at 14:01. Appointments on different dates do not conflict.
-* Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must still satisfy the future-date/time rule and avoid remaining active bookings.
+* Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must avoid remaining active bookings, including when recording a past appointment.
 * `t/` means time in `appt`. It means a tag in commands that accept tags. The `appt` command does not accept tags or appointment details.
 
 Successful output, if the selected client's name is Ben Lim: `Added appointment: Ben Lim d/12-12-2026 t/12:34`
@@ -364,10 +365,9 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
 | Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
-| Past or current date/time                                     | `Appointment date and time must be strictly in the future.`                                                                                                                    |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
-The example date must still be in the future when you try it. Replace it with a future date if needed.
+The example date may be in the past, current or future; choose a slot that does not overlap an active booking.
 
 If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
 
@@ -445,7 +445,7 @@ Example: `cancel c/1 d/12-12-2026 t/14:00`
   (years `0001` to `9999`) and a 24-hour time in `HH:mm` format (`00:00` to `23:59`).
   The appointment does not need to be in the future.
 * Use the appointment's start time, even when it has an end time. An end time and pet names are not
-  needed to identify it.
+  needed to identify it. Do not include `et/`: `cancel` rejects this prefix and asks you to remove it.
 
 Successful output, if the selected client's name is Ben Lim:
 `Cancelled appointment: Ben Lim d/12-12-2026 t/14:00`
@@ -456,15 +456,16 @@ cancellation is saved so the appointment remains absent after restarting PawPals
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem                                                       | Feedback                                                                                               |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                |
-| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                               |
-| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                    |
-| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                |
-| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`  |
-| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                  |
-| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
+| Problem                                                       | Feedback                                                                                                                 |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                                  |
+| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                                                 |
+| End-time prefix `et/`, including an empty or invalid value    | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                                      |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                                  |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                    |
+| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                    |
+| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot)                   |
 
 If saving fails, the appointment may be removed in the current session but remain in the saved file.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
@@ -480,6 +481,11 @@ Example: `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`
 
 * All four prefixes are required and may appear in any order. Each must appear exactly once, even if
   repeated values are identical. Do not put extra text before the first prefix.
+* To include prefix-like text such as `d/c` or `c/o` in the notes, put `nt/` after `c/`, `d/` and `t/`.
+  When `nt/` appears exactly once in this position, all remaining text is saved as the notes, including
+  any `c/`, `d/` or `t/` text. For example:
+  `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, d/c brushing`.
+  A repeated `nt/` is still rejected.
 * `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` means the
   first matching client. Completion preserves the filter and all other clients.
 * Use the appointment's date and **start time**, with the same `DD-MM-YYYY` and `HH:mm` formats as `appt`.
@@ -526,8 +532,8 @@ All older sessions remain saved, although only the three most recent are display
 Booking details and logging timestamps are retained in storage but are not shown in this preview.
 
 Completed history never reserves a slot. Completing early releases the remaining planned interval for
-another booking. A new booking must still start strictly in the future and avoid all remaining active
-appointments; completing a visit does not permit rebooking a past or current start time.
+another booking. A new booking may start in the past, present or future, but must avoid all remaining
+active appointments.
 
 If validation fails, no data changes. Feedback includes:
 
@@ -660,8 +666,32 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 ## FAQ
 
+**Q**: I double-clicked `pawpals.jar` and nothing happened, or I got an error. What should I do?<br>
+**A**: Double-clicking may start PawPals with a different Java version, or without permission to create its data
+folder. Launch it from a terminal instead:
+1. Open a terminal and `cd` to the folder containing the JAR file.
+1. Run `java -version` and check that it shows version `25` or later.
+1. Run `java -jar "pawpals.jar"`. The quotes help if your file name contains spaces.
+
+**Q**: PawPals starts, but shows an error when I run commands, or my changes are gone after restarting.<br>
+**A**: PawPals saves to a `data` folder inside the folder you launched it from. If that folder is write-protected,
+saving fails. This can happen with system folders such as `Program Files`, a folder opened directly from a zip
+file, or a synced or shared folder. Move `pawpals.jar` into a folder you own (for example `Documents/PawPals`)
+and launch it from there.
+
+**Q**: All my clients disappeared after I started PawPals.<br>
+**A**: First check that you launched PawPals from the same folder as before. PawPals reads `data/pawpals.json`
+relative to the folder you launch it from, so starting it from another folder opens a different, empty data file.
+If you launched it from the right folder, the data file may have been edited into an invalid state; see
+[Editing the data file](#editing-the-data-file).
+
+**Q**: I see `UnsupportedClassVersionError` when starting PawPals.<br>
+**A**: Your computer is running an older version of Java. Install Java `25` (see [Quick start](#quick-start)),
+then check with `java -version` before trying again.
+
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install PawPals on the other computer and overwrite the data file it creates with the data file from your previous PawPals home folder.
+**A**: Install PawPals on the other computer and run it once. Then close it and replace its `data/pawpals.json`
+file with the `data/pawpals.json` file from your previous PawPals home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -669,6 +699,7 @@ Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g.,
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **On macOS, if PawPals is in full-screen mode**, the Help Window opens in its own full-screen space, which takes you away from the main window. Closing the Help Window then leaves you on the desktop rather than in PawPals. To get back, open Mission Control (swipe up with three or four fingers, or press `F3`) and select the PawPals space. To avoid this, exit full-screen mode before opening help.
 
 --------------------------------------------------------------------------------------------------------------------
 
