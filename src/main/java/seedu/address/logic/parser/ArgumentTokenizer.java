@@ -98,8 +98,24 @@ public class ArgumentTokenizer {
      */
     private static int findPrefixPosition(String argsString, String prefix, int fromIndex) {
         int prefixIndex = argsString.indexOf(" " + prefix, fromIndex);
+        while (prefixIndex != -1 && isInsideQuotes(argsString, prefixIndex + 1)) {
+            prefixIndex = argsString.indexOf(" " + prefix, prefixIndex + 1);
+        }
         return prefixIndex == -1 ? -1
                 : prefixIndex + 1; // +1 as offset for whitespace
+    }
+
+    /**
+     * Returns true if the given position is enclosed by an unmatched quote.
+     */
+    private static boolean isInsideQuotes(String argsString, int position) {
+        boolean insideQuotes = false;
+        for (int i = 0; i < position; i++) {
+            if (argsString.charAt(i) == '"') {
+                insideQuotes = !insideQuotes;
+            }
+        }
+        return insideQuotes;
     }
 
     /**
@@ -148,7 +164,13 @@ public class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        return value.trim();
+        String trimmedValue = value.trim();
+        if (trimmedValue.length() >= 2
+                && trimmedValue.startsWith("\"")
+                && trimmedValue.endsWith("\"")) {
+            return trimmedValue.substring(1, trimmedValue.length() - 1);
+        }
+        return trimmedValue;
     }
 
     /**
