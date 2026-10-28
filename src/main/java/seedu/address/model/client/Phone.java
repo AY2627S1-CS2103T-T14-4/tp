@@ -11,7 +11,7 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be between 3 and 15 digits long.";
+            "Phone numbers should contain 3 to 15 digits, with an optional leading '+' and spaces allowed.";
     public static final String VALIDATION_REGEX = "\\d{3,15}";
     public final String value;
 
@@ -22,15 +22,35 @@ public class Phone {
      */
     public Phone(String phone) {
         requireNonNull(phone);
-        checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = phone;
+        String normalizedPhone = normalize(phone);
+        checkArgument(isValidPhone(normalizedPhone), MESSAGE_CONSTRAINTS);
+        value = normalizedPhone;
+    }
+
+    /**
+     * Trims a phone number and collapses repeated whitespace to one space.
+     */
+    private static String normalize(String phone) {
+        return phone.trim().replaceAll("\\s+", " ");
     }
 
     /**
      * Returns true if a given string is a valid phone number.
      */
     public static boolean isValidPhone(String test) {
-        return test.matches(VALIDATION_REGEX);
+        String normalizedPhone = normalize(test);
+        String digitsOnly = digitsOnly(normalizedPhone);
+        return digitsOnly.matches(VALIDATION_REGEX)
+                && normalizedPhone.matches("\\+?[0-9]+(?: [0-9]+)*");
+    }
+
+    /**
+     * Returns the digits of a normalized phone number without its optional plus sign or spaces.
+     */
+    private static String digitsOnly(String normalizedPhone) {
+        return normalizedPhone.startsWith("+")
+                ? normalizedPhone.substring(1).replace(" ", "")
+                : normalizedPhone.replace(" ", "");
     }
 
     @Override
@@ -49,12 +69,12 @@ public class Phone {
             return false;
         }
 
-        return value.equals(otherPhone.value);
+        return digitsOnly(value).equals(digitsOnly(otherPhone.value));
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return digitsOnly(value).hashCode();
     }
 
 }

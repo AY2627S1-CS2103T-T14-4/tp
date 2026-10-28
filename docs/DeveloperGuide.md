@@ -616,7 +616,7 @@ Extensions:
   * 2a1. PawPals displays the corresponding validation message.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
-* 4a. PawPals detects an existing client with the same name and phone number.
+* 4a. PawPals detects an existing client with the same normalized name and phone digits, ignoring the phone's leading `+` and spaces.
   * 4a1. PawPals informs the user that the client already exists.
   * Use case ends.
 
