@@ -958,7 +958,7 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to find pet owners using one or more pet-name keywords.
-2. PawPals searches all pets using full-name matching without regard to letter case.
+2. PawPals searches all pets for complete name words without regard to letter case.
 3. PawPals uses OR matching when multiple keywords are provided.
 4. PawPals displays each client who owns at least one matching pet.
 5. PawPals displays each matching owner only once, even if multiple pets match.
@@ -1248,6 +1248,7 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 |--------------------|-----------------------------------------------------|----------------------------------------------------------------|
 | Find one pet       | `findp Milo`                                        | Owners of pets named `Milo` are listed.                        |
 | Find several pets  | `findp Milo Luna`                                   | Owners of pets named `Milo` or `Luna` are listed.              |
+| Partial pet word   | `findp Mil`                                         | No clients are listed because partial words do not match.      |
 | No match           | `findp Rex`                                         | No clients are listed and the result reports zero pets found.  |
 | No keyword         | `findp`                                             | An invalid command format message is shown.                    |
 | Filtered index     | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
