@@ -84,16 +84,57 @@ public class ClientAppointmentPresentationTest {
     }
 
     @Test
-    public void constructor_multipleAppointments_preservesOrderAndUnresolvedRecordedNames() throws Exception {
+    public void constructor_multipleAppointments_sortsByDateThenTimeAndPreservesStoredOrder() throws Exception {
         runOnFxThread(() -> {
-            Appointment first = new Appointment(DATE, START, "Legacy booking", Set.of(new PetName("Missing")));
+            Appointment first = new Appointment(DATE, START, "Legacy booking", Set.of(new PetName("Missing")))
+                    .withEndTime(new AppointmentTime("15:30"));
             Appointment second = new Appointment(DATE, new AppointmentTime("09:00"));
-            Client client = new ClientBuilder().withPets(MILO).withAppointments(first, second).build();
-            assertEquals(List.of(START_TEXT + " · Missing (Legacy booking)",
-                    "Appointment: 12-12-2026 09:00 · No pets linked"),
+            Appointment nextYear = new Appointment(new AppointmentDate("01-01-2027"),
+                    new AppointmentTime("08:00"));
+            Appointment previousMonth = new Appointment(new AppointmentDate("30-11-2026"),
+                    new AppointmentTime("16:00"));
+            Client client = new ClientBuilder().withPets(MILO)
+                    .withAppointments(first, nextYear, second, previousMonth).build();
+            assertEquals(List.of("Appointment: 30-11-2026 16:00 · No pets linked",
+                    "Appointment: 12-12-2026 09:00 · No pets linked",
+                    START_TEXT + "–15:30 · Missing (Legacy booking)",
+                    "Appointment: 01-01-2027 08:00 · No pets linked"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
+            assertEquals(List.of(first, nextYear, second, previousMonth), client.getAppointments());
             assertEquals(List.of("No appointments scheduled"),
                     appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()));
+            return null;
+        });
+    }
+
+    @Test
+    public void modelUpdates_addedAndRescheduledAppointments_refreshesChronologicalOrder() throws Exception {
+        runOnFxThread(() -> {
+            Appointment first = new Appointment(DATE, START);
+            Appointment nextDay = new Appointment(new AppointmentDate("13-12-2026"),
+                    new AppointmentTime("09:00"));
+            Client initial = new ClientBuilder().withAppointments(first, nextDay).build();
+            ModelManager model = new ModelManager();
+            model.addClient(initial);
+            ClientListPanel panel = new ClientListPanel(model.getFilteredClientList());
+            StackPane root = sceneRoot(panel.getRoot());
+            assertDisplayedAppointments(root, List.of(START_TEXT + " · No pets linked",
+                    "Appointment: 13-12-2026 09:00 · No pets linked"));
+
+            Appointment earlierStart = new Appointment(DATE, new AppointmentTime("09:00"));
+            Client added = initial.copyWithAppointment(earlierStart);
+            model.setClient(initial, added);
+            assertDisplayedAppointments(root, List.of("Appointment: 12-12-2026 09:00 · No pets linked",
+                    START_TEXT + " · No pets linked", "Appointment: 13-12-2026 09:00 · No pets linked"));
+
+            Appointment previousDay = new Appointment(new AppointmentDate("11-12-2026"),
+                    new AppointmentTime("16:00"));
+            Client rescheduled = added.withAppointmentReplaced(DATE, START, previousDay);
+            model.setClient(added, rescheduled);
+            assertDisplayedAppointments(root, List.of("Appointment: 11-12-2026 16:00 · No pets linked",
+                    "Appointment: 12-12-2026 09:00 · No pets linked",
+                    "Appointment: 13-12-2026 09:00 · No pets linked"));
+            assertEquals(List.of(previousDay, nextDay, earlierStart), rescheduled.getAppointments());
             return null;
         });
     }
