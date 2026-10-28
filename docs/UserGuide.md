@@ -141,7 +141,7 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/r
 
 * `NAME` must contain 1 to 60 characters and must start and end with a letter. Only letters, spaces, apostrophes, and hyphens are allowed between those letters. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `PHONE` must contain 3 to 15 digits without spaces.
-* `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
+* `EMAIL` must contain 3 to 254 characters and exactly one `@` symbol. The part before `@` must start and end with a letter or number, and may contain apostrophes, plus signs, underscores, periods, and hyphens between them. Punctuation characters cannot appear next to each other. The domain must contain at least one period, and each part must start and end with a letter or number. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 * `TAG` is optional, may be added more than once, and must contain only letters and numbers.
 
