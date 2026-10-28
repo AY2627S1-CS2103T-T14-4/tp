@@ -77,8 +77,28 @@ public class CancelCommandParserTest {
     }
 
     @Test
-    public void parse_extraValues_failRatherThanCancellingAnotherSlot() {
-        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/15:00", AppointmentTime.MESSAGE_CONSTRAINTS);
+    public void parse_endTimeInAnyPosition_givesUnsupportedEndTimeMessage() {
+        String expectedMessage = CancelCommand.MESSAGE_END_TIME_NOT_SUPPORTED + "\n" + CancelCommand.MESSAGE_USAGE;
+        for (String input : new String[] {
+            " c/1 d/05-12-2026 t/10:00 et/11:30",
+            " et/11:30 c/1 d/05-12-2026 t/10:00",
+            " c/1 et/11:30 d/05-12-2026 t/10:00",
+            " c/1 d/05-12-2026 et/11:30 t/10:00"}) {
+            assertParseFailure(parser, input, expectedMessage);
+        }
+    }
+
+    @Test
+    public void parse_emptyInvalidOrRepeatedEndTime_givesUnsupportedEndTimeMessage() {
+        String expectedMessage = CancelCommand.MESSAGE_END_TIME_NOT_SUPPORTED + "\n" + CancelCommand.MESSAGE_USAGE;
+        for (String endTime : new String[] {"", "11:30.", "25:00", "noon", "11:30 et/12:00"}) {
+            assertParseFailure(parser, " c/1 d/05-12-2026 t/10:00 et/" + endTime, expectedMessage);
+        }
+        assertParseFailure(parser, " c/1 d/05-12-2026 et/11:30", expectedMessage);
+    }
+
+    @Test
+    public void parse_extraPetName_failsRatherThanCancellingAnotherSlot() {
         assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo", AppointmentTime.MESSAGE_CONSTRAINTS);
     }
 }

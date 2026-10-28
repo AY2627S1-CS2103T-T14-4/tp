@@ -163,7 +163,7 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
 * `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 
 Successful output: `New pet added: Milo`
 
@@ -224,6 +224,7 @@ Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
 * `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
 * `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
 * `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
+* If `nt/` comes last, everything after it is the note, including prefix-like text such as `c/o`.
 * If the pet already has a note of that type, the new note replaces it. Other notes are kept.
 * All four prefixes are required, may appear in any order, and must each appear only once.
   Extra text before the first prefix is rejected.

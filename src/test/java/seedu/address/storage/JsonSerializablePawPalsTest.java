@@ -30,6 +30,7 @@ public class JsonSerializablePawPalsTest {
     private static final Path INVALID_CLIENT_FILE = TEST_DATA_FOLDER.resolve("invalidClientPawPals.json");
     private static final Path DUPLICATE_CLIENT_FILE = TEST_DATA_FOLDER.resolve("duplicateClientPawPals.json");
     private static final Path V1_3_FORMAT_FILE = TEST_DATA_FOLDER.resolve("v1.3FormatPawPals.json");
+    private static final Path NULL_CLIENT_FILE = TEST_DATA_FOLDER.resolve("nullClientPawPals.json");
 
     @Test
     public void toModelType_typicalClientsFile_success() throws Exception {
@@ -56,6 +57,14 @@ public class JsonSerializablePawPalsTest {
         JsonSerializablePawPals dataFromFile = JsonUtil.readJsonFile(DUPLICATE_CLIENT_FILE,
                 JsonSerializablePawPals.class).get();
         assertThrows(IllegalValueException.class, JsonSerializablePawPals.MESSAGE_DUPLICATE_CLIENT,
+                dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullClientEntry_throwsIllegalValueException() throws Exception {
+        JsonSerializablePawPals dataFromFile = JsonUtil.readJsonFile(NULL_CLIENT_FILE,
+                JsonSerializablePawPals.class).get();
+        assertThrows(IllegalValueException.class, JsonSerializablePawPals.MESSAGE_MISSING_CLIENT,
                 dataFromFile::toModelType);
     }
 

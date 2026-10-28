@@ -184,7 +184,7 @@ public class DoneCommandTest {
     }
 
     @Test
-    public void execute_completionReleasesRemainingInterval_butBookingStillRequiresFutureStart() throws Exception {
+    public void execute_completionReleasesInterval_andHistoryDoesNotBlockPastBooking() throws Exception {
         Appointment next = new Appointment(DATE, new AppointmentTime("14:15"))
                 .withEndTime(new AppointmentTime("15:00"));
         assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, next, CLOCK), model,
@@ -193,8 +193,12 @@ public class DoneCommandTest {
         new AppointmentCommand(INDEX_FIRST_CLIENT, next, CLOCK).execute(model);
         assertEquals(next, model.getPawPals().getClientList().getFirst().getAppointments().getLast());
         assertEquals(TARGET, model.getPawPals().getClientList().get(1).getHistory().getFirst().getAppointment());
-        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, TARGET, CLOCK), model,
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        assertCommandFailure(new AppointmentCommand(INDEX_SECOND_CLIENT, TARGET, CLOCK), model,
+                "Appointment overlaps with Alice Pauline's appointment: d/12-12-2026 t/14:15 et/15:00.");
+        new CancelCommand(INDEX_FIRST_CLIENT, next.getDate(), next.getTime()).execute(model);
+        new AppointmentCommand(INDEX_SECOND_CLIENT, TARGET, CLOCK).execute(model);
+        assertEquals(TARGET, model.getPawPals().getClientList().get(1).getAppointments().getLast());
+        assertEquals(TARGET, model.getPawPals().getClientList().get(1).getHistory().getFirst().getAppointment());
     }
 
     @Test

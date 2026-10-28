@@ -1,0 +1,71 @@
+name: Alpha bug
+description: Report a bug or suggestion found while alpha-testing the released JAR
+title: "[command] Short description of the problem"
+labels: ["alpha-bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Test the released JAR, not the source code. Use one report per bug.
+  - type: input
+    id: version
+    attributes:
+      label: JAR version
+      placeholder: v1.4
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Java version
+      description: Run `java -version` to check.
+      placeholder: macOS 15, Java 25
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1. Launch the JAR in an empty folder (sample data loaded)
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: Paste the exact feedback text. Drag in a screenshot if it helps.
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      description: Sets the type.* label automatically.
+      options:
+        - Bug (something doesn't work, or the UG or DG is wrong)
+        - Enhancement (works as designed, but the design hinders users, or a suggestion)
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Sets the severity.* label automatically.
+      options:
+        - VeryLow (cosmetic)
+        - Low (rare or minor)
+        - Medium (hinders normal use)
+        - High (crash, data loss or feature unusable)
+        - Not sure
+    validations:
+      required: true

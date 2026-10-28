@@ -24,11 +24,23 @@ public class NoteCommandParserTest {
     }
 
     @Test
-    public void parse_prefixesInDifferentOrder_returnsNoteCommand() {
+    public void parse_prefixesInDifferentOrderWithNoteLast_returnsNoteCommand() {
         NoteCommand expected = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.SENS,
                 new PetNote("Sensitive paws"));
 
+        assertParseSuccess(parser, " ty/SENS pn/Milo c/1 nt/Sensitive paws", expected);
         assertParseSuccess(parser, " nt/Sensitive paws ty/SENS pn/Milo c/1", expected);
+    }
+
+    @Test
+    public void parse_trailingNoteContainingPrefixes_preservesNoteText() {
+        for (String noteText : new String[] {"Use c/o owner's shampoo", "Mention pn/Milo and ty/pref",
+            "c/o owner, pn/Milo, ty/temp"}) {
+            NoteCommand expected = new NoteCommand(INDEX_FIRST_CLIENT, new PetName("Milo"), NoteType.PREF,
+                    new PetNote(noteText));
+
+            assertParseSuccess(parser, " c/1 pn/Milo ty/pref nt/" + noteText, expected);
+        }
     }
 
     @Test

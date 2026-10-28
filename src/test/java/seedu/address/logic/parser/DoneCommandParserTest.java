@@ -44,6 +44,23 @@ public class DoneCommandParserTest {
     }
 
     @Test
+    public void parse_trailingNotesContainingPrefixes_preservesNoteText() {
+        for (String notes : new String[] {"Teddy cut, d/c brushing", "Use c/o owner's shampoo",
+            "d/ t/ c/", "Teddy cut, d/c brushing, c/o owner, t/ trim"}) {
+            DoneCommand expected = new DoneCommand(INDEX_FIRST_CLIENT, new AppointmentDate("05-12-2026"),
+                    new AppointmentTime("10:00"), new SessionNotes(notes));
+            assertParseSuccess(parser, " c/1 d/05-12-2026 t/10:00 nt/  " + notes + "  ", expected);
+            assertParseSuccess(parser, " t/10:00 c/1 d/05-12-2026 nt/" + notes, expected);
+        }
+    }
+
+    @Test
+    public void parse_trailingNotesContainingPrefixesOverLengthLimit_fails() {
+        assertParseFailure(parser, " c/1 d/05-12-2026 t/10:00 nt/" + "x".repeat(198) + " d/c",
+                SessionNotes.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_missingFieldsOrPreamble_fails() {
         for (String input : new String[] {"", " c/1", " d/12-12-2026 t/14:00 nt/Notes",
             " c/1 t/14:00 nt/Notes", " c/1 d/12-12-2026 nt/Notes", " c/1 d/12-12-2026 t/14:00",
@@ -59,10 +76,12 @@ public class DoneCommandParserTest {
         String[] values = {"1", "12-12-2026", "14:00", "Notes"};
         for (int i = 0; i < prefixes.length; i++) {
             for (String value : new String[] {values[i], "different", ""}) {
-                assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 nt/Notes " + prefixes[i] + value,
+                assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 " + prefixes[i] + value + " nt/Notes",
                         Messages.getErrorMessageForDuplicatePrefixes(prefixes[i]));
             }
         }
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 nt/Notes nt/More",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_NOTE));
     }
 
     @Test

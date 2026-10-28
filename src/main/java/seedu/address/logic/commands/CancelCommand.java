@@ -27,6 +27,8 @@ public class CancelCommand extends Command {
             + "Use the appointment's date and start time. Past and future appointments can be cancelled.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/14:00";
     public static final String MESSAGE_SUCCESS = "Cancelled appointment: %1$s d/%2$s t/%3$s";
+    public static final String MESSAGE_END_TIME_NOT_SUPPORTED =
+            "cancel does not accept et/. Remove et/ and use the appointment's date and start time.";
 
     private final Index targetIndex;
     private final AppointmentDate date;

@@ -103,16 +103,32 @@ public class AppointmentLinkedPetsCommandTest {
     }
 
     @Test
-    public void execute_invalidDisplayedIndexOrPastStart_preservesData() {
+    public void execute_invalidDisplayedIndex_preservesData() {
         Model model = modelWith(OTHER_CLIENT, SELECTED);
         model.updateFilteredClientList(client -> client.isSameClient(SELECTED));
         Appointment requested = APPOINTMENT.withPetNames(Set.of(MILO.getName()));
         assertCommandFailure(new AppointmentCommand(INDEX_SECOND_CLIENT, requested, CLOCK), model,
                 Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_pastStartAfterFiltering_resolvesPetAndPreservesOtherData() throws Exception {
+        Model model = modelWith(OTHER_CLIENT, SELECTED);
+        model.updateFilteredClientList(client -> client.isSameClient(SELECTED));
         Appointment past = new Appointment(new AppointmentDate("11-12-2026"), APPOINTMENT.getTime(), "",
-                Set.of(MILO.getName()));
-        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK), model,
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+                Set.of(new PetName("milo"))).withEndTime(new AppointmentTime("15:00"));
+
+        CommandResult result = new AppointmentCommand(INDEX_FIRST_CLIENT, past, CLOCK).execute(model);
+
+        Client expected = SELECTED.copyWithAppointment(past.withPetNames(Set.of(MILO.getName())));
+        assertEquals(List.of(OTHER_CLIENT, expected), model.getPawPals().getClientList());
+        assertEquals(List.of(expected), model.getFilteredClientList());
+        assertEquals("Added appointment: Benson Meier d/11-12-2026 t/14:00 et/15:00 pn/Milo\n"
+                + AppointmentCommand.MESSAGE_PAST_APPOINTMENT, result.getFeedbackToUser());
+
+        assertCommandFailure(new AppointmentCommand(INDEX_FIRST_CLIENT,
+                past.withPetNames(Set.of(LUNA.getName())), CLOCK), model,
+                "This client has no pet named Luna.");
     }
 
     @Test

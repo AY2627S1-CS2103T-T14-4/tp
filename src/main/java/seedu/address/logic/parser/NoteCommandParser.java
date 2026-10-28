@@ -21,8 +21,8 @@ public class NoteCommandParser implements Parser<NoteCommand> {
     @Override
     public NoteCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
-                args, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingText(
+                args, PREFIX_NOTE, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE);
 
         if (!arguments.getPreamble().isEmpty()
                 || !arguments.getValue(PREFIX_CLIENT).isPresent()
