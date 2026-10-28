@@ -35,10 +35,11 @@ public class Breed {
     }
 
     /**
-     * Normalizes the breed by trimming leading and trailing spaces.
+     * Normalizes the breed by trimming leading and trailing spaces and collapsing repeated spaces,
+     * the same way as pet names and species.
      */
     private static String normalize(String breed) {
-        return breed.trim();
+        return breed.trim().replaceAll(" {2,}", " ");
     }
 
     /**
