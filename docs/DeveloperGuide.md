@@ -306,7 +306,8 @@ checks belong to execution because omitted values depend on the original appoint
 
 Success feedback identifies the owner, original and resulting starts, and the resulting end when present.
 The observable list replacement updates the card immediately. The current card format displays the date,
-start and any booking details; end-only edits are confirmed through feedback and saved data. No storage
+start, optional end time, recorded pet names and any nonblank booking details. End-only edits update the
+displayed range as well as feedback and saved data. No storage
 schema change is needed. Save errors retain the application's existing behavior: memory may already
 contain the replacement when writing the file fails.
 
@@ -436,6 +437,12 @@ The `Storage` component,
 * stores each client's pets, active appointments and completed sessions inside that client's JSON object. A pet's notes are saved in its `notes` object, keyed by note type, e.g. `"notes": {"pref": "Teddy cut", "temp": "Nervous around dryers"}`.
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
+`LogicManager#execute(...)` saves after a command returns successfully, including read-only commands such
+as `list`, `find` and `help`. Parsing and command-execution failures bypass saving. A save failure becomes
+a `CommandException`; model changes have already happened and are not rolled back. `FileUtil#writeToFile(...)`
+uses `Files.write(...)` directly, so writes are not atomic and an I/O failure does not guarantee an unchanged file.
+`MainApp` fixes the data path at `data/pawpals.json` relative to the process working directory.
+
 #### Corrupted-data recovery
 
 When `JsonPawPalsStorage` cannot convert `data/pawpals.json` into a valid `PawPals` model,
@@ -535,6 +542,11 @@ All checks happen before the `Model` is changed, so a failed command never leave
 
 
 ### User stories
+
+These stories include implemented features and desired enhancements; priority does not indicate implementation
+status. The current commands are listed in the User Guide. Date-based appointment filtering, searching note
+contents, filtering by safety information and filtering by tags are not implemented. Tags categorise clients
+only. Completed history is a three-session preview per client, without a per-pet search or full-history view.
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
@@ -645,7 +657,7 @@ MSS:
 
 1. User requests to delete a client.
 2. User provides the client's index.
-3. PawPals removes the client and all appointments and pets belonging to the client.
+3. PawPals removes the client and all appointments, pets, pet notes and completed history belonging to the client.
 4. PawPals displays a success message and the updated client list.
 
 Use case ends.
@@ -699,15 +711,16 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to view the records.
-2. PawPals displays all clients with their phone number, address, email, pets, and appointments.
+2. PawPals displays all clients with their phone number, address, email, tags, pets, pet notes, appointments,
+   and up to three recent completed sessions per client.
 
 Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid request.
-  * 1a1. PawPals displays an error message explaining the expected input.
-  * Use case ends.
+* 1a. User adds extra text after `list`.
+  * 1a1. PawPals ignores the extra text.
+  * Use case resumes from step 2.
 
 #### UC06 - Find clients
 
@@ -753,9 +766,9 @@ Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid request.
-  * 1a1. PawPals displays an error message explaining the expected input.
-  * Use case ends.
+* 1a. User adds extra text after `help`.
+  * 1a1. PawPals ignores the extra text.
+  * Use case resumes from step 2.
 
 #### UC08 - Clear all records
 
@@ -767,16 +780,16 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to clear the application data.
-2. PawPals removes all clients, pets, and appointments.
+2. PawPals removes all clients, pets, pet notes, appointments and completed history.
 3. PawPals displays a confirmation message and an empty list.
 
 Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid request.
-  * 1a1. PawPals displays an error message explaining the expected input and retains all records.
-  * Use case ends.
+* 1a. User adds extra text after `clear`.
+  * 1a1. PawPals ignores the extra text.
+  * Use case resumes from step 2.
 
 #### UC09 - Exit PawPals
 
@@ -794,8 +807,11 @@ Use case ends.
 
 Extensions:
 
-* 1a. User provides an invalid request.
-  * 1a1. PawPals displays an error message explaining the expected input.
+* 1a. User adds extra text after `exit`.
+  * 1a1. PawPals ignores the extra text.
+  * Use case resumes from step 2.
+* 2a. Saving fails before PawPals can close.
+  * 2a1. PawPals displays a save error and remains open, as described in UC10.
   * Use case ends.
 
 #### UC10 - Auto-save data
@@ -807,7 +823,7 @@ Preconditions: PawPals is running and the data file is writable.
 
 MSS:
 
-1. User completes an action that changes clients, pets, or appointments.
+1. User executes a command successfully, including a command that only displays records or help.
 2. PawPals saves the updated data automatically.
 3. PawPals keeps the saved data available for the next application launch.
 
@@ -817,7 +833,8 @@ Extensions:
 
 * 2a. PawPals cannot write to the data file because of insufficient permissions, concurrent access, or insufficient disk space.
   * 2a1. PawPals displays the corresponding save failure message.
-  * 2a2. PawPals leaves the data file unchanged.
+  * 2a2. In-memory changes remain. The file may be unchanged or partially written, depending on the failure;
+    the user must resolve the error before relying on persistence.
   * Use case ends.
 
 #### UC11 - Delete pet note
@@ -904,6 +921,33 @@ Extensions:
   * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC14 - Add or update pet note
+
+System: PawPals<br>
+Use case: UC14 - Add or update pet note<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to add or update a pet note.
+2. User provides the client's displayed index, the pet's name, a note type (`pref`, `sens` or `temp`),
+   and note text containing 1 to 200 characters after trimming.
+3. PawPals adds or replaces that type of note, preserving the pet's other notes and the current filter.
+4. PawPals displays success and the updated client card, with safety markers for sensitivity and temperament notes.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides missing, repeated or invalid fields, extra text before the first prefix,
+  or an index outside the displayed client list.
+  * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
+  * Use case ends.
+* 3a. The client has no pet with the supplied name.
+  * 3a1. PawPals identifies the unknown pet and leaves the data unchanged.
+  * Use case ends.
+
 #### UC15 - Find pet owners
 
 System: PawPals<br>
@@ -919,6 +963,18 @@ MSS:
 4. PawPals displays each client who owns at least one matching pet.
 5. PawPals displays each matching owner only once, even if multiple pets match.
 6. PawPals keeps the displayed client indexes available for subsequent client commands.
+
+Use case ends.
+
+Extensions:
+
+* 1a. User provides no keywords.
+  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
+  * Use case ends.
+
+* 1b. No pets match the given keywords.
+  * 1b1. PawPals displays an empty client list and reports that no pets were found.
+  * Use case ends.
 
 #### UC16 - Cancel appointment
 
@@ -938,14 +994,6 @@ MSS:
 Use case ends.
 
 Extensions:
-
-* 1a. User provides no keywords.
-  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
-  * Use case ends.
-
-* 1b. No pets match the given keywords.
-  * 1b1. PawPals displays an empty client list and reports that no pets were found.
-  * Use case ends.
 
 * 2a. User provides a missing, repeated or invalid index, date or start time, or an index outside the displayed list.
   * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
@@ -997,6 +1045,78 @@ Completion is allowed at or after the start, even before the planned end. Comple
 reserve booking time, so a future interval released by completion can be booked again. A new active
 appointment takes precedence over a historical record at the same slot when identifying a completion target.
 
+#### UC18 - Reschedule appointment
+
+System: PawPals<br>
+Use case: UC18 - Reschedule appointment<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to reschedule an appointment.
+2. User provides the client's displayed index, the original date and start time, and at least one new date,
+   start time or end time using `editappt`.
+3. PawPals locates the active booking and constructs its replacement, preserving the duration when moving
+   the start without an explicit new end, or retaining no end time if none was recorded.
+4. PawPals validates the same-day end, strictly future resulting start and conflicts with every other active
+   booking, excluding the original booking.
+5. PawPals replaces the booking, retaining pet links, booking details, other client data and the current filter.
+6. PawPals displays success and the updated client card.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides missing, repeated or invalid fields, no replacement field,
+  or an index outside the displayed client list.
+  * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
+  * Use case ends.
+* 3a. The client has no active appointment at the supplied date and start time.
+  * 3a1. PawPals identifies the missing appointment and leaves the data unchanged.
+  * Use case ends.
+* 4a. The resulting end is not after the start on the same day, or preserving the duration would cross midnight.
+  * 4a1. PawPals displays the corresponding interval validation message and leaves the data unchanged.
+  * Use case ends.
+* 4b. The resulting start is not strictly in the future.
+  * 4b1. PawPals reports that the appointment must start in the future and leaves the data unchanged.
+  * Use case ends.
+* 4c. The replacement overlaps another active booking for any client, including a hidden client.
+  * 4c1. PawPals identifies the conflicting client and booking slot and leaves the data unchanged.
+  * Use case ends.
+
+Past originals may be rescheduled, but the resulting start must be strictly in the future even for an end-only edit.
+
+#### UC19 - Edit client
+
+System: PawPals<br>
+Use case: UC19 - Edit client<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to edit a client.
+2. User provides the client's displayed index and at least one name, phone, email, address or tag field using `edit`.
+3. PawPals validates the supplied values and checks that the resulting name and phone number do not duplicate another client.
+4. PawPals replaces the supplied fields, preserving pets, pet notes, appointments and completed history.
+   Supplied tags replace the whole tag set; an empty `t/` clears it.
+5. PawPals displays success and all clients, clearing any search filter.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides no field to edit, an invalid field or index, a repeated single-valued field,
+  or an index outside the displayed client list.
+  * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
+  * Use case ends.
+* 3a. The resulting name and phone number duplicate another client.
+  * 3a1. PawPals reports the duplicate client and leaves the data unchanged.
+  * Use case ends.
+
+Save failures for record changes follow UC10.
+
 ### Non-Functional Requirements
 
 1. PawPals should work on any mainstream OS as long as it has Java 25 or above installed.
@@ -1007,7 +1127,7 @@ appointment takes precedence over a historical record at the same slot when iden
 
 ### Glossary
 
-* **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have one or more pets.
+* **Client**: A customer of the pet grooming business whose contact and home address information is stored in PawPals. A client may have zero or more pets.
 * **Pet**: An animal belonging to a client whose grooming-related information is managed in PawPals.
 * **Appointment**: A grooming visit associated with a client that remains active until completed or cancelled. Its start may be in the past, present or future.
 * **Grooming session**: A completed grooming service whose details and notes are recorded for future reference.
@@ -1050,20 +1170,20 @@ testers are expected to do more *exploratory* testing.
 Use a disposable copy of PawPals. The following checks include `clear`, which removes all records.
 Resize to the minimum window width and check that text remains readable.
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Initial feedback | Launch PawPals. | `Info` shows the initial command guidance. |
-| Empty database | Run `clear`, then `find Nobody`. | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`. |
-| Empty card | Run `addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road`. | `Success` identifies Alice. Her card shows no pets, appointments, or completed sessions. |
-| Search without matches | Run `find Nobody`, then `findp Nobody`, then `list`. | Each search shows the no-matches placeholder with `Info`; `list` restores Alice's card. |
-| Empty notes | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`. | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`. |
-| Remove last note and pet | Run `delnote c/1 pn/Milo ty/sens`, then `delp c/1 pn/Milo`. | The empty-note message returns after `delnote`; after `delp`, the empty-pets message replaces the pet and its notes. |
-| Last appointment cancelled | Add `appt c/1 d/FUTURE_DATE t/14:00`, using a future date in `DD-MM-YYYY`, then `cancel c/1 d/FUTURE_DATE t/14:00`. | The appointment replaces its empty message; cancellation restores it. |
-| First completed session | Add a future booking, wait until its start, then run `done c/1 d/DATE t/TIME nt/Trim completed` using its recorded date/start. | The active booking disappears and its empty message returns. `No completed sessions` disappears and the completed session appears with its recorded times, pet names and notes. |
-| Error and correction | Submit `unknown` twice. Edit it to `list`, then press Enter. | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input. |
-| Error to success | Submit `unknown`, then a valid `addc` for another client. | `Success` replaces `Error` without stale error styling. |
-| Long feedback | Submit `appt` without arguments and scroll within its feedback. Then submit `list`. | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling. |
-| Last client removed | Run `clear`, add Alice again, then run `delc 1`. | The empty-database message returns after the last client is deleted. |
+| Scenario                   | Commands or action                                                                                                             | Expected result                                                                                                                                                                 |
+|----------------------------|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Initial feedback           | Launch PawPals.                                                                                                                | `Info` shows the initial command guidance.                                                                                                                                      |
+| Empty database             | Run `clear`, then `find Nobody`.                                                                                               | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`.                                                              |
+| Empty card                 | Run `addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road`.                                                        | `Success` identifies Alice. Her card shows no pets, appointments, or completed sessions.                                                                                        |
+| Search without matches     | Run `find Nobody`, then `findp Nobody`, then `list`.                                                                           | Each search shows the no-matches placeholder with `Info`; `list` restores Alice's card.                                                                                         |
+| Empty notes                | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`.                                       | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`.                                                                       |
+| Remove last note and pet   | Run `delnote c/1 pn/Milo ty/sens`, then `delp c/1 pn/Milo`.                                                                    | The empty-note message returns after `delnote`; after `delp`, the empty-pets message replaces the pet and its notes.                                                            |
+| Last appointment cancelled | Add `appt c/1 d/FUTURE_DATE t/14:00`, using a future date in `DD-MM-YYYY`, then `cancel c/1 d/FUTURE_DATE t/14:00`.            | The appointment replaces its empty message; cancellation restores it.                                                                                                           |
+| First completed session    | Add a future booking, wait until its start, then run `done c/1 d/DATE t/TIME nt/Trim completed` using its recorded date/start. | The active booking disappears and its empty message returns. `No completed sessions` disappears and the completed session appears with its recorded times, pet names and notes. |
+| Error and correction       | Submit `unknown` twice. Edit it to `list`, then press Enter.                                                                   | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input.                 |
+| Error to success           | Submit `unknown`, then a valid `addc` for another client.                                                                      | `Success` replaces `Error` without stale error styling.                                                                                                                         |
+| Long feedback              | Submit `appt` without arguments and scroll within its feedback. Then submit `list`.                                            | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling.                                                           |
+| Last client removed        | Run `clear`, add Alice again, then run `delc 1`.                                                                               | The empty-database message returns after the last client is deleted.                                                                                                            |
 
 ### Adding and persisting pets
 
@@ -1078,12 +1198,12 @@ addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Add a pet | `addp c/1 n/Milo s/Dog b/Poodle` | Success message appears and Alice's card shows `Pet: Milo (Dog, Poodle)`. Bob's card has no pet entry. |
-| Add a pet to another client | `addp c/2 n/Luna s/Cat b/Persian` | Luna appears under Bob. Alice still shows only Milo. |
-| Restart and reload | Run `exit`, relaunch from the same folder, and run `list`. | Milo remains under Alice and Luna remains under Bob. Client details are unchanged. |
-| Legacy client without pets | In a disposable `data/pawpals.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
+| Scenario                    | Commands or action                                                                  | Expected result                                                                                        |
+|-----------------------------|-------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Add a pet                   | `addp c/1 n/Milo s/Dog b/Poodle`                                                    | Success message appears and Alice's card shows `Pet: Milo (Dog, Poodle)`. Bob's card has no pet entry. |
+| Add a pet to another client | `addp c/2 n/Luna s/Cat b/Persian`                                                   | Luna appears under Bob. Alice still shows only Milo.                                                   |
+| Restart and reload          | Run `exit`, relaunch from the same folder, and run `list`.                          | Milo remains under Alice and Luna remains under Bob. Client details are unchanged.                     |
+| Legacy client without pets  | In a disposable `data/pawpals.json`, remove a client's `pets` property and restart. | The client still loads correctly and shows `No pets recorded`.                                         |
 
 ### Deleting a pet note
 
@@ -1095,43 +1215,43 @@ note c/1 pn/Milo ty/temp nt/Nervous around dryers
 note c/1 pn/Milo ty/pref nt/Teddy cut
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Delete a note | `delnote c/1 pn/Milo ty/temp` | `Deleted temperament note for Milo`. The ⚠ Temp line disappears from Milo; the Pref line remains. |
-| Pet name and type in any case | `delnote c/1 pn/MILO ty/PREF` | `Deleted preference note for Milo`. Milo now has no notes. |
-| No such note | `delnote c/1 pn/Milo ty/sens` | `Milo has no sensitivity note to delete.` No data changes. |
-| Unknown pet | `delnote c/1 pn/Rex ty/pref` | `This client has no pet named Rex.` No data changes. |
-| Invalid type | `delnote c/1 pn/Milo ty/mood` | `Note type must be pref, sens or temp.` |
-| Missing prefix | `delnote c/1 pn/Milo` | `Invalid command format!` followed by the `delnote` usage. |
-| Repeated prefix | `delnote c/1 pn/Milo ty/pref ty/temp` | `Multiple values specified for the following single-valued field(s): ty/` |
-| Filtered index | `note c/2 pn/Luna ty/sens nt/No perfume`, then `find Bob`, then `delnote c/1 pn/Luna ty/sens`. | Index 1 refers to Bob in the filtered list, so Luna's note is deleted. Run `list`: Alice is unchanged. |
-| Restart | Add a note with `note`, delete a different one with `delnote`, then run `exit`, relaunch and run `list`. | The added note is still shown and the deleted note is still gone. |
+| Scenario                      | Commands or action                                                                                       | Expected result                                                                                        |
+|-------------------------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Delete a note                 | `delnote c/1 pn/Milo ty/temp`                                                                            | `Deleted temperament note for Milo`. The ⚠ Temp line disappears from Milo; the Pref line remains.     |
+| Pet name and type in any case | `delnote c/1 pn/MILO ty/PREF`                                                                            | `Deleted preference note for Milo`. Milo now has no notes.                                             |
+| No such note                  | `delnote c/1 pn/Milo ty/sens`                                                                            | `Milo has no sensitivity note to delete.` No data changes.                                             |
+| Unknown pet                   | `delnote c/1 pn/Rex ty/pref`                                                                             | `This client has no pet named Rex.` No data changes.                                                   |
+| Invalid type                  | `delnote c/1 pn/Milo ty/mood`                                                                            | `Note type must be pref, sens or temp.`                                                                |
+| Missing prefix                | `delnote c/1 pn/Milo`                                                                                    | `Invalid command format!` followed by the `delnote` usage.                                             |
+| Repeated prefix               | `delnote c/1 pn/Milo ty/pref ty/temp`                                                                    | `Multiple values specified for the following single-valued field(s): ty/`                              |
+| Filtered index                | `note c/2 pn/Luna ty/sens nt/No perfume`, then `find Bob`, then `delnote c/1 pn/Luna ty/sens`.           | Index 1 refers to Bob in the filtered list, so Luna's note is deleted. Run `list`: Alice is unchanged. |
+| Restart                       | Add a note with `note`, delete a different one with `delnote`, then run `exit`, relaunch and run `list`. | The added note is still shown and the deleted note is still gone.                                      |
 
 ### Finding clients
 
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
 Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future appointment date where needed.
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Find by name | `find Alice` | Clients whose names contain the full word `Alice` are listed. |
-| Find by phone | `find 91234567` | Clients with that exact phone number are listed. |
-| Find by email | `find alice@example.com` | Clients with that exact email are listed. |
-| Partial phone | `find 9123` | No client is returned for the partial phone number. |
-| Partial email | `find alice@example` | No client is returned for the partial email address. |
-| Partial name | `find Ali` | No client is returned unless `Ali` is a complete name word. |
+| Scenario       | Commands or action                                  | Expected result                                                 |
+|----------------|-----------------------------------------------------|-----------------------------------------------------------------|
+| Find by name   | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.   |
+| Find by phone  | `find 91234567`                                     | Clients with that exact phone number are listed.                |
+| Find by email  | `find alice@example.com`                            | Clients with that exact email are listed.                       |
+| Partial phone  | `find 9123`                                         | No client is returned for the partial phone number.             |
+| Partial email  | `find alice@example`                                | No client is returned for the partial email address.            |
+| Partial name   | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.     |
 | Filtered index | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list. |
 
 ### Finding pets
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Find one pet | `findp Milo` | Owners of pets named `Milo` are listed. |
-| Find several pets | `findp Milo Luna` | Owners of pets named `Milo` or `Luna` are listed. |
-| No match | `findp Rex` | No clients are listed and the result reports zero pets found. |
-| No keyword | `findp` | An invalid command format message is shown. |
-| Filtered index | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
-| Future appointment | `findp Milo`, then `appt c/1 d/FUTURE_DATE t/12:00` | The appointment is added to the filtered owner. |
+| Scenario           | Commands or action                                  | Expected result                                                |
+|--------------------|-----------------------------------------------------|----------------------------------------------------------------|
+| Find one pet       | `findp Milo`                                        | Owners of pets named `Milo` are listed.                        |
+| Find several pets  | `findp Milo Luna`                                   | Owners of pets named `Milo` or `Luna` are listed.              |
+| No match           | `findp Rex`                                         | No clients are listed and the result reports zero pets found.  |
+| No keyword         | `findp`                                             | An invalid command format message is shown.                    |
+| Filtered index     | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
+| Future appointment | `findp Milo`, then `appt c/1 d/FUTURE_DATE t/12:00` | The appointment is added to the filtered owner.                |
 
 ### Deleting a client
 
@@ -1140,7 +1260,7 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
    1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
    1. Test case: `delc 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first client is deleted from the list. The status message shows the deleted client's details.
 
    1. Test case: `delc 0`<br>
       Expected: No client is deleted. The status message shows error details.
@@ -1148,7 +1268,9 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
    1. Other incorrect delete commands to try: `delc`, `delc x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
+1. Run `find Bob` with an existing Bob client, then `delc 1`.<br>
+   Expected: Bob and his pets, notes, appointments and history are removed. Other clients are unchanged
+   when shown again with `list`. Restarting does not restore Bob.
 
 ### Editing a pet
 
@@ -1163,16 +1285,16 @@ note c/1 pn/Milo ty/temp nt/Nervous around dryers
 appt c/1 d/FUTURE_DATE t/14:00 pn/Milo
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Edit the breed | `editp c/1 pn/milo b/Toy Poodle` | `Edited pet: Milo (Dog, Toy Poodle)`. Milo keeps his ⚠ Temp note. |
-| Rename a linked pet | `editp c/1 pn/Milo n/Max`, then open `data/pawpals.json`. | `Edited pet: Max (Dog, Toy Poodle)`. Max keeps the note. In the data file, the appointment's `pets` array is now `["Max"]`. |
-| Rename to another pet's name | `editp c/1 pn/Max n/LUNA` | `This client already has a pet with the same name.` No data changes. |
-| No field to edit | `editp c/1 pn/Max` | `At least one field to edit must be provided.` |
-| Unknown pet | `editp c/1 pn/Rex b/Beagle` | `This client has no pet named Rex.` |
-| Repeated prefix | `editp c/1 pn/Max b/Pug b/Pug` | `Multiple values specified for the following single-valued field(s): b/` |
-| Invalid value | `editp c/1 pn/Max s/Dog!` | The species validation message from `addp`. |
-| Restart | Run `exit`, relaunch and run `list`. | The pet is still named Max with breed Toy Poodle. In `data/pawpals.json`, the appointment's `pets` array is still `["Max"]`. |
+| Scenario                     | Commands or action                                        | Expected result                                                                                                              |
+|------------------------------|-----------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| Edit the breed               | `editp c/1 pn/milo b/Toy Poodle`                          | `Edited pet: Milo (Dog, Toy Poodle)`. Milo keeps his ⚠ Temp note.                                                           |
+| Rename a linked pet          | `editp c/1 pn/Milo n/Max`, then open `data/pawpals.json`. | `Edited pet: Max (Dog, Toy Poodle)`. Max keeps the note. In the data file, the appointment's `pets` array is now `["Max"]`.  |
+| Rename to another pet's name | `editp c/1 pn/Max n/LUNA`                                 | `This client already has a pet with the same name.` No data changes.                                                         |
+| No field to edit             | `editp c/1 pn/Max`                                        | `At least one field to edit must be provided.`                                                                               |
+| Unknown pet                  | `editp c/1 pn/Rex b/Beagle`                               | `This client has no pet named Rex.`                                                                                          |
+| Repeated prefix              | `editp c/1 pn/Max b/Pug b/Pug`                            | `Multiple values specified for the following single-valued field(s): b/`                                                     |
+| Invalid value                | `editp c/1 pn/Max s/Dog!`                                 | The species validation message from `addp`.                                                                                  |
+| Restart                      | Run `exit`, relaunch and run `list`.                      | The pet is still named Max with breed Toy Poodle. In `data/pawpals.json`, the appointment's `pets` array is still `["Max"]`. |
 
 ### Deleting a pet
 
@@ -1213,23 +1335,24 @@ addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 
 The separate client-add section of the User Guide also uses `addc`.
 
-| Scenario                                | Commands or action                                                                                   | Expected result                                                                                                     |
-|-----------------------------------------|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34`                                                                     | Success names Alice Test; her card shows the date/time. Bob's card is unchanged.                                    |
-| Duplicate for the same client           | Repeat the previous command.                                                                         | Overlap rejection identifies Alice and her existing slot; no extra appointment appears.                             |
-| Same slot for another client            | `appt c/2 d/FUTURE_DATE t/12:34`                                                                     | Overlap rejection identifies Alice and her existing slot; no data changes.                                          |
-| Invalid date                            | `appt c/1 d/31-04-2027 t/12:34`                                                                      | Date-validation message; no data changes.                                                                           |
-| Invalid time                            | `appt c/1 d/FUTURE_DATE t/24:00`                                                                     | Time-validation message; no data changes.                                                                           |
-| Missing field                           | `appt c/1 d/FUTURE_DATE`                                                                             | Invalid-format message and usage instructions; no data changes.                                                     |
-| Repeated prefix                         | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34`                                                             | Duplicate-prefix message for `t/`, even though the values match.                                                    |
-| Invalid index                           | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment.                                     | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
+| Scenario                                | Commands or action                                                                                   | Expected result                                                                                                                               |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Valid appointment without recorded pets | `appt c/1 d/FUTURE_DATE t/12:34`                                                                     | Success names Alice Test; her card shows the date/time. Bob's card is unchanged.                                                              |
+| Duplicate for the same client           | Repeat the previous command.                                                                         | Overlap rejection identifies Alice and her existing slot; no extra appointment appears.                                                       |
+| Same slot for another client            | `appt c/2 d/FUTURE_DATE t/12:34`                                                                     | Overlap rejection identifies Alice and her existing slot; no data changes.                                                                    |
+| Invalid date                            | `appt c/1 d/31-04-2027 t/12:34`                                                                      | Date-validation message; no data changes.                                                                                                     |
+| Invalid time                            | `appt c/1 d/FUTURE_DATE t/24:00`                                                                     | Time-validation message; no data changes.                                                                                                     |
+| Missing field                           | `appt c/1 d/FUTURE_DATE`                                                                             | Invalid-format message and usage instructions; no data changes.                                                                               |
+| Repeated prefix                         | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34`                                                             | Duplicate-prefix message for `t/`, even though the values match.                                                                              |
+| Invalid index                           | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment.                                     | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message.                           |
 | Past appointment                        | `appt c/1 d/01-01-2000 t/12:34`                                                                      | Appointment is added with the past-appointment note. Use `done c/1 d/01-01-2000 t/12:34 nt/Recorded visit` to move it into completed history. |
-| Chronological display                   | Add `appt c/1 d/20-12-2099 t/10:00`, then `appt c/1 d/01-12-2099 t/14:00`, then `appt c/1 d/01-12-2099 t/09:00`. | These rows appear in order: 01-12-2099 09:00, 01-12-2099 14:00, 20-12-2099 10:00. The order remains after restarting. |
-| Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | Both succeed when the slots do not overlap. A start earlier than the computer's local time includes the informational note. |
-| Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.        |
-| Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                      |
-| Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                   | Bob's phone changes, and all his appointments remain.                                                               |
-| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                         | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.      |
+| Chronological display                   | Add `appt c/1 d/20-12-2099 t/10:00`, then `appt c/1 d/01-12-2099 t/14:00`, then `appt c/1 d/01-12-2099 t/09:00`. | These rows appear in order: 01-12-2099 09:00, 01-12-2099 14:00, 20-12-2099 10:00. The order remains after restarting.             |
+| Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | Both succeed when the slots do not overlap. A start earlier than the computer's local time includes the informational note.                   |
+| Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.                                  |
+| Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                                                |
+| Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                   | Bob's phone changes, and all his appointments remain.                                                                                         |
+| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                         | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
+
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 
@@ -1247,10 +1370,12 @@ and keeps the filter. Booking for Bob at `14:30–15:30` with `pn/Luna` must rej
 Alice. Booking for Bob with `pn/Milo` must reject the pet belonging only to Alice. An empty `pn/` must
 reject the input. These failures must leave the client data, filter and saved file unchanged.
 Restart and inspect the saved appointments' `pets` arrays to verify the recorded names and input order
-are retained, together with their end times. Appointment-card presentation is a separate UI concern.
+are retained, together with their end times. The card must show the range and names in that same order;
+an appointment without links shows `No pets linked`.
 
 For stored details, close the app, add `"details": "Call on arrival"` to an appointment object in the
-disposable `data/pawpals.json`, and restart. Expect `(Call on arrival)` after its date/time.
+disposable `data/pawpals.json`, and restart. Expect `(Call on arrival)` after its linked pet names
+or `No pets linked`.
 Empty or whitespace-only details must not add empty parentheses. The current `appt` command does not accept details.
 
 Additional disposable-file checks:
@@ -1279,23 +1404,23 @@ appt c/2 d/FUTURE_DATE t/16:00 et/17:00
 find Alice
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Preserve duration and exclude original | `editappt c/1 d/FUTURE_DATE t/14:00 ns/14:30` | Succeeds with `et/16:00`, adjacent to Bob's booking. Alice's row updates immediately; the filter stays active. |
-| Date only | `editappt c/1 d/FUTURE_DATE t/14:00 nd/OTHER_FUTURE_DATE` | Date changes; start remains 14:00 and feedback ends with `et/15:30`. |
-| End only | `editappt c/1 d/FUTURE_DATE t/14:00 ne/15:45` | Feedback reports `et/15:45`; start and date remain unchanged. |
-| Same-day end boundary | Try `ns/22:30`, then `ns/22:29`, in an otherwise valid edit of the 14:00 booking. | First edit rejects the midnight end and suggests `ne/`; second succeeds with `et/23:59`. |
-| Explicit end overrides duration | `editappt c/1 d/FUTURE_DATE t/14:00 ns/23:00 ne/23:30` | Succeeds with the supplied end instead of preserving the 90-minute duration. |
-| Start-only booking | Add `appt c/1 d/FUTURE_DATE t/18:00`, then edit that slot with `ns/19:00`. Edit the new 19:00 slot with `ne/20:00`. | First move retains no end; the second edit adds one. |
-| Hidden conflict | `editappt c/1 d/FUTURE_DATE t/14:00 ns/16:00` | Rejects Bob's hidden booking. Alice's booking, filter and saved file remain unchanged. |
-| Missing edits or malformed time | Use the original target with no edits, then with `ns/24:00`. | Corresponding error feedback appears; failed input remains for correction and the row is unchanged. |
-| Invalid end or past start | Use the original target with `ne/14:00`, then with `nd/01-01-2000`. | Rejects the invalid end or non-future start without changing data. |
-| Displayed index | Use `c/2` while only Alice is displayed. | Invalid displayed-index message; Bob is not edited. |
-| Correct failed input | After a rejection, change the input to a valid edit and press Enter. | Error styling clears on editing; success feedback appears and the command box clears. |
-| Save/reload and preservation | Make a valid move, exit, relaunch from the same folder and inspect the booking and saved file. | Only the edited slot changes. Linked pets, their order, details, other bookings, pet notes and history remain intact. Use the new date/start for subsequent commands. |
+| Scenario                               | Commands or action                                                                                                  | Expected result                                                                                                                                                       |
+|----------------------------------------|---------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Preserve duration and exclude original | `editappt c/1 d/FUTURE_DATE t/14:00 ns/14:30`                                                                       | Succeeds with `et/16:00`, adjacent to Bob's booking. Alice's row updates immediately; the filter stays active.                                                        |
+| Date only                              | `editappt c/1 d/FUTURE_DATE t/14:00 nd/OTHER_FUTURE_DATE`                                                           | Date changes; start remains 14:00 and feedback ends with `et/15:30`.                                                                                                  |
+| End only                               | `editappt c/1 d/FUTURE_DATE t/14:00 ne/15:45`                                                                       | Feedback reports `et/15:45`; start and date remain unchanged.                                                                                                         |
+| Same-day end boundary                  | Try `ns/22:30`, then `ns/22:29`, in an otherwise valid edit of the 14:00 booking.                                   | First edit rejects the midnight end and suggests `ne/`; second succeeds with `et/23:59`.                                                                              |
+| Explicit end overrides duration        | `editappt c/1 d/FUTURE_DATE t/14:00 ns/23:00 ne/23:30`                                                              | Succeeds with the supplied end instead of preserving the 90-minute duration.                                                                                          |
+| Start-only booking                     | Add `appt c/1 d/FUTURE_DATE t/18:00`, then edit that slot with `ns/19:00`. Edit the new 19:00 slot with `ne/20:00`. | First move retains no end; the second edit adds one.                                                                                                                  |
+| Hidden conflict                        | `editappt c/1 d/FUTURE_DATE t/14:00 ns/16:00`                                                                       | Rejects Bob's hidden booking. Alice's booking, filter and saved file remain unchanged.                                                                                |
+| Missing edits or malformed time        | Use the original target with no edits, then with `ns/24:00`.                                                        | Corresponding error feedback appears; failed input remains for correction and the row is unchanged.                                                                   |
+| Invalid end or past start              | Use the original target with `ne/14:00`, then with `nd/01-01-2000`.                                                 | Rejects the invalid end or non-future start without changing data.                                                                                                    |
+| Displayed index                        | Use `c/2` while only Alice is displayed.                                                                            | Invalid displayed-index message; Bob is not edited.                                                                                                                   |
+| Correct failed input                   | After a rejection, change the input to a valid edit and press Enter.                                                | Error styling clears on editing; success feedback appears and the command box clears.                                                                                 |
+| Save/reload and preservation           | Make a valid move, exit, relaunch from the same folder and inspect the booking and saved file.                      | Only the edited slot changes. Linked pets, their order, details, other bookings, pet notes and history remain intact. Use the new date/start for subsequent commands. |
 
-End times are confirmed in feedback and saved data; the current card shows its date, start and any
-nonblank details. To test stored details, use the disposable-file procedure under Adding appointments.
+End times are confirmed in feedback, saved data and the card's displayed range. The card also shows
+recorded pet names and any nonblank details. To test stored details, use the disposable-file procedure under Adding appointments.
 Automated UI tests verify row replacement, feedback, filtering and retained failed input; these manual
 checks also allow visual inspection in the packaged application.
 
@@ -1303,8 +1428,8 @@ checks also allow visual inspection in the packaged application.
 
 Use a disposable copy of the JAR in an empty folder, as in [Adding appointments](#adding-appointments).
 Replace all date and time placeholders below; do not type them literally. Inspect `data/pawpals.json`
-without editing it while PawPals is running. History checks use the saved file because completed sessions
-are not currently displayed on the client card.
+without editing it while PawPals is running. History checks use the saved file to verify the full records;
+the client card previews up to three recent completed sessions.
 
 **Cancellation setup:** replace `FUTURE_DATE` with a valid future date in `DD-MM-YYYY` format.
 Reset to this setup before each independent table row; perform commands within a row in order.
@@ -1371,6 +1496,34 @@ For rejection rows, compare the saved file before and after and verify that no h
 | Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt`. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, the booking is still accepted with an informational note. |
 | Completion survives restart | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`. | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session. |
 
+### Viewing completed-session history
+
+Use the disposable folder described under [Adding appointments](#adding-appointments). Run the setup below
+once, then perform the three table rows in order. These four dates are in the past; `appt` accepts them directly,
+so no data-file edits or waiting are needed. Each past booking succeeds with an informational note.
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+appt c/1 d/01-01-2000 t/14:00 et/15:00 pn/Milo
+appt c/1 d/02-01-2000 t/14:00 et/15:00 pn/Milo
+appt c/1 d/03-01-2000 t/14:00 et/15:00 pn/Milo
+appt c/1 d/04-01-2000 t/14:00 et/15:00 pn/Milo
+find Alice
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Preview limit and order | Run `done c/1 d/03-01-2000 t/14:00 nt/Trim completed`, then repeat with dates `01-01-2000`, `04-01-2000` and `02-01-2000` in that order. | Alice has no active bookings. History shows exactly three sessions, dated 04, 03 and 02 January 2000 in that order, each with 14:00–15:00, Milo and `Notes: Trim completed`. All four sessions remain in her saved `history` array. Bob remains hidden. |
+| Historical names | Run `editp c/1 pn/Milo n/Max`, then `delp c/1 pn/Max`. | Alice has no current pets, but all displayed and stored historical pet names remain Milo. The preview still shows three sessions. |
+| Reload showing three of four | Run `exit`, relaunch from the same folder and run `list`. | Alice still has four stored sessions, with only the newest three displayed in the same order and with Milo recorded. Bob's records are unchanged. |
+
+History is ordered by appointment date, then start time, then logging instant, all newest first.
+Use the existing fixed-clock history tests for timestamp tie-breaking. Command validation, repeated completion
+and pre-start rejection are covered under [Cancelling and completing appointments](#cancelling-and-completing-appointments).
+
 ### Saving data
 
 Use a disposable copy of the JAR in an empty folder, and keep a backup of `data/pawpals.json` before editing it.
@@ -1378,7 +1531,7 @@ Use a disposable copy of the JAR in an empty folder, and keep a backup of `data/
 1. Missing data file
 
    1. Close PawPals, delete `data/pawpals.json`, and relaunch.<br>
-      Expected: The sample clients are shown. Running any command, such as `list`, creates a new `data/pawpals.json`.
+      Expected: The sample clients are shown. Successfully executing a command, such as `list`, creates a new `data/pawpals.json`.
 
 1. Corrupted data file
 
@@ -1395,7 +1548,8 @@ Use a disposable copy of the JAR in an empty folder, and keep a backup of `data/
 
    1. Close PawPals. In `data/pawpals.json`, remove the `notes` field from a pet, and the `endTime` and `pets` fields
       from an appointment. These fields did not exist in v1.3. Relaunch.<br>
-      Expected: The data loads. That pet shows no notes, and that appointment shows only its date and start time.
+      Expected: The data loads. That pet shows `No notes recorded`; the appointment shows its date, start time,
+      `No pets linked` and any nonblank details, without an end-time range.
 
 1. New data is kept after restarting
 
