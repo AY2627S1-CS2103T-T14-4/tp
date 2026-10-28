@@ -69,9 +69,6 @@ public class UiManager implements Ui {
      * @return true if the user explicitly chooses to continue
      */
     private boolean showDataRecoveryWarning(DataRecoveryInfo recoveryInfo) {
-        String backupMessage = recoveryInfo.backupFilePath()
-                .map(path -> "A backup was created at:\n" + path)
-                .orElse("PawPals could not create a backup of the rejected file.");
         ButtonType continueButton = new ButtonType("Continue");
         ButtonType exitButton = new ButtonType("Exit");
         Alert alert = new Alert(AlertType.WARNING, "", continueButton, exitButton);
@@ -79,12 +76,19 @@ public class UiManager implements Ui {
         alert.initOwner(mainWindow.getPrimaryStage());
         alert.setTitle("Data recovery required");
         alert.setHeaderText("PawPals could not load " + recoveryInfo.dataFilePath());
-        alert.setContentText("The application is using an empty client list. "
-                + "Choose Continue to allow future commands to replace the rejected data file, "
-                + "or Exit to close without saving.\n\nReason: " + recoveryInfo.loadingError()
-                + "\n\n" + backupMessage);
+        alert.setContentText(getDataRecoveryWarningContent(recoveryInfo));
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
         return alert.showAndWait().filter(continueButton::equals).isPresent();
+    }
+
+    static String getDataRecoveryWarningContent(DataRecoveryInfo recoveryInfo) {
+        String backupMessage = recoveryInfo.backupFilePath()
+                .map(path -> "A backup was created at:\n" + path)
+                .orElse("PawPals could not create a backup of the rejected file.");
+        return "The application is using an empty client list. "
+                + "Choose Continue to allow future commands to replace the rejected data file, "
+                + "or Exit to close without saving.\n\nReason: " + recoveryInfo.loadingError()
+                + "\n\n" + backupMessage;
     }
 
     private Image getImage(String imagePath) {
