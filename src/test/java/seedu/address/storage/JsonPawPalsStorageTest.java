@@ -93,8 +93,8 @@ public class JsonPawPalsStorageTest {
 
     @Test
     public void backupCorruptedData_copyFails_deletesTemporaryBackup() throws Exception {
-        Path directory = Files.createDirectory(testFolder.resolve("directory"));
-        JsonPawPalsStorage storage = new JsonPawPalsStorage(directory);
+        Path missingFile = testFolder.resolve("missing.json");
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(missingFile);
 
         assertThrows(IOException.class, storage::backupCorruptedData);
     }
