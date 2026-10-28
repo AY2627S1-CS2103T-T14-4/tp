@@ -903,6 +903,32 @@ Extensions:
   * 3a1. PawPals informs the user that the client already has a pet with that name, leaving all data unchanged.
   * Use case ends.
 
+#### UC14 - Add or update pet note
+
+System: PawPals<br>
+Use case: UC14 - Add or update pet note<br>
+Actor: User<br>
+Preconditions: PawPals is running and the client exists in the displayed client list.
+
+MSS:
+
+1. User requests to add or update a note for one of a client's pets.
+2. User provides the client's index, the pet's name, the note type and the note text.
+3. PawPals adds the note, or replaces the existing note of the same type for that pet.
+4. PawPals displays a success message and the updated client card. Sensitivity and temperament notes are marked with `⚠` as safety information.
+
+Use case ends.
+
+Extensions:
+
+* 2a. User provides a missing, repeated or invalid client index, pet name, note type or note text.
+  * 2a1. PawPals displays the corresponding validation message and leaves all data unchanged.
+  * 2a2. User provides corrected details.
+  * Use case resumes from step 3.
+* 2b. The client has no pet with the provided name.
+  * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+  * Use case ends.
+
 #### UC15 - Find pet owners
 
 System: PawPals<br>
@@ -1084,6 +1110,29 @@ addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 | Restart and reload | Run `exit`, relaunch from the same folder, and run `list`. | Milo remains under Alice and Luna remains under Bob. Client details are unchanged. |
 | Legacy client without pets | In a disposable `data/pawpals.json`, remove a client's `pets` property and restart. | The client still loads correctly and displays without a pet entry. |
 
+### Adding or updating a pet note
+
+Set up one client with a pet:
+
+```text
+clear
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+addp c/1 n/Milo s/Dog b/Poodle
+```
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Add a preference note | `note c/1 pn/Milo ty/pref nt/Likes quiet grooming` | `Updated preference note for Milo: Likes quiet grooming`. The note appears without `⚠`. |
+| Add a sensitivity note | `note c/1 pn/Milo ty/sens nt/Sensitive paws` | `Updated sensitivity note for Milo: Sensitive paws`. The note appears with `⚠ Sens`. |
+| Add a temperament note | `note c/1 pn/Milo ty/temp nt/Anxious around dryers` | `Updated temperament note for Milo: Anxious around dryers`. The note appears with `⚠ Temp`. |
+| Replace an existing note | `note c/1 pn/Milo ty/pref nt/Prefers a teddy cut` | The preference note is replaced; the old preference text is no longer shown. Existing sensitivity and temperament notes remain. |
+| Unknown pet | `note c/1 pn/Rex ty/pref nt/Likes treats` | `This client has no pet named Rex.` No data changes. |
+| Invalid note type | `note c/1 pn/Milo ty/mood nt/Likes treats` | `Note type must be pref, sens or temp.` |
+| Empty note | `note c/1 pn/Milo ty/pref nt/` | The note-length validation message is shown. No data changes. |
+| Note over 200 characters | `note c/1 pn/Milo ty/pref nt/<201-character note>` | The note-length validation message is shown. No data changes. |
+| Repeated prefix | `note c/1 pn/Milo ty/pref ty/temp nt/Note` | `Multiple values specified for the following single-valued field(s): ty/` |
+| Restart | Add or replace a note, then run `exit`, relaunch and run `list`. | The latest note remains visible after restart. |
+
 ### Deleting a pet note
 
 Continue from [Adding and persisting pets](#adding-and-persisting-pets), so that Alice has Milo and Bob has Luna.
@@ -1147,7 +1196,15 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
    1. Other incorrect delete commands to try: `delc`, `delc x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
+1. Deleting a client from a filtered list
+
+   1. Prerequisites: Create multiple clients, then use `find` so that the displayed list contains only the client to delete.
+
+   1. Test case: `delc 1`<br>
+      Expected: The filtered client is deleted. The status message shows the deleted contact's details, and no undisplayed client is affected.
+
+   1. Test case: `list`<br>
+      Expected: The deleted client no longer appears, while the other clients remain.
 
 ### Editing a pet
 
