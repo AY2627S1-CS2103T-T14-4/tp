@@ -11,12 +11,12 @@ import seedu.address.commons.util.AppUtil;
 public class PetName {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Pet names should be 1 to 40 characters long and contain only "
-                    + "letters, numbers, spaces, apostrophes and hyphens.";
+            "Pet names should be 1 to 40 characters long, contain at least one letter or number, "
+                    + "and contain only letters, numbers, spaces, apostrophes and hyphens.";
 
     private static final int MAX_LENGTH = 40;
 
-    private static final String VALIDATION_REGEX = "[\\p{L}\\p{N}' -]+";
+    private static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{N}])[\\p{L}\\p{N}' -]+";
 
     public final String fullName;
 

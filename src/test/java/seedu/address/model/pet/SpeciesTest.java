@@ -35,6 +35,9 @@ public class SpeciesTest {
         assertTrue(Species.isValidSpecies("Guinea Pig"));
         assertTrue(Species.isValidSpecies("Species-2"));
         assertTrue(Species.isValidSpecies("Bird's Species"));
+
+        // no letter or number
+        assertFalse(Species.isValidSpecies("-"));
     }
 
     @Test

@@ -34,6 +34,10 @@ public class BreedTest {
         assertTrue(Breed.isValidBreed("Golden Retriever"));
         assertTrue(Breed.isValidBreed("Breed-2"));
         assertTrue(Breed.isValidBreed("King's Breed"));
+
+        // no letter or number
+        assertFalse(Breed.isValidBreed("-"));
+        assertFalse(Breed.isValidBreed("''"));
     }
 
     @Test
