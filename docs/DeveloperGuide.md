@@ -142,8 +142,9 @@ stored list stays observable across changes and cannot be modified through the L
 #### Appointment presentation and refresh
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
-`ClientCard` renders `Client#getAppointments()` in insertion order. Its private appointment formatter
-reads the date, start time, optional end time, recorded linked names and booking details directly from
+`ClientCard` sorts `Client#getAppointments()` by calendar date and then start time, earliest first,
+when rendering. The stored list remains in insertion order. Its private appointment formatter reads
+the date, start time, optional end time, recorded linked names and booking details directly from
 `Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
 end-time range when no end time exists and omits parentheses for blank details.
 
@@ -1223,6 +1224,7 @@ The separate client-add section of the User Guide also uses `addc`.
 | Repeated prefix                         | `appt c/1 d/FUTURE_DATE t/12:34 t/12:34`                                                             | Duplicate-prefix message for `t/`, even though the values match.                                                    |
 | Invalid index                           | Try `c/0`, `c/abc`, and `c/3` in an otherwise valid appointment.                                     | Non-positive/non-integer values give the positive-integer message; `c/3` gives the invalid displayed-index message. |
 | Past appointment                        | `appt c/1 d/01-01-2000 t/12:34`                                                                      | Appointment is added with the past-appointment note. Use `done c/1 d/01-01-2000 t/12:34 nt/Recorded visit` to move it into completed history. |
+| Chronological display                   | Add `appt c/1 d/20-12-2099 t/10:00`, then `appt c/1 d/01-12-2099 t/14:00`, then `appt c/1 d/01-12-2099 t/09:00`. | These rows appear in order: 01-12-2099 09:00, 01-12-2099 14:00, 20-12-2099 10:00. The order remains after restarting. |
 | Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.              | Both succeed when the slots do not overlap. A start earlier than the computer's local time includes the informational note. |
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`. | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.        |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                           | Each appointment is still displayed under its original client.                                                      |

@@ -84,8 +84,11 @@ public class ClientCard extends UiPart<Region> {
             addNoteLabels(petDetails, pet);
             pets.getChildren().add(petDetails);
         });
-        client.getAppointments().forEach(appointment -> appointments.getChildren().add(
-                createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
+        client.getAppointments().stream()
+                .sorted(Comparator.comparing((Appointment appointment) -> appointment.getDate().getValue())
+                        .thenComparing(appointment -> appointment.getTime().getValue()))
+                .forEach(appointment -> appointments.getChildren().add(
+                        createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
         client.getHistory().stream().limit(HISTORY_DISPLAY_LIMIT).forEach(session -> {
             VBox sessionDetails = new VBox();
             sessionDetails.setMinWidth(0);
