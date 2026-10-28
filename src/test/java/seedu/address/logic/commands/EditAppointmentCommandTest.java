@@ -76,6 +76,55 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void descriptor_clearEnd_rejectsExplicitEnd() {
+        assertThrows(IllegalArgumentException.class, () -> new EditAppointmentDescriptor(
+                Optional.empty(), Optional.empty(), Optional.of(new AppointmentTime("15:00")), true));
+    }
+
+    @Test
+    public void descriptor_clearEnd_distinguishesPreservingAndClearing() {
+        EditAppointmentDescriptor clear = clearEnd(null, "16:00");
+        assertEquals(clear, clearEnd(null, "16:00"));
+        assertEquals(clear.hashCode(), clearEnd(null, "16:00").hashCode());
+        assertNotEquals(MOVE_START, clear);
+        assertNotEquals(command(ORIGINAL, MOVE_START), command(ORIGINAL, clear));
+        assertEquals(MOVE_START, new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("16:00")), Optional.empty(), false));
+    }
+
+    @Test
+    public void execute_clearEnd_preservesDateAndStartAndOmitsEndInFeedback() throws Exception {
+        ModelStub model = modelWith(owner(ORIGINAL));
+        CommandResult result = command(ORIGINAL, clearEnd(null, null)).execute(model);
+        Appointment expected = slot("13-12-2026", "14:00", null);
+        assertEquals(List.of(expected), model.editedClient.getAppointments());
+        assertEquals(expected, model.checkedAppointment);
+        assertEquals(1, model.updateCount);
+        assertEquals("Rescheduled appointment: " + ALICE.getName()
+                + " 13-12-2026 14:00 → 13-12-2026 14:00", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_clearEndWithReschedule_skipsDurationPreservationAndOverflow() throws Exception {
+        assertReplacement(ORIGINAL, clearEnd(null, "16:00"), slot("13-12-2026", "16:00", null));
+        assertReplacement(ORIGINAL, clearEnd("14-12-2026", null), slot("14-12-2026", "14:00", null));
+        assertReplacement(ORIGINAL, clearEnd("14-12-2026", "23:59"), slot("14-12-2026", "23:59", null));
+    }
+
+    @Test
+    public void execute_clearAbsentEnd_succeeds() throws Exception {
+        Appointment original = slot("13-12-2026", "14:00", null);
+        assertReplacement(original, clearEnd(null, null), original);
+    }
+
+    @Test
+    public void execute_clearEndWithPastStart_leavesDataUnchanged() {
+        Appointment past = slot("11-12-2026", "14:00", "15:30");
+        assertCommandFailure(command(past, clearEnd(null, null)), modelWith(owner(past)),
+                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+    }
+
+    @Test
     public void execute_emptyListOrInvalidDisplayedIndex_leavesDataUnchanged() {
         assertCommandFailure(command(ORIGINAL, MOVE_START), modelWith(),
                 Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
@@ -254,6 +303,11 @@ public class EditAppointmentCommandTest {
     private static Appointment slot(String date, String start, String end) {
         return new Appointment(new AppointmentDate(date), new AppointmentTime(start),
                 Optional.ofNullable(end).map(AppointmentTime::new), "", Set.of());
+    }
+
+    private static EditAppointmentDescriptor clearEnd(String date, String start) {
+        return new EditAppointmentDescriptor(Optional.ofNullable(date).map(AppointmentDate::new),
+                Optional.ofNullable(start).map(AppointmentTime::new), Optional.empty(), true);
     }
 
     private static Client owner(Appointment... appointments) {

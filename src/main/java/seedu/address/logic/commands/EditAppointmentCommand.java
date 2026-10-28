@@ -129,10 +129,13 @@ public class EditAppointmentCommand extends Command {
     }
 
     /**
-     * Uses an explicit end time or preserves the original duration without wrapping past midnight.
+     * Clears the end, uses an explicit end time, or preserves the duration without wrapping past midnight.
      */
     private Optional<AppointmentTime> resolveEndTime(Appointment original, AppointmentTime newStart)
             throws CommandException {
+        if (edits.clearEnd()) {
+            return Optional.empty();
+        }
         if (edits.end().isPresent()) {
             return edits.end();
         }
@@ -180,23 +183,35 @@ public class EditAppointmentCommand extends Command {
     }
 
     /**
-     * Immutable replacement values for an appointment; empty optionals preserve existing values.
+     * Immutable replacement values; empty optionals preserve existing values unless the end is cleared.
      *
      * @param date The new date, if supplied.
      * @param start The new start time, if supplied.
      * @param end The new end time, if supplied.
+     * @param clearEnd Whether to remove the existing end time.
      */
     public record EditAppointmentDescriptor(Optional<AppointmentDate> date, Optional<AppointmentTime> start,
-            Optional<AppointmentTime> end) {
+            Optional<AppointmentTime> end, boolean clearEnd) {
+        /**
+         * Creates replacement values that preserve the end unless a new end is supplied.
+         */
+        public EditAppointmentDescriptor(Optional<AppointmentDate> date, Optional<AppointmentTime> start,
+                Optional<AppointmentTime> end) {
+            this(date, start, end, false);
+        }
+
         /**
          * Creates a descriptor containing at least one edit.
          *
          * @throws NullPointerException if any optional is null.
-         * @throws IllegalArgumentException if no edit is supplied.
+         * @throws IllegalArgumentException if no edit is supplied or an end is both supplied and cleared.
          */
         public EditAppointmentDescriptor {
             requireAllNonNull(date, start, end);
-            if (date.isEmpty() && start.isEmpty() && end.isEmpty()) {
+            if (clearEnd && end.isPresent()) {
+                throw new IllegalArgumentException("Cannot supply and clear the end time together.");
+            }
+            if (date.isEmpty() && start.isEmpty() && end.isEmpty() && !clearEnd) {
                 throw new IllegalArgumentException(MESSAGE_NOT_EDITED);
             }
         }
