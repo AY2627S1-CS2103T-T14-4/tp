@@ -220,9 +220,7 @@ Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
 * `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
 * `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
 * `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
-* Put `nt/` after `c/`, `pn/` and `ty/`. Everything after `nt/` is treated as note text, including
-  prefix-like text such as `c/o`, `pn/` or `ty/`. For example:
-  `note c/1 pn/Milo ty/pref nt/Use c/o owner's shampoo`.
+* If nt/ comes last, everything after it is the note, including prefix-like text such as c/o.
 * If the pet already has a note of that type, the new note replaces it. Other notes are kept.
 
 Successful output: `Updated temperament note for Milo: Anxious around loud dryers`

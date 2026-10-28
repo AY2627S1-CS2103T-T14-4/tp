@@ -29,6 +29,7 @@ public class NoteCommandParserTest {
                 new PetNote("Sensitive paws"));
 
         assertParseSuccess(parser, " ty/SENS pn/Milo c/1 nt/Sensitive paws", expected);
+        assertParseSuccess(parser, " nt/Sensitive paws ty/SENS pn/Milo c/1", expected);
     }
 
     @Test
