@@ -67,7 +67,7 @@ public class MainApp extends Application {
      * The data from the sample PawPals data will be used instead if {@code storage}'s PawPals data is not found,
      * or an empty PawPals data will be used instead if errors occur when reading {@code storage}'s PawPals data.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getPawPalsFilePath());
 
         Optional<ReadOnlyPawPals> pawPalsOptional;

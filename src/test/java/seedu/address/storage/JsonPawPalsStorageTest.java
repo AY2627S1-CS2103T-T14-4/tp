@@ -92,6 +92,14 @@ public class JsonPawPalsStorageTest {
     }
 
     @Test
+    public void backupCorruptedData_copyFails_deletesTemporaryBackup() throws Exception {
+        Path directory = Files.createDirectory(testFolder.resolve("directory"));
+        JsonPawPalsStorage storage = new JsonPawPalsStorage(directory);
+
+        assertThrows(IOException.class, storage::backupCorruptedData);
+    }
+
+    @Test
     public void readAndSavePawPals_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("TempPawPals.json");
         PawPals original = getTypicalPawPals();
