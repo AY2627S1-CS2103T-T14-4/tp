@@ -14,10 +14,10 @@ box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
 end box
 
-[-> LogicManager : execute("delc 1")
+[-> LogicManager : execute("delc c/1")
 activate LogicManager
 
-LogicManager -> PawPalsParser : parseCommand("delc 1")
+LogicManager -> PawPalsParser : parseCommand("delc c/1")
 activate PawPalsParser
 
 create DeleteClientCommandParser
@@ -27,7 +27,7 @@ activate DeleteClientCommandParser
 DeleteClientCommandParser --> PawPalsParser
 deactivate DeleteClientCommandParser
 
-PawPalsParser -> DeleteClientCommandParser : parse("1")
+PawPalsParser -> DeleteClientCommandParser : parse(" c/1")
 activate DeleteClientCommandParser
 
 create DeleteClientCommand
