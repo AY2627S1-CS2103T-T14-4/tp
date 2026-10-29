@@ -118,10 +118,14 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_clearEndWithPastStart_leavesDataUnchanged() {
+    public void execute_clearEndWithPastStart_succeedsWithPastGuidance() throws Exception {
         Appointment past = slot("11-12-2026", "14:00", "15:30");
-        assertCommandFailure(command(past, clearEnd(null, null)), modelWith(owner(past)),
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        ModelStub model = modelWith(owner(past));
+
+        CommandResult result = command(past, clearEnd(null, null)).execute(model);
+
+        assertEquals(List.of(slot("11-12-2026", "14:00", null)), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
     }
 
     @Test
@@ -188,13 +192,22 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_resultingStartBeforeOrAtNow_leavesDataUnchanged() {
-        for (String start : new String[] {"11:59", "12:00"}) {
-            assertCommandFailure(command(ORIGINAL, edits("12-12-2026", start, null)), modelWith(owner(ORIGINAL)),
-                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+    public void execute_resultingStartBeforeAtOrAfterNow_succeedsWithAppropriateGuidance() throws Exception {
+        List<String> starts = List.of("11:59", "12:00", "12:01");
+        List<String> ends = List.of("13:29", "13:30", "13:31");
+        for (int i = 0; i < starts.size(); i++) {
+            ModelStub model = modelWith(owner(ORIGINAL));
+            CommandResult result = command(ORIGINAL, edits("12-12-2026", starts.get(i), null)).execute(model);
+            assertEquals(List.of(slot("12-12-2026", starts.get(i), ends.get(i))),
+                    model.editedClient.getAppointments());
+            String expected = "Rescheduled appointment: " + ALICE.getName()
+                    + " 13-12-2026 14:00 → 12-12-2026 " + starts.get(i) + " et/" + ends.get(i)
+                    + (i == 0 ? "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT : "");
+            assertEquals(expected, result.getFeedbackToUser());
+            assertEquals(1, model.conflictCheckCount);
+            assertEquals(1, model.updateCount);
         }
-        assertCommandFailure(command(ORIGINAL, edits("11-12-2026", null, null)), modelWith(owner(ORIGINAL)),
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        assertReplacement(ORIGINAL, edits("11-12-2026", null, null), slot("11-12-2026", "14:00", "15:30"));
     }
 
     @Test
@@ -204,18 +217,42 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_unchangedPastStartWithNewEnd_rejectsPastResult() {
+    public void execute_unchangedPastStartWithNewEnd_succeedsWithPastGuidance() throws Exception {
         Appointment past = slot("11-12-2026", "09:00", null);
-        assertCommandFailure(command(past, edits(null, null, "10:00")), modelWith(owner(past)),
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        ModelStub model = modelWith(owner(past));
+
+        CommandResult result = command(past, edits(null, null, "10:00")).execute(model);
+
+        assertEquals(List.of(slot("11-12-2026", "09:00", "10:00")), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith("et/10:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
     }
 
     @Test
-    public void execute_clockHasSeconds_requiresStartAfterFullInstant() {
+    public void execute_clockHasSeconds_marksCurrentMinuteAsPast() throws Exception {
         Clock clock = Clock.fixed(CLOCK.instant().plusSeconds(30), CLOCK.getZone());
         EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
                 ORIGINAL.getTime(), edits("12-12-2026", "12:00", null), clock);
-        assertCommandFailure(command, modelWith(owner(ORIGINAL)), Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        ModelStub model = modelWith(owner(ORIGINAL));
+
+        CommandResult result = command.execute(model);
+
+        assertEquals(List.of(slot("12-12-2026", "12:00", "13:30")), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+    }
+
+    @Test
+    public void execute_clockZone_determinesPastGuidance() throws Exception {
+        for (Clock clock : List.of(CLOCK, CLOCK.withZone(ZoneId.of("UTC")))) {
+            ModelStub model = modelWith(owner(ORIGINAL));
+            EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
+                    ORIGINAL.getTime(), edits("12-12-2026", "08:00", null), clock);
+
+            CommandResult result = command.execute(model);
+
+            assertEquals(List.of(slot("12-12-2026", "08:00", "09:30")), model.editedClient.getAppointments());
+            assertEquals(clock.getZone().equals(CLOCK.getZone()),
+                    result.getFeedbackToUser().contains(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+        }
     }
 
     @Test
