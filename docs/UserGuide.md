@@ -188,7 +188,7 @@ Examples:
 * At least one of `n/`, `s/` or `b/` must be given. `NAME`, `SPECIES` and `BREED` follow the same rules as in `addp`.
 * Each prefix may appear only once, in any order.
 * A pet cannot be renamed to the name of another of the same client's pets, ignoring capitalisation.
-* Renaming a pet also renames it in the client's upcoming appointments. Completed sessions keep the old name,
+* Renaming a pet also renames it in the client's active appointments, past or future. Completed sessions keep the old name,
   since they record what happened at the time.
 * To change a pet's notes, use `note` and `delnote` instead.
 
@@ -268,7 +268,7 @@ Example: `delp c/1 pn/Milo`
 * `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
 * `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
 * Both prefixes are required, may appear in any order, and must each appear only once.
-* The pet is also removed from that client's upcoming appointments. The appointments themselves are kept.
+* The pet is also removed from that client's active appointments, past or future. The appointments themselves are kept.
   Completed sessions still show the pet's name, since they record what happened at the time.
 
 Successful output: `Deleted pet: Milo (owner: Alice Tan)`
