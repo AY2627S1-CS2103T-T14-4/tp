@@ -379,7 +379,7 @@ If PawPals reports a save error, the appointment may still appear during the cur
 Moves an existing appointment to a new date or time, or changes its end time, while keeping its linked pets
 and booking details.
 
-Format: `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]`
+Format: `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]`
 
 Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
 
@@ -388,14 +388,19 @@ Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
 * `CLIENT_INDEX` refers to the **currently displayed** client list. After `find`, index `1` refers to
   the first matching client. The current filter is kept after both successful and rejected edits.
 * Supply at least one of `nd/` (new date), `ns/` (new start) or `ne/` (new end). Prefixes may appear in
-  any order, but each may appear only once. Empty values and extra text before the first prefix are rejected.
+  any order, but each may appear only once. Empty values are rejected except for `ne/`, which removes the
+  end time. Extra text before the first prefix is rejected.
 * Dates and times use the same strict formats as `appt`: valid `DD-MM-YYYY` dates with years `0001`–`9999`
   and 24-hour `HH:mm` times from `00:00` to `23:59`.
 * Omitted values are kept. When the start moves without `ne/`, an existing end moves with it to preserve
   the duration. For example, moving `14:00–15:30` to `16:00` produces `16:00–17:30`.
-* `ne/` sets the end explicitly and overrides duration preservation. It must be after the resulting start
+* `ne/HH:mm` sets the end explicitly and overrides duration preservation. It must be after the resulting start
   on the same date. Overnight bookings are not supported. An appointment without an end stays without one
-  unless `ne/` adds an end; there is no option to remove an existing end time.
+  unless `ne/HH:mm` adds an end.
+* Use `ne/` with no value to remove the end time. Whitespace-only values also remove it; do not type `EMPTY`.
+  For example, `editappt c/1 d/12-12-2026 t/14:00 ns/16:00 ne/` moves the appointment to `16:00` with no end.
+  To remove only the end, use `editappt c/1 d/12-12-2026 t/14:00 ne/`. Clearing an already absent end succeeds.
+  Take care when submitting an unfinished `ne/`: an empty value removes the end rather than reporting an error.
 * The resulting date and start must be strictly in the future when the command executes, using the
   computer's local time zone. This also applies to end-only edits and edits supplying unchanged values.
 * The resulting slot must not overlap any other active booking, including those belonging to clients
@@ -420,7 +425,7 @@ Feedback includes:
 | Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions.                    |
 | No replacement value supplied                                 | `At least one of nd/, ns/ or ne/ must be provided.`                                          |
 | Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
-| Invalid index, date or time, including empty values           | The corresponding index, date or time validation message used by `appt`.                     |
+| Invalid index, date or time, including empty values except `ne/` | The corresponding index, date or time validation message used by `appt`.                   |
 | No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
 | Resulting start is in the past or current minute              | `Appointment date and time must be strictly in the future.`                                  |
 | New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
@@ -712,23 +717,23 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 
 ## Command summary
 
-| Action                     | Format, Examples                                                                                                                             |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| **Add client**             | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`  |
-| **Add pet**                | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`                                                    |
-| **Edit pet**               | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`                                 |
-| **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                         |
-| **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                         |
-| **Clear**                  | `clear`                                                                                                                                      |
-| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                       |
-| **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                               |
-| **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`   |
-| **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` |
-| **Cancel appointment**     | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`                                                    |
-| **Complete appointment**   | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`                      |
-| **Edit**                   | `edit c/INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit c/2 n/James Lee e/jameslee@example.com`            |
-| **Exit**                   | `exit`                                                                                                                                       |
-| **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                  |
-| **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                  |
-| **List**                   | `list`                                                                                                                                       |
-| **Help**                   | `help`                                                                                                                                       |
+| Action                     | Format, Examples                                                                                                                                                                            |
+|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Add client**             | `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`<br> e.g., `addc n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665`                                                 |
+| **Add pet**                | `addp c/CLIENT_INDEX n/NAME s/SPECIES b/BREED`<br> e.g., `addp c/1 n/Milo s/Dog b/Poodle`                                                                                                   |
+| **Edit pet**               | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`                                                                                |
+| **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                                                                        |
+| **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                                                                        |
+| **Clear**                  | `clear`                                                                                                                                                                                     |
+| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                                                                      |
+| **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                                                                              |
+| **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`                                                  |
+| **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` <br> Use empty `ne/` to remove the end time. |
+| **Cancel appointment**     | `cancel c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm` <br> e.g., `cancel c/1 d/12-12-2026 t/14:00`                                                                                                   |
+| **Complete appointment**   | `done c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm nt/NOTES` <br> e.g., `done c/1 d/12-12-2026 t/14:00 nt/Teddy cut, short ears`                                                                     |
+| **Edit**                   | `edit c/INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit c/2 n/James Lee e/jameslee@example.com`                                                           |
+| **Exit**                   | `exit`                                                                                                                                                                                      |
+| **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                                                                 |
+| **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                                                                 |
+| **List**                   | `list`                                                                                                                                                                                      |
+| **Help**                   | `help`                                                                                                                                                                                      |

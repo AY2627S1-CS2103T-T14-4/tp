@@ -25,6 +25,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
     /**
      * Parses exactly one client index, original date and start time, and at least one replacement value.
      * Prefixes may appear in any order; duplicates and non-empty preambles are rejected.
+     * An empty ne/ value removes the end time; omitting ne/ preserves the existing duration.
      * Eligibility and end-time ordering are checked by the command against the original booking at execution.
      *
      * @throws NullPointerException if {@code args} is null.
@@ -46,8 +47,10 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         try {
             Optional<AppointmentDate> newDate = arguments.getValue(PREFIX_NEW_DATE).map(AppointmentDate::new);
             Optional<AppointmentTime> newStart = arguments.getValue(PREFIX_NEW_START_TIME).map(AppointmentTime::new);
-            Optional<AppointmentTime> newEnd = arguments.getValue(PREFIX_NEW_END_TIME).map(AppointmentTime::new);
-            EditAppointmentDescriptor edits = new EditAppointmentDescriptor(newDate, newStart, newEnd);
+            Optional<String> endValue = arguments.getValue(PREFIX_NEW_END_TIME);
+            boolean clearEnd = endValue.filter(String::isEmpty).isPresent();
+            Optional<AppointmentTime> newEnd = endValue.filter(value -> !value.isEmpty()).map(AppointmentTime::new);
+            EditAppointmentDescriptor edits = new EditAppointmentDescriptor(newDate, newStart, newEnd, clearEnd);
             return new EditAppointmentCommand(target.clientIndex(), target.date(), target.time(), edits);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);

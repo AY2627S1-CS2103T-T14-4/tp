@@ -31,9 +31,10 @@ public class EditAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "editappt";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Reschedules an appointment for the client identified by their displayed index.\n"
-            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/HH:mm]\n"
+            + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]\n"
             + "Provide at least one new value. The resulting start must be strictly in the future.\n"
             + "Without ne/, an existing duration is preserved; appointments must end on the same day.\n"
+            + "Use ne/ with no value to remove the end time, or ne/HH:mm to set it.\n"
             + "Linked pets and booking details are kept. Overlaps with other active bookings are rejected.\n"
             + "Example: " + COMMAND_WORD + " c/1 d/12-12-2026 t/14:00 ns/16:00";
     public static final String MESSAGE_NOT_EDITED = "At least one of nd/, ns/ or ne/ must be provided.";
@@ -129,10 +130,13 @@ public class EditAppointmentCommand extends Command {
     }
 
     /**
-     * Uses an explicit end time or preserves the original duration without wrapping past midnight.
+     * Clears the end, uses an explicit end time, or preserves the duration without wrapping past midnight.
      */
     private Optional<AppointmentTime> resolveEndTime(Appointment original, AppointmentTime newStart)
             throws CommandException {
+        if (edits.clearEnd()) {
+            return Optional.empty();
+        }
         if (edits.end().isPresent()) {
             return edits.end();
         }
@@ -180,23 +184,35 @@ public class EditAppointmentCommand extends Command {
     }
 
     /**
-     * Immutable replacement values for an appointment; empty optionals preserve existing values.
+     * Immutable replacement values; empty optionals preserve existing values unless the end is cleared.
      *
      * @param date The new date, if supplied.
      * @param start The new start time, if supplied.
      * @param end The new end time, if supplied.
+     * @param clearEnd Whether to remove the existing end time.
      */
     public record EditAppointmentDescriptor(Optional<AppointmentDate> date, Optional<AppointmentTime> start,
-            Optional<AppointmentTime> end) {
+            Optional<AppointmentTime> end, boolean clearEnd) {
+        /**
+         * Creates replacement values that preserve the end unless a new end is supplied.
+         */
+        public EditAppointmentDescriptor(Optional<AppointmentDate> date, Optional<AppointmentTime> start,
+                Optional<AppointmentTime> end) {
+            this(date, start, end, false);
+        }
+
         /**
          * Creates a descriptor containing at least one edit.
          *
          * @throws NullPointerException if any optional is null.
-         * @throws IllegalArgumentException if no edit is supplied.
+         * @throws IllegalArgumentException if no edit is supplied or an end is both supplied and cleared.
          */
         public EditAppointmentDescriptor {
             requireAllNonNull(date, start, end);
-            if (date.isEmpty() && start.isEmpty() && end.isEmpty()) {
+            if (clearEnd && end.isPresent()) {
+                throw new IllegalArgumentException("Cannot supply and clear the end time together.");
+            }
+            if (date.isEmpty() && start.isEmpty() && end.isEmpty() && !clearEnd) {
                 throw new IllegalArgumentException(MESSAGE_NOT_EDITED);
             }
         }
