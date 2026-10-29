@@ -3,7 +3,6 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -11,7 +10,6 @@ import java.util.logging.Logger;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.client.Client;
@@ -66,14 +64,8 @@ public class EditPetCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Client> displayedClients = model.getFilteredClientList();
-        if (clientIndex.getZeroBased() >= displayedClients.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
-        }
-
-        Client targetClient = displayedClients.get(clientIndex.getZeroBased());
-        Pet targetPet = targetClient.getPet(petName)
-                .orElseThrow(() -> new CommandException(String.format(Messages.MESSAGE_UNKNOWN_PET, petName)));
+        Client targetClient = getDisplayedClient(model, clientIndex);
+        Pet targetPet = getPet(targetClient, petName);
         Pet editedPet = new Pet(newName.orElse(targetPet.getName()), newSpecies.orElse(targetPet.getSpecies()),
                 newBreed.orElse(targetPet.getBreed()), targetPet.getNotes());
 

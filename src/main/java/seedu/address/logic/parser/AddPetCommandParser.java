@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_BREED;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
@@ -21,8 +22,15 @@ import seedu.address.model.pet.Species;
  */
 public class AddPetCommandParser implements Parser<AddPetCommand> {
 
+    /**
+     * Parses a client index, a pet name, a species and a breed into an {@code AddPetCommand}.
+     * Each prefix must appear exactly once, with no text before the first prefix.
+     *
+     * @throws ParseException if a prefix is missing or repeated, the preamble is not empty, or a value is invalid.
+     */
     @Override
     public AddPetCommand parse(String args) throws ParseException {
+        requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(
                 args, PREFIX_CLIENT, PREFIX_NAME, PREFIX_SPECIES, PREFIX_BREED);
 

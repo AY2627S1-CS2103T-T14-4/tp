@@ -8,6 +8,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
@@ -169,14 +170,7 @@ public class ParserUtil {
      */
     public static PetName parsePetName(String name) throws ParseException {
         requireNonNull(name);
-
-        String normalizedName = name.trim().replaceAll(" {2,}", " ");
-
-        if (!PetName.isValidName(normalizedName)) {
-            throw new ParseException(PetName.MESSAGE_CONSTRAINTS);
-        }
-
-        return new PetName(normalizedName);
+        return parsePetField(() -> new PetName(name));
     }
 
     /**
@@ -201,14 +195,7 @@ public class ParserUtil {
      */
     public static Species parseSpecies(String species) throws ParseException {
         requireNonNull(species);
-
-        String normalizedSpecies = species.trim().replaceAll(" {2,}", " ");
-
-        if (!Species.isValidSpecies(normalizedSpecies)) {
-            throw new ParseException(Species.MESSAGE_CONSTRAINTS);
-        }
-
-        return new Species(normalizedSpecies);
+        return parsePetField(() -> new Species(species));
     }
 
     /**
@@ -219,13 +206,19 @@ public class ParserUtil {
      */
     public static Breed parseBreed(String breed) throws ParseException {
         requireNonNull(breed);
+        return parsePetField(() -> new Breed(breed));
+    }
 
-        String normalizedBreed = breed.trim().replaceAll(" {2,}", " ");
-
-        if (!Breed.isValidBreed(normalizedBreed)) {
-            throw new ParseException(Breed.MESSAGE_CONSTRAINTS);
+    /**
+     * Creates a pet field with {@code constructor}, which trims and collapses spaces before checking the value.
+     *
+     * @throws ParseException with the field's constraint message if the value is invalid.
+     */
+    private static <T> T parsePetField(Supplier<T> constructor) throws ParseException {
+        try {
+            return constructor.get();
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), e);
         }
-
-        return new Breed(normalizedBreed);
     }
 }
