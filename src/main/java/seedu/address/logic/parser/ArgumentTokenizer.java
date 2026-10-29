@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.client.Name;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -60,18 +61,23 @@ public class ArgumentTokenizer {
     /**
      * Ensures that slash-containing values for the supplied prefixes are enclosed in matching quotes.
      */
-    public static void validateSlashQuoting(String argsString, Prefix... prefixes) throws ParseException {
+    public static void validateSlashQuoting(String argsString, Prefix valuePrefix, Prefix... delimiters)
+            throws ParseException {
+        Prefix[] prefixes = Stream.concat(Stream.of(valuePrefix), Arrays.stream(delimiters)).toArray(Prefix[]::new);
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         positions.sort((prefix1, prefix2) -> prefix1.getStartPosition() - prefix2.getStartPosition());
         for (int i = 0; i < positions.size(); i++) {
             PrefixPosition current = positions.get(i);
             int nextPosition = i + 1 < positions.size() ? positions.get(i + 1).getStartPosition()
                     : argsString.length();
+            if (!current.getPrefix().equals(valuePrefix)) {
+                continue;
+            }
             String value = argsString.substring(current.getStartPosition() + current.getPrefix().getPrefix().length(),
                     nextPosition).trim();
             boolean quoted = value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"");
             if (value.contains("/") && !quoted) {
-                throw new ParseException("Argument values containing '/' must be enclosed in quotes.");
+                throw new ParseException(Name.MESSAGE_CONSTRAINTS);
             }
         }
     }
@@ -136,7 +142,7 @@ public class ArgumentTokenizer {
                 insideQuotes = !insideQuotes;
             }
         }
-        return insideQuotes;
+        return insideQuotes && argsString.indexOf('"', position) != -1;
     }
 
     /**
@@ -185,13 +191,7 @@ public class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        String trimmedValue = value.trim();
-        if (trimmedValue.length() >= 2
-                && trimmedValue.startsWith("\"")
-                && trimmedValue.endsWith("\"")) {
-            return trimmedValue.substring(1, trimmedValue.length() - 1);
-        }
-        return trimmedValue;
+        return value.trim();
     }
 
     /**

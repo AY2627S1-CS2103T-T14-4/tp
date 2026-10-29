@@ -49,7 +49,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         EditClientDescriptor editClientDescriptor = new EditClientDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            editClientDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
+            editClientDescriptor.setName(ParserUtil.parseName(
+                    removeSurroundingQuotes(argMultimap.getValue(PREFIX_NAME).get())));
         }
         if (argMultimap.getValue(PREFIX_PHONE).isPresent()) {
             editClientDescriptor.setPhone(ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get()));
@@ -67,6 +68,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         return new EditCommand(index, editClientDescriptor);
+    }
+
+    private static String removeSurroundingQuotes(String value) {
+        return value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")
+                ? value.substring(1, value.length() - 1) : value;
     }
 
     /**

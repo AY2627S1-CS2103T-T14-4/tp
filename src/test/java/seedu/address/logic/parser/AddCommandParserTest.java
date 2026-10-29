@@ -74,7 +74,32 @@ public class AddCommandParserTest {
     public void parse_slashInUnquotedName_failure() {
         assertParseFailure(parser,
                 " n/Ravi s/o Kumar" + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
-                "Argument values containing '/' must be enclosed in quotes.");
+                Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_unmatchedQuoteInName_failure() {
+        assertParseFailure(parser,
+                " n/\"Alice \" Tan" + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
+                Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_quotedAddress_preservesLaterPrefixes() {
+        Client expectedClient = new ClientBuilder()
+                .withName("Alice Tan")
+                .withPhone("91234567")
+                .withEmail("alice@example.com")
+                .withAddress("\"10 Dover Road\"")
+                .withTags("regular", "vip")
+                .build();
+
+        assertParseSuccess(parser,
+                " n/Alice Tan p/91234567 a/\"10 Dover Road\" e/alice@example.com t/regular t/vip",
+                new AddCommand(expectedClient));
+        assertParseSuccess(parser,
+                " n/\"Alice Tan\" p/91234567 a/\"10 Dover Road\" e/alice@example.com t/regular t/vip",
+                new AddCommand(expectedClient));
     }
 
     @Test

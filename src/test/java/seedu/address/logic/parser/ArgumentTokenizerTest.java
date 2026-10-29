@@ -80,12 +80,20 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
-    public void tokenize_quotedValue_ignoresPrefixesAndRemovesQuotes() {
+    public void tokenize_quotedValue_ignoresPrefixesAndPreservesQuotes() {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(
                 " n/\"Ravi p/o Kumar\" p/12345678", new Prefix("n/"), pSlash);
 
-        assertArgumentPresent(argMultimap, new Prefix("n/"), "Ravi p/o Kumar");
+        assertArgumentPresent(argMultimap, new Prefix("n/"), "\"Ravi p/o Kumar\"");
         assertArgumentPresent(argMultimap, pSlash, "12345678");
+    }
+
+    @Test
+    public void tokenize_quotedNonNameValue_preservesQuotes() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                " p/\"123/ABC\"", pSlash);
+
+        assertArgumentPresent(arguments, pSlash, "\"123/ABC\"");
     }
 
     @Test
