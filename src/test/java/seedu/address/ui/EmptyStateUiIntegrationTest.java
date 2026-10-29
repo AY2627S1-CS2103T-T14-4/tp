@@ -128,9 +128,9 @@ public class EmptyStateUiIntegrationTest {
             try {
                 String date = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu"));
                 enter(cancellationWindow, "appt c/1 d/" + date + " t/10:00");
-                assertFalse(labels(cancellationWindow).contains("No active appointments"));
+                assertFalse(labels(cancellationWindow).contains("No upcoming appointments"));
                 enter(cancellationWindow, "cancel c/1 d/" + date + " t/10:00");
-                assertTrue(labels(cancellationWindow).contains("No active appointments"));
+                assertTrue(labels(cancellationWindow).contains("No upcoming appointments"));
                 assertTrue(labels(cancellationWindow).contains("No completed sessions"));
             } finally {
                 cancellationWindow.getPrimaryStage().close();

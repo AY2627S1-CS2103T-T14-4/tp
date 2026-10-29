@@ -57,6 +57,8 @@ public class ClientCard extends UiPart<Region> {
     @FXML
     private VBox appointments;
     @FXML
+    private VBox upcomingAppointments;
+    @FXML
     private VBox history;
     @FXML
     private Label emptyHistory;
@@ -103,20 +105,8 @@ public class ClientCard extends UiPart<Region> {
             addNoteLabels(petDetails, pet);
             pets.getChildren().add(petDetails);
         });
-        client.getAppointments().stream()
-                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode))
-                .sorted(Comparator.comparing((Appointment appointment) -> appointmentOrder(appointment, displayMode,
-                        now))
-                        .thenComparing(appointment -> appointment.getDate().getValue())
-                        .thenComparing(appointment -> appointment.getTime().getValue()))
-                .limit(displayMode.getType() == ClientDisplayMode.Type.NORMAL
-                        ? APPOINTMENT_DISPLAY_LIMIT : Long.MAX_VALUE)
-                .forEach(appointment -> appointments.getChildren().add(
-                        createWrappingLabel(formatAppointment(appointment, displayMode, now), "cell_small_label")));
-        if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
-            addOverflowLabel(appointments, client.getAppointments().size() - APPOINTMENT_DISPLAY_LIMIT,
-                    "appointment");
-        }
+        addAppointments(client, displayMode, now, true, appointments);
+        addAppointments(client, displayMode, now, false, upcomingAppointments);
         long historyLimit = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_CLIENT
                 ? Long.MAX_VALUE : HISTORY_DISPLAY_LIMIT;
         client.getHistory().stream().limit(historyLimit).forEach(session -> {
@@ -131,9 +121,10 @@ public class ClientCard extends UiPart<Region> {
             addOverflowLabel(history, client.getHistory().size() - HISTORY_DISPLAY_LIMIT, "completed session");
         }
         if (appointments.getChildren().isEmpty()) {
-            String emptyText = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_DATE
-                    ? "No appointments scheduled on this date" : "No active appointments";
-            appointments.getChildren().add(createEmptyLabel(emptyText));
+            appointments.getChildren().add(createEmptyLabel("No active appointments"));
+        }
+        if (upcomingAppointments.getChildren().isEmpty()) {
+            upcomingAppointments.getChildren().add(createEmptyLabel("No upcoming appointments"));
         }
         emptyHistory.setVisible(client.getHistory().isEmpty());
         emptyHistory.setManaged(emptyHistory.isVisible());
@@ -146,8 +137,26 @@ public class ClientCard extends UiPart<Region> {
         };
     }
 
-    private static int appointmentOrder(Appointment appointment, ClientDisplayMode displayMode, LocalDateTime now) {
-        return displayMode.getType() == ClientDisplayMode.Type.NORMAL && hasStarted(appointment, now) ? 0 : 1;
+    private static void addAppointments(Client client, ClientDisplayMode displayMode, LocalDateTime now,
+            boolean active, VBox container) {
+        long count = client.getAppointments().stream()
+                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode))
+                .filter(appointment -> hasStarted(appointment, now) == active)
+                .count();
+        long limit = displayMode.getType() == ClientDisplayMode.Type.NORMAL
+                ? APPOINTMENT_DISPLAY_LIMIT : Long.MAX_VALUE;
+        client.getAppointments().stream()
+                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode))
+                .filter(appointment -> hasStarted(appointment, now) == active)
+                .sorted(Comparator.comparing((Appointment appointment) -> appointment.getDate().getValue())
+                        .thenComparing(appointment -> appointment.getTime().getValue()))
+                .limit(limit)
+                .forEach(appointment -> container.getChildren().add(
+                        createWrappingLabel(formatAppointment(appointment, displayMode, now), "cell_small_label")));
+        if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
+            addOverflowLabel(container, count - APPOINTMENT_DISPLAY_LIMIT,
+                    active ? "active appointment" : "appointment");
+        }
     }
 
     private static boolean hasStarted(Appointment appointment, LocalDateTime now) {
