@@ -80,15 +80,17 @@ Missing records are shown explicitly:
 | Client list after `find` or `findp` | `No matching clients. Try another search or use list.` | Clients exist, but none match the search. Use `list` to show all clients again.                                    |
 | Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
 | Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
-| Client card                         | `No active appointments`                               | This client has no active appointments.                                                                            |
+| Active Appointments section         | `No active appointments`                               | This client has no appointments whose start time has arrived.                                                      |
+| Upcoming Appointments section       | `No upcoming appointments`                             | This client has no future appointments.                                                                             |
 | Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
 
 For example, a newly added client shows the messages for no pets, appointments, and completed sessions.
 Adding a pet replaces `No pets recorded` with that pet's details and `No notes recorded`.
 Adding a note removes the pet's empty-note message; deleting its last note restores it.
 
-Cancelling the last active appointment restores `No active appointments`. Completing it with `done`
-also replaces `No completed sessions` with a preview of up to three recent sessions, including their
+Cancelling or completing the last started appointment restores `No active appointments`. Cancelling the last
+future appointment restores `No upcoming appointments`. Completing an appointment also replaces
+`No completed sessions` with a preview of up to three recent sessions, including their
 recorded times, pet names and session notes. Empty messages update immediately after commands; no restart is needed.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -578,9 +580,10 @@ under its client with its name, species, and breed, followed by any pet notes. S
 are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
-Each card shows up to three active appointments. Appointments whose start time has passed are marked `Overdue`
-and shown first, followed by upcoming appointments; both kinds remain active until completed or cancelled.
-If more than three active appointments exist, `+N more appointment(s)` reports how many are hidden.
+Each card separates appointments into two sections. **Active Appointments** contains bookings whose start time
+has arrived; past starts are marked `Overdue`. It shows up to three rows followed by
+`+N more active appointment(s)` when necessary. **Upcoming Appointments** contains future bookings and has its
+own three-row limit followed by `+N more appointment(s)`. Both kinds remain stored until completed or cancelled.
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`
@@ -666,8 +669,8 @@ Rules:
 * The schedule filter remains active while appointment, pet, and note commands update the displayed clients.
   Use `list`, `find`, or `findp` to replace it. A successful `addc` or `edit` also restores the full normal view;
   a failed command leaves the current schedule view unchanged.
-* The normal view shows up to three active appointments per client: overdue appointments first, then upcoming
-  appointments. It also shows up to three most recent completed sessions. Overflow lines report hidden records.
+* The normal view separately shows up to three started active appointments and up to three upcoming appointments
+  per client. Each section has its own overflow line. It also shows up to three most recent completed sessions.
 
 Possible errors:
 
