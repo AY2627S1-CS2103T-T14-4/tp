@@ -65,4 +65,14 @@ public class StringUtil {
             return false;
         }
     }
+
+    /**
+     * Returns {@code text} with leading and trailing whitespace removed and repeated spaces collapsed into one.
+     *
+     * @param text the text to tidy, which must not be null
+     */
+    public static String normalizeSpaces(String text) {
+        requireNonNull(text);
+        return text.trim().replaceAll(" {2,}", " ");
+    }
 }

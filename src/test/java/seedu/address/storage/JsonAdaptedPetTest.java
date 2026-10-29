@@ -48,7 +48,8 @@ public class JsonAdaptedPetTest {
 
         assertThrows(IllegalValueException.class, NoteType.MESSAGE_CONSTRAINTS, invalidType::toModelType);
         assertThrows(IllegalValueException.class, PetNote.MESSAGE_CONSTRAINTS, invalidValue::toModelType);
-        assertThrows(IllegalValueException.class, NoteType.MESSAGE_CONSTRAINTS, duplicateType::toModelType);
+        assertThrows(IllegalValueException.class, String.format(JsonAdaptedPet.MESSAGE_DUPLICATE_NOTE_TYPE,
+                NoteType.PREF.getDisplayName()), duplicateType::toModelType);
     }
 
     @Test

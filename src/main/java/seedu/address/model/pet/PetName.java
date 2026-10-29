@@ -2,7 +2,10 @@ package seedu.address.model.pet;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Locale;
+
 import seedu.address.commons.util.AppUtil;
+import seedu.address.commons.util.StringUtil;
 
 /**
  * Represents a pet's name.
@@ -28,15 +31,12 @@ public class PetName {
     public PetName(String name) {
         requireNonNull(name);
 
-        String normalizedName = normalize(name);
+        String normalizedName = StringUtil.normalizeSpaces(name);
         AppUtil.checkArgument(isValidName(normalizedName), MESSAGE_CONSTRAINTS);
 
         fullName = normalizedName;
     }
 
-    private static String normalize(String name) {
-        return name.trim().replaceAll(" {2,}", " ");
-    }
 
     /**
      * Returns true if a given string is a valid pet name.
@@ -46,6 +46,14 @@ public class PetName {
                 && !test.isEmpty()
                 && test.length() <= MAX_LENGTH
                 && test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns the key that identifies this name ignoring case, so that {@code Milo} and {@code MILO}
+     * name the same pet.
+     */
+    public String identityKey() {
+        return fullName.toLowerCase(Locale.ROOT);
     }
 
     @Override

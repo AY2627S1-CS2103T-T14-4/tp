@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -322,6 +321,7 @@ public class Client {
 
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.add(pet);
+        assert updatedPets.size() == pets.size() + 1 : "Adding a pet must add exactly one pet";
         return new Client(name, phone, email, address, tags,
                 updatedPets, appointments, history);
     }
@@ -369,15 +369,14 @@ public class Client {
      */
     public Client withPetReplaced(PetName targetName, Pet editedPet) {
         requireAllNonNull(targetName, editedPet);
-        int index = indexOfPet(targetName);
-        if (index < 0) {
-            throw new PetNotFoundException();
-        }
+        int index = requirePetIndex(targetName);
 
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.set(index, editedPet);
+        assert updatedPets.size() == pets.size() : "Replacing a pet must keep the number of pets";
+        logger.fine("Renaming links to pet " + targetName + " of " + name + " to " + editedPet.getName());
         return new Client(name, phone, email, address, tags,
-                updatedPets, relinkAppointments(targetName, Optional.of(editedPet.getName())), history);
+                updatedPets, relinkAppointments(targetName, List.of(editedPet.getName())), history);
     }
 
     /**
@@ -390,55 +389,65 @@ public class Client {
      */
     public Client withoutPet(PetName targetName) {
         requireAllNonNull(targetName);
-        int index = indexOfPet(targetName);
-        if (index < 0) {
-            throw new PetNotFoundException();
-        }
+        int index = requirePetIndex(targetName);
 
         List<Pet> updatedPets = new ArrayList<>(pets);
         updatedPets.remove(index);
+        assert updatedPets.size() == pets.size() - 1 : "Removing a pet must remove exactly one pet";
+        logger.fine("Removing links to pet " + targetName + " of " + name);
         return new Client(name, phone, email, address, tags,
-                updatedPets, relinkAppointments(targetName, Optional.empty()), history);
+                updatedPets, relinkAppointments(targetName, List.of()), history);
     }
 
     /**
      * Returns this client's appointments with every link to the pet named {@code targetName}, ignoring case,
-     * replaced by {@code replacementName}, or removed if {@code replacementName} is empty.
+     * replaced by {@code replacementNames}. An empty list removes the link.
      * The order of the other linked pets is kept.
      */
-    private List<Appointment> relinkAppointments(PetName targetName, Optional<PetName> replacementName) {
-        logger.fine("Updating appointment links of " + name + " for pet " + targetName + ": "
-                + replacementName.map(newName -> "renamed to " + newName).orElse("removed"));
-        String targetKey = identityKeyOf(targetName);
-        List<Appointment> updatedAppointments = new ArrayList<>();
-        for (Appointment appointment : appointments) {
-            Set<PetName> updatedPetNames = new LinkedHashSet<>();
-            for (PetName linkedName : appointment.getPetNames()) {
-                if (identityKeyOf(linkedName).equals(targetKey)) {
-                    replacementName.ifPresent(updatedPetNames::add);
-                } else {
-                    updatedPetNames.add(linkedName);
-                }
-            }
-            updatedAppointments.add(appointment.withPetNames(updatedPetNames));
-        }
+    private List<Appointment> relinkAppointments(PetName targetName, List<PetName> replacementNames) {
+        List<Appointment> updatedAppointments = appointments.stream()
+                .map(appointment -> appointment.withPetNames(
+                        relinkPetNames(appointment.getPetNames(), targetName, replacementNames)))
+                .toList();
         assert updatedAppointments.size() == appointments.size()
                 : "Relinking pets must preserve the appointment count";
         return updatedAppointments;
     }
 
     /**
-     * Returns the case-insensitive key used to match pet names, consistent with {@link Pet#getIdentityKey()}.
+     * Returns {@code linkedNames} with {@code targetName}, ignoring case, replaced by {@code replacementNames}.
      */
-    private static String identityKeyOf(PetName petName) {
-        return petName.fullName.toLowerCase(Locale.ROOT);
+    private static Set<PetName> relinkPetNames(Set<PetName> linkedNames, PetName targetName,
+            List<PetName> replacementNames) {
+        Set<PetName> updatedNames = new LinkedHashSet<>();
+        for (PetName linkedName : linkedNames) {
+            if (linkedName.identityKey().equals(targetName.identityKey())) {
+                updatedNames.addAll(replacementNames);
+            } else {
+                updatedNames.add(linkedName);
+            }
+        }
+        return updatedNames;
+    }
+
+    /**
+     * Returns the position of the pet named {@code petName}, ignoring case.
+     *
+     * @throws PetNotFoundException if this client has no such pet
+     */
+    private int requirePetIndex(PetName petName) {
+        int index = indexOfPet(petName);
+        if (index < 0) {
+            throw new PetNotFoundException();
+        }
+        return index;
     }
 
     /**
      * Returns the position of the pet named {@code petName}, ignoring case, or -1 if there is none.
      */
     private int indexOfPet(PetName petName) {
-        String identityKey = identityKeyOf(petName);
+        String identityKey = petName.identityKey();
         for (int i = 0; i < pets.size(); i++) {
             if (pets.get(i).getIdentityKey().equals(identityKey)) {
                 return i;

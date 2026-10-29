@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +31,11 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedClient {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Client's %s field is missing!";
+    public static final String MESSAGE_MISSING_PET = "Pet entry is missing!";
+    public static final String MESSAGE_MISSING_APPOINTMENT = "Appointment entry is missing!";
+    public static final String MESSAGE_MISSING_SESSION = "History entry is missing!";
+    public static final String MESSAGE_DUPLICATE_PETS = "Pets list contains duplicate pet names.";
+    public static final String MESSAGE_DUPLICATE_APPOINTMENTS = "Appointments list contains duplicate date/time slots.";
     public static final String MESSAGE_UNKNOWN_LINKED_PET =
             "Appointment is linked to pet %s, but the client has no such pet.";
 
@@ -166,35 +170,65 @@ class JsonAdaptedClient {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(clientTags);
-        final List<Pet> modelPets = new ArrayList<>();
-        for (JsonAdaptedPet pet : pets) {
-            if (pet == null) {
-                throw new IllegalValueException("Pet entry is missing!");
-            }
-            modelPets.add(pet.toModelType());
-        }
-        final List<Appointment> modelAppointments = new ArrayList<>();
-        for (JsonAdaptedAppointment appointment : appointments) {
-            if (appointment == null) {
-                throw new IllegalValueException("Appointment entry is missing!");
-            }
-            modelAppointments.add(linkToRecordedPets(appointment.toModelType(), modelPets));
-        }
-        final List<CompletedSession> modelHistory = new ArrayList<>();
-        for (JsonAdaptedCompletedSession session : history) {
-            if (session == null) {
-                throw new IllegalValueException("History entry is missing!");
-            }
-            modelHistory.add(session.toModelType());
-        }
+        final List<Pet> modelPets = toModelPets();
+        final List<Appointment> modelAppointments = toModelAppointments(modelPets);
+        final List<CompletedSession> modelHistory = toModelHistory();
         try {
             return new Client(modelName, modelPhone, modelEmail, modelAddress, modelTags,
                     modelPets, modelAppointments, modelHistory);
         } catch (DuplicatePetException e) {
-            throw new IllegalValueException("Pets list contains duplicate pet names.");
+            throw new IllegalValueException(MESSAGE_DUPLICATE_PETS);
         } catch (DuplicateAppointmentException e) {
-            throw new IllegalValueException("Appointments list contains duplicate date/time slots.");
+            throw new IllegalValueException(MESSAGE_DUPLICATE_APPOINTMENTS);
         }
+    }
+
+    /**
+     * Converts the stored pets into model pets.
+     *
+     * @throws IllegalValueException if a pet entry is missing or invalid.
+     */
+    private List<Pet> toModelPets() throws IllegalValueException {
+        List<Pet> modelPets = new ArrayList<>();
+        for (JsonAdaptedPet pet : pets) {
+            if (pet == null) {
+                throw new IllegalValueException(MESSAGE_MISSING_PET);
+            }
+            modelPets.add(pet.toModelType());
+        }
+        return modelPets;
+    }
+
+    /**
+     * Converts the stored appointments into model appointments linked to {@code modelPets}.
+     *
+     * @throws IllegalValueException if an appointment entry is missing or invalid, or links to an unknown pet.
+     */
+    private List<Appointment> toModelAppointments(List<Pet> modelPets) throws IllegalValueException {
+        List<Appointment> modelAppointments = new ArrayList<>();
+        for (JsonAdaptedAppointment appointment : appointments) {
+            if (appointment == null) {
+                throw new IllegalValueException(MESSAGE_MISSING_APPOINTMENT);
+            }
+            modelAppointments.add(linkToRecordedPets(appointment.toModelType(), modelPets));
+        }
+        return modelAppointments;
+    }
+
+    /**
+     * Converts the stored completed sessions into model sessions.
+     *
+     * @throws IllegalValueException if a session entry is missing or invalid.
+     */
+    private List<CompletedSession> toModelHistory() throws IllegalValueException {
+        List<CompletedSession> modelHistory = new ArrayList<>();
+        for (JsonAdaptedCompletedSession session : history) {
+            if (session == null) {
+                throw new IllegalValueException(MESSAGE_MISSING_SESSION);
+            }
+            modelHistory.add(session.toModelType());
+        }
+        return modelHistory;
     }
 
     /**
@@ -207,7 +241,7 @@ class JsonAdaptedClient {
             throws IllegalValueException {
         Set<PetName> recordedNames = new LinkedHashSet<>();
         for (PetName linkedName : appointment.getPetNames()) {
-            String identityKey = linkedName.fullName.toLowerCase(Locale.ROOT);
+            String identityKey = linkedName.identityKey();
             Pet linkedPet = pets.stream()
                     .filter(pet -> pet.getIdentityKey().equals(identityKey))
                     .findFirst()
@@ -215,6 +249,7 @@ class JsonAdaptedClient {
                             String.format(MESSAGE_UNKNOWN_LINKED_PET, linkedName)));
             recordedNames.add(linkedPet.getName());
         }
+        assert recordedNames.size() <= appointment.getPetNames().size() : "Linking can only merge pet names";
         return appointment.withPetNames(recordedNames);
     }
 

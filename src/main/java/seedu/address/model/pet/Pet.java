@@ -4,7 +4,6 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -119,7 +118,7 @@ public class Pet {
      * @return the case-normalized pet name
      */
     public String getIdentityKey() {
-        return name.fullName.toLowerCase(Locale.ROOT);
+        return name.identityKey();
     }
 
     /**

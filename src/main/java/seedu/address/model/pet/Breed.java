@@ -3,6 +3,7 @@ package seedu.address.model.pet;
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.commons.util.AppUtil;
+import seedu.address.commons.util.StringUtil;
 
 /**
  * Represents a pet's breed.
@@ -28,19 +29,12 @@ public class Breed {
     public Breed(String breed) {
         requireNonNull(breed);
 
-        String normalizedBreed = normalize(breed);
+        String normalizedBreed = StringUtil.normalizeSpaces(breed);
         AppUtil.checkArgument(isValidBreed(normalizedBreed), MESSAGE_CONSTRAINTS);
 
         value = normalizedBreed;
     }
 
-    /**
-     * Normalizes the breed by trimming leading and trailing spaces and collapsing repeated spaces,
-     * the same way as pet names and species.
-     */
-    private static String normalize(String breed) {
-        return breed.trim().replaceAll(" {2,}", " ");
-    }
 
     /**
      * Returns true if a given string is a valid breed.

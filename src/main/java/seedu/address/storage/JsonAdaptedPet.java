@@ -20,6 +20,7 @@ import seedu.address.model.pet.Species;
  */
 class JsonAdaptedPet {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Pet's %s field is missing!";
+    public static final String MESSAGE_DUPLICATE_NOTE_TYPE = "Pet has more than one %s note.";
 
     private final String name;
     private final String species;
@@ -85,7 +86,7 @@ class JsonAdaptedPet {
 
             NoteType noteType = NoteType.fromKeyword(noteEntry.getKey());
             if (modelNotes.containsKey(noteType)) {
-                throw new IllegalValueException(NoteType.MESSAGE_CONSTRAINTS);
+                throw new IllegalValueException(String.format(MESSAGE_DUPLICATE_NOTE_TYPE, noteType.getDisplayName()));
             }
             if (!PetNote.isValidNote(noteEntry.getValue())) {
                 throw new IllegalValueException(PetNote.MESSAGE_CONSTRAINTS);
