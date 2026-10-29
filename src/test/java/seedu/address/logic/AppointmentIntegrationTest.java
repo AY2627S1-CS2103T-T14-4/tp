@@ -194,7 +194,8 @@ public class AppointmentIntegrationTest {
     @Test
     public void execute_editClient_preservesSavedAppointments() throws Exception {
         logic.execute(appointmentCommand(1));
-        logic.execute("edit 1 p/93456789");
+        // Equivalence Partition: client edit with c/ preserves saved appointments.
+        logic.execute("edit c/1 p/93456789");
 
         ReadOnlyPawPals saved = readSavedPawPals();
         assertEquals("93456789", saved.getClientList().getFirst().getPhone().value);

@@ -63,6 +63,31 @@ public class EditAppointmentCommandParserTest {
     }
 
     @Test
+    public void parse_emptyEnd_clearsEndAloneOrWithOtherEdits() {
+        assertParseSuccess(parser, TARGET_ARGUMENTS + " ne/", clearEndCommand(null, null));
+        assertParseSuccess(parser, TARGET_ARGUMENTS + " ne/   ", clearEndCommand(null, null));
+        assertParseSuccess(parser, TARGET_ARGUMENTS + " ns/16:00 ne/", clearEndCommand(null, "16:00"));
+        assertParseSuccess(parser, TARGET_ARGUMENTS + " nd/13-12-2026 ne/", clearEndCommand("13-12-2026", null));
+        assertParseSuccess(parser, " ne/   ns/16:00 t/14:00 nd/13-12-2026 d/29-02-2024 c/1 ",
+                clearEndCommand("13-12-2026", "16:00"));
+    }
+
+    @Test
+    public void parse_duplicateEmptyEnd_fails() {
+        for (String suffix : new String[] {" ne/ ne/", " ne/ ne/17:00", " ne/17:00 ne/"}) {
+            assertParseFailure(parser, TARGET_ARGUMENTS + suffix,
+                    Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_NEW_END_TIME));
+        }
+    }
+
+    @Test
+    public void parse_nonemptyInvalidEnd_fails() {
+        for (String value : new String[] {"EMPTY", "empty", "24:00", "noon", "unknown/value"}) {
+            assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + value, AppointmentTime.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
     public void parse_noEdits_fails() {
         assertParseFailure(parser, TARGET_ARGUMENTS, EditAppointmentCommand.MESSAGE_NOT_EDITED);
     }
@@ -104,7 +129,9 @@ public class EditAppointmentCommandParserTest {
             assertParseFailure(parser, " c/1 d/29-02-2024 t/" + time + " ns/16:00",
                     AppointmentTime.MESSAGE_CONSTRAINTS);
             assertParseFailure(parser, TARGET_ARGUMENTS + " ns/" + time, AppointmentTime.MESSAGE_CONSTRAINTS);
-            assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + time, AppointmentTime.MESSAGE_CONSTRAINTS);
+            if (!time.isEmpty()) {
+                assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + time, AppointmentTime.MESSAGE_CONSTRAINTS);
+            }
         }
     }
 
@@ -143,5 +170,12 @@ public class EditAppointmentCommandParserTest {
         return new EditAppointmentDescriptor(Optional.ofNullable(date).map(AppointmentDate::new),
                 Optional.ofNullable(start).map(AppointmentTime::new),
                 Optional.ofNullable(end).map(AppointmentTime::new));
+    }
+
+    private static EditAppointmentCommand clearEndCommand(String date, String start) {
+        EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor(
+                Optional.ofNullable(date).map(AppointmentDate::new),
+                Optional.ofNullable(start).map(AppointmentTime::new), Optional.empty(), true);
+        return new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL_DATE, ORIGINAL_START, descriptor);
     }
 }

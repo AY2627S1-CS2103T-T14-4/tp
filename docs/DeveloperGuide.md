@@ -283,21 +283,24 @@ for different pets follow the same overlap rules.
 
 `PawPalsParser` dispatches `editappt` to `EditAppointmentCommandParser`. The parser reuses
 `ParserUtil#parseAppointmentTarget(...)` for required `c/`, `d/` and `t/`, and the existing validated
-date/time types for optional `nd/`, `ns/` and `ne/`. It rejects duplicate prefixes, non-empty preambles,
+date/time types for optional `nd/`, `ns/` and nonempty `ne/`. Empty `ne/` sets the descriptor's `clearEnd`
+flag; omitted `ne/` preserves duration. Tokenization trims whitespace, so whitespace-only `ne/` also clears.
+It rejects duplicate prefixes, non-empty preambles,
 missing target fields and invalid values. The immutable `EditAppointmentDescriptor` requires at least
-one replacement value, including when a command is constructed directly. Ordering and future-start
-checks belong to execution because omitted values depend on the original appointment.
+one replacement value or `clearEnd`, including when a command is constructed directly. Supplying both
+an explicit end and `clearEnd` is rejected. The three-argument constructor defaults `clearEnd` to false.
+End-time ordering and duration checks belong to execution because omitted values depend on the original appointment.
 
 `EditAppointmentCommand` performs these steps:
 
 1. Resolve the client from the displayed list and look up its active appointment by original date/start.
 2. Construct a replacement using the supplied values and the original details and ordered pet links.
-   Without a supplied end, retain a missing end or preserve the existing duration. Compute the proposed
+   When `clearEnd` is true, use no end time and skip duration preservation. Otherwise, without a supplied
+   end, retain a missing end or preserve the existing duration. Compute the proposed
    end in minutes and reject an end at or after midnight before converting it to `LocalTime`, avoiding
-   wraparound. Exactly 23:59 is valid. A supplied `ne/` overrides this calculation.
-3. Validate the end through `Appointment`'s constructor, then require the resulting start to be strictly
-   after `LocalDateTime.now(clock)`. The default clock uses the system's local zone; tests inject a fixed
-   clock. Past originals may be moved, but an end-only edit still requires a future resulting start.
+   wraparound. Exactly 23:59 is valid. A supplied `ne/HH:mm` overrides this calculation.
+3. Validate the end through `Appointment`'s constructor. Past, current and future resulting starts are
+   accepted, including for end-only edits and unchanged starts.
 4. Check all active bookings with `Model#findAppointmentConflict(candidate, client, original)`.
    Only the original owner's original date/start is excluded; the filter and history do not limit the scan.
 5. Use `Client#withAppointmentReplaced(...)`, then call `Model#setClient(...)` exactly once. This preserves
@@ -305,6 +308,9 @@ checks belong to execution because omitted values depend on the original appoint
    before mutation. `LogicManager` saves the updated model through the existing storage path.
 
 Success feedback identifies the owner, original and resulting starts, and the resulting end when present.
+If the resulting start is earlier than `LocalDateTime.now(clock)`, it appends the same past-appointment
+guidance as `appt`. The clock uses the system's local zone by default; tests inject fixed clocks to cover
+past/current/future boundaries and time zones. The appointment remains active until completed or cancelled.
 The observable list replacement updates the card immediately. The current card format displays the date,
 start, optional end time, recorded pet names and any nonblank booking details. End-only edits update the
 displayed range as well as feedback and saved data. No storage
@@ -958,7 +964,7 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to find pet owners using one or more pet-name keywords.
-2. PawPals searches all pets using full-name matching without regard to letter case.
+2. PawPals searches all pets for complete name words without regard to letter case.
 3. PawPals uses OR matching when multiple keywords are provided.
 4. PawPals displays each client who owns at least one matching pet.
 5. PawPals displays each matching owner only once, even if multiple pets match.
@@ -1067,7 +1073,7 @@ MSS:
    start time or end time using `editappt`.
 3. PawPals locates the active booking and constructs its replacement, preserving the duration when moving
    the start without an explicit new end, or retaining no end time if none was recorded.
-4. PawPals validates the same-day end, strictly future resulting start and conflicts with every other active
+4. PawPals validates the same-day end and conflicts with every other active
    booking, excluding the original booking.
 5. PawPals replaces the booking, retaining pet links, booking details, other client data and the current filter.
 6. PawPals displays success and the updated client card.
@@ -1086,14 +1092,12 @@ Extensions:
 * 4a. The resulting end is not after the start on the same day, or preserving the duration would cross midnight.
   * 4a1. PawPals displays the corresponding interval validation message and leaves the data unchanged.
   * Use case ends.
-* 4b. The resulting start is not strictly in the future.
-  * 4b1. PawPals reports that the appointment must start in the future and leaves the data unchanged.
-  * Use case ends.
-* 4c. The replacement overlaps another active booking for any client, including a hidden client.
-  * 4c1. PawPals identifies the conflicting client and booking slot and leaves the data unchanged.
+* 4b. The replacement overlaps another active booking for any client, including a hidden client.
+  * 4b1. PawPals identifies the conflicting client and booking slot and leaves the data unchanged.
   * Use case ends.
 
-Past originals may be rescheduled, but the resulting start must be strictly in the future even for an end-only edit.
+Past, current and future resulting starts are accepted, including for end-only edits. If the resulting
+start is in the past, success feedback advises using `done` to record the appointment as a completed session.
 
 #### UC19 - Edit client
 
@@ -1256,6 +1260,7 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 |--------------------|-----------------------------------------------------|----------------------------------------------------------------|
 | Find one pet       | `findp Milo`                                        | Owners of pets named `Milo` are listed.                        |
 | Find several pets  | `findp Milo Luna`                                   | Owners of pets named `Milo` or `Luna` are listed.              |
+| Partial pet word   | `findp Mil`                                         | No clients are listed because partial words do not match.      |
 | No match           | `findp Rex`                                         | No clients are listed and the result reports zero pets found.  |
 | No keyword         | `findp`                                             | An invalid command format message is shown.                    |
 | Filtered index     | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
@@ -1367,8 +1372,8 @@ The separate client-add section of the User Guide also uses `addc`.
 | Same-day boundary                       | Use today's date with a time at least five minutes ahead, then with the current minute.                          | Both succeed when the slots do not overlap. A start earlier than the computer's local time includes the informational note.                   |
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`.             | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.                                  |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                                       | Each appointment is still displayed under its original client.                                                                                |
-| Edit preservation                       | `edit 2 p/93456789`, then restart.                                                                               | Bob's phone changes, and all his appointments remain.                                                                                         |
-| Delete and clear                        | `delc c/1`, restart; then `clear` and restart.                                                                   | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
+| Edit preservation                       | `edit c/2 p/93456789`, then restart.                                                                             | Bob's phone changes, and all his appointments remain.                                                                                         |
+| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                                     | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 
@@ -1430,7 +1435,8 @@ find Alice
 | Start-only booking                     | Add `appt c/1 d/FUTURE_DATE t/18:00`, then edit that slot with `ns/19:00`. Edit the new 19:00 slot with `ne/20:00`. | First move retains no end; the second edit adds one.                                                                                                                  |
 | Hidden conflict                        | `editappt c/1 d/FUTURE_DATE t/14:00 ns/16:00`                                                                       | Rejects Bob's hidden booking. Alice's booking, filter and saved file remain unchanged.                                                                                |
 | Missing edits or malformed time        | Use the original target with no edits, then with `ns/24:00`.                                                        | Corresponding error feedback appears; failed input remains for correction and the row is unchanged.                                                                   |
-| Invalid end or past start              | Use the original target with `ne/14:00`, then with `nd/01-01-2000`.                                                 | Rejects the invalid end or non-future start without changing data.                                                                                                    |
+| Invalid end                            | Use the original target with `ne/14:00`.                                                                           | Rejects the invalid end without changing data. |
+| Past start and end-only edit            | Move the original booking with `nd/01-01-2000`, then run `editappt c/1 d/01-01-2000 t/14:00 ne/16:00`.                 | Both succeed with the past-appointment guidance. The end first stays 15:30, then becomes 16:00. Pet links, history and the filter are preserved. |
 | Displayed index                        | Use `c/2` while only Alice is displayed.                                                                            | Invalid displayed-index message; Bob is not edited.                                                                                                                   |
 | Correct failed input                   | After a rejection, change the input to a valid edit and press Enter.                                                | Error styling clears on editing; success feedback appears and the command box clears.                                                                                 |
 | Save/reload and preservation           | Make a valid move, exit, relaunch from the same folder and inspect the booking and saved file.                      | Only the edited slot changes. Linked pets, their order, details, other bookings, pet notes and history remain intact. Use the new date/start for subsequent commands. |
