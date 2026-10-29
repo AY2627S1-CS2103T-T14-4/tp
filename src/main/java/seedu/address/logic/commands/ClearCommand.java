@@ -12,6 +12,9 @@ public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
     public static final String MESSAGE_SUCCESS = "PawPals has been cleared!";
+    public static final String MESSAGE_CONFIRMATION = "Clearing all client data:\nConfirm (Y/n)?";
+    public static final String MESSAGE_CANCELLED = "Deletion cancelled.";
+    public static final String MESSAGE_INVALID_CONFIRMATION = "Invalid input.\n" + MESSAGE_CONFIRMATION;
 
 
     @Override

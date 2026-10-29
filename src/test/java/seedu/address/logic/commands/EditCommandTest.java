@@ -1,7 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
@@ -11,6 +11,9 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BENSON;
+import static seedu.address.testutil.TypicalClients.DANIEL;
 import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
@@ -31,6 +34,7 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.ClientContainsKeywordsPredicate;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
@@ -55,6 +59,7 @@ public class EditCommandTest {
                 .withTags(VALID_TAG_HUSBAND).build();
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(editedClient).build();
         Model expectedModel = new ModelManager(model.getPawPals(), new UserPrefs());
+        showClientAtIndex(expectedModel, INDEX_FIRST_CLIENT);
         expectedModel.setClient(withAppointment, editedClient);
 
         assertCommandSuccess(new EditCommand(INDEX_FIRST_CLIENT, descriptor), model,
@@ -111,7 +116,8 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_filteredList_success() {
+    public void execute_filteredClientNoLongerMatches_removesClientFromResults() {
+        // Equivalence Partition (model state): the active predicate rejects the replacement client.
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
         Client clientInFilteredList = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
@@ -122,9 +128,34 @@ public class EditCommandTest {
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient));
 
         Model expectedModel = new ModelManager(new PawPals(model.getPawPals()), new UserPrefs());
+        showClientAtIndex(expectedModel, INDEX_FIRST_CLIENT);
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertTrue(model.getFilteredClientList().isEmpty());
+        assertTrue(model.getPawPals().getClientList().contains(editedClient));
+    }
+
+    @Test
+    public void execute_filteredAddressEdit_preservesMatchingClients() {
+        // Equivalence Partition (model state): the active predicate accepts the replacement client.
+        PawPals pawPals = new PawPals();
+        pawPals.addClient(ALICE);
+        pawPals.addClient(BENSON);
+        pawPals.addClient(DANIEL);
+        Model filteredModel = new ModelManager(pawPals, new UserPrefs());
+        ClientContainsKeywordsPredicate predicate = new ClientContainsKeywordsPredicate(List.of("Meier"));
+        filteredModel.updateFilteredClientList(predicate);
+        Client editedClient = new ClientBuilder(BENSON).withAddress("New Address").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_CLIENT,
+                new EditClientDescriptorBuilder().withAddress("New Address").build());
+        Model expectedModel = new ModelManager(pawPals, new UserPrefs());
+        expectedModel.updateFilteredClientList(predicate);
+        expectedModel.setClient(BENSON, editedClient);
+
+        assertCommandSuccess(editCommand, filteredModel,
+                String.format(EditCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)), expectedModel);
+        assertEquals(List.of(editedClient, DANIEL), filteredModel.getFilteredClientList());
     }
 
     @Test
@@ -216,22 +247,22 @@ public class EditCommandTest {
         // same values -> returns true
         EditClientDescriptor copyDescriptor = new EditClientDescriptor(DESC_AMY);
         EditCommand commandWithSameValues = new EditCommand(INDEX_FIRST_CLIENT, copyDescriptor);
-        assertTrue(standardCommand.equals(commandWithSameValues));
+        assertEquals(standardCommand, commandWithSameValues);
 
         // same object -> returns true
         assertTrue(standardCommand.equals(standardCommand));
 
         // null -> returns false
-        assertFalse(standardCommand.equals(null));
+        assertNotEquals(null, standardCommand);
 
         // different types -> returns false
-        assertFalse(standardCommand.equals(new ClearCommand()));
+        assertNotEquals(new ClearCommand(), standardCommand);
 
         // different index -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(INDEX_SECOND_CLIENT, DESC_AMY)));
+        assertNotEquals(new EditCommand(INDEX_SECOND_CLIENT, DESC_AMY), standardCommand);
 
         // different descriptor -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(INDEX_FIRST_CLIENT, DESC_BOB)));
+        assertNotEquals(new EditCommand(INDEX_FIRST_CLIENT, DESC_BOB), standardCommand);
     }
 
     @Test

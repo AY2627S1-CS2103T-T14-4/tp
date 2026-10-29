@@ -38,9 +38,9 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
    * `appt c/1 d/12-12-2026 t/14:00` : Adds an appointment for the 1st client shown.
 
-   * `delc 3` : Deletes the 3rd client shown in the current list.
+   * `delc c/3` : Deletes the 3rd client shown in the current list.
 
-   * `clear` : Deletes all clients, pets, and appointments.
+   * `clear` : Requests confirmation before deleting all clients, pets, and appointments.
 
    * `exit` : Exits the app.
 
@@ -194,7 +194,7 @@ Examples:
 * At least one of `n/`, `s/` or `b/` must be given. `NAME`, `SPECIES` and `BREED` follow the same rules as in `addp`.
 * Each prefix may appear only once, in any order.
 * A pet cannot be renamed to the name of another of the same client's pets, ignoring capitalisation.
-* Renaming a pet also renames it in the client's upcoming appointments. Completed sessions keep the old name,
+* Renaming a pet also renames it in the client's active appointments, past or future. Completed sessions keep the old name,
   since they record what happened at the time.
 * To change a pet's notes, use `note` and `delnote` instead.
 
@@ -274,7 +274,7 @@ Example: `delp c/1 pn/Milo`
 * `CLIENT_INDEX` refers to the **currently displayed** client list, as in `addp`.
 * `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
 * Both prefixes are required, may appear in any order, and must each appear only once.
-* The pet is also removed from that client's upcoming appointments. The appointments themselves are kept.
+* The pet is also removed from that client's active appointments, past or future. The appointments themselves are kept.
   Completed sessions still show the pet's name, since they record what happened at the time.
 
 Successful output: `Deleted pet: Milo (owner: Alice Tan)`
@@ -293,10 +293,11 @@ If the command fails, no pet is deleted. Feedback includes:
 
 Removes an unwanted client record, all their pets, and all their appointments.
 
-Format: `delc CLIENT_INDEX`
+Format: `delc c/CLIENT_INDEX`
 
-Example: `delc 2`
+Example: `delc c/2`
 
+* The `c/` prefix is required and must appear exactly once. Do not put text before it.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 
 Successful output, if the selected client is Ben Lim:<br>
@@ -305,6 +306,13 @@ Successful output, if the selected client is Ben Lim:<br>
 The message lists the deleted client's details so you can confirm the right client was removed.
 
 The deleted client disappears from the client list, and the remaining clients are renumbered. If the command fails, no client, pet, or appointment is deleted.
+
+| Problem                                                              | Feedback                                                                 |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Missing `c/`, including the old `delc 1` syntax, or text before `c/` | `Invalid command format!`, followed by the `delc` usage instructions.    |
+| Repeated `c/`, even with identical values                            | `Multiple values specified for the following single-valued field(s): c/` |
+| Empty, zero, negative, non-integer, or too-large index               | `Index must be a positive integer.`                                      |
+| Positive index outside the displayed list                            | `The client index provided is invalid.`                                  |
 
 ### Adding an appointment: `appt`
 
@@ -407,8 +415,10 @@ Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
   For example, `editappt c/1 d/12-12-2026 t/14:00 ns/16:00 ne/` moves the appointment to `16:00` with no end.
   To remove only the end, use `editappt c/1 d/12-12-2026 t/14:00 ne/`. Clearing an already absent end succeeds.
   Take care when submitting an unfinished `ne/`: an empty value removes the end rather than reporting an error.
-* The resulting date and start must be strictly in the future when the command executes, using the
-  computer's local time zone. This also applies to end-only edits and edits supplying unchanged values.
+* Past, current and future resulting starts are accepted, including for end-only edits and unchanged
+  starts. When the resulting start is earlier than the computer's current local date and time, success
+  feedback adds: `This appointment is in the past. Use done to record it as a completed session.`
+  This is informational; the edit succeeds and the appointment remains active until completed or cancelled.
 * The resulting slot must not overlap any other active booking, including those belonging to clients
   hidden by filtering. The original booking is excluded from this check. Adjacent slots are allowed,
   start-only bookings occupy their starting minute, and completed history does not block slots, as in `appt`.
@@ -433,14 +443,14 @@ Feedback includes:
 | Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
 | Invalid index, date or time, including empty values except `ne/` | The corresponding index, date or time validation message used by `appt`.                   |
 | No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
-| Resulting start is in the past or current minute              | `Appointment date and time must be strictly in the future.`                                  |
 | New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
 | Preserving the duration would end after 23:59                 | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
 | Overlap with another active booking                           | The same conflict message as `appt`, identifying the conflicting client and slot.            |
 
-The example requires a matching active booking and a resulting start in the future. Replace the example
-date and time as needed. If saving fails, the current session may show the edited booking while the saved
-file retains the original. Resolve the reported file or folder access problem before relying on the change.
+The example requires a matching active booking. The resulting start may be in the past, present or future;
+replace the example date and time as needed. If saving fails, the current session may show the edited
+booking while the saved file retains the original. Resolve the reported file or folder access problem
+before relying on the change.
 
 ### Cancelling an appointment: `cancel`
 
@@ -584,6 +594,7 @@ Each card separates appointments into two sections. **Started Appointments** con
 has arrived; past starts are marked `Overdue`. It shows up to three rows followed by
 `+N more started appointment(s)` when necessary. **Upcoming Appointments** contains future bookings and has its
 own three-row limit followed by `+N more appointment(s)`. Both kinds remain stored until completed or cancelled.
+
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`
@@ -684,9 +695,23 @@ Possible errors:
 
 ### Clearing all entries: `clear`
 
-Clears all clients, pets, and appointments from PawPals.
+Clears all clients, pets, pet notes, appointments, and completed sessions from PawPals after confirmation.
 
 Format: `clear`
+
+PawPals displays:
+
+```text
+Clearing all client data:
+Confirm (Y/n)?
+```
+
+Enter `y` or `Y` to delete all records and receive `PawPals has been cleared!`.
+Enter `n` or `N` to keep your records and receive `Deletion cancelled.`.
+Surrounding whitespace is ignored. Any other submitted response displays `Invalid input.` and repeats the prompt.
+While confirmation is pending, other commands are treated as invalid responses; enter `n` first to resume
+normal commands. Pressing Enter with an empty command box does nothing. Confirmation is required even when
+there are no records, and a pending request is forgotten when PawPals closes.
 
 ### Exiting the program: `exit`
 
@@ -697,7 +722,9 @@ Format: `exit`
 ### Saving the data
 
 PawPals automatically saves all data after every command that executes successfully, including commands such as
-`list` that do not change records. Commands rejected during parsing or execution do not save. Saved data includes clients, pets, pet notes, appointments, and
+`list` that do not change records. Requesting or cancelling `clear` does not save; confirming with `y` or `Y`
+saves the empty database. Commands rejected during parsing or execution do not save.
+Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
 
@@ -773,8 +800,8 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Edit pet**               | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`                                                                                |
 | **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                                                                        |
 | **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                                                                        |
-| **Clear**                  | `clear`                                                                                                                                                                                     |
-| **Delete client**          | `delc CLIENT_INDEX`<br> e.g., `delc 3`                                                                                                                                                      |
+| **Clear**                  | `clear`, then `y` to confirm or `n` to cancel                                                                                                                                               |
+| **Delete client**          | `delc c/CLIENT_INDEX`<br> e.g., `delc c/3`                                                                                                                                                  |
 | **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                                                                              |
 | **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`                                                  |
 | **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` <br> Use empty `ne/` to remove the end time. |

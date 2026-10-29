@@ -67,11 +67,14 @@ public class EmptyStateUiIntegrationTest {
                     assertEquals(1, listView(window).getItems().size());
                 }
 
-                enter(window, "delc 1");
+                enter(window, "delc c/1");
                 assertPlaceholder(window, "No clients yet. Use addc to create a client.");
                 enter(window, ClientUtil.getAddCommand(EMPTY_CLIENT));
                 enter(window, "find Nobody");
                 enter(window, "clear");
+                // The search placeholder changes to empty-database text only after confirmation.
+                assertPlaceholder(window, "No matching clients. Try another search or use list.");
+                enter(window, "y");
                 assertPlaceholder(window, "No clients yet. Use addc to create a client.");
             } finally {
                 window.getPrimaryStage().close();

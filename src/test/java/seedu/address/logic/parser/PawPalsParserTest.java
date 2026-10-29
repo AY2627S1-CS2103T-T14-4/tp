@@ -1,7 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -115,14 +115,14 @@ public class PawPalsParserTest {
 
     @Test
     public void parseCommand_clear() throws Exception {
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+        assertInstanceOf(ClearCommand.class, parser.parseCommand(ClearCommand.COMMAND_WORD));
+        assertInstanceOf(ClearCommand.class, parser.parseCommand(ClearCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
     public void parseCommand_deleteClient() throws Exception {
         DeleteClientCommand command = (DeleteClientCommand) parser.parseCommand(
-                DeleteClientCommand.COMMAND_WORD + " " + INDEX_FIRST_CLIENT.getOneBased());
+                DeleteClientCommand.COMMAND_WORD + " c/" + INDEX_FIRST_CLIENT.getOneBased());
         assertEquals(new DeleteClientCommand(INDEX_FIRST_CLIENT), command);
     }
 
@@ -153,8 +153,8 @@ public class PawPalsParserTest {
 
     @Test
     public void parseCommand_exit() throws Exception {
-        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
-        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
+        assertInstanceOf(ExitCommand.class, parser.parseCommand(ExitCommand.COMMAND_WORD));
+        assertInstanceOf(ExitCommand.class, parser.parseCommand(ExitCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
@@ -175,14 +175,14 @@ public class PawPalsParserTest {
 
     @Test
     public void parseCommand_help() throws Exception {
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+        assertInstanceOf(HelpCommand.class, parser.parseCommand(HelpCommand.COMMAND_WORD));
+        assertInstanceOf(HelpCommand.class, parser.parseCommand(HelpCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
     public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+        assertInstanceOf(ListCommand.class, parser.parseCommand(ListCommand.COMMAND_WORD));
+        assertInstanceOf(ListCommand.class, parser.parseCommand(ListCommand.COMMAND_WORD + " 3"));
     }
 
     @Test

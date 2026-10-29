@@ -2,7 +2,9 @@ package seedu.address.storage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,7 @@ import seedu.address.model.client.Name;
 import seedu.address.model.client.Phone;
 import seedu.address.model.history.CompletedSession;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.model.tag.Tag;
 
@@ -29,6 +32,8 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedClient {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Client's %s field is missing!";
+    public static final String MESSAGE_UNKNOWN_LINKED_PET =
+            "Appointment is linked to pet %s, but the client has no such pet.";
 
     private final String name;
     private final String phone;
@@ -173,7 +178,7 @@ class JsonAdaptedClient {
             if (appointment == null) {
                 throw new IllegalValueException("Appointment entry is missing!");
             }
-            modelAppointments.add(appointment.toModelType());
+            modelAppointments.add(linkToRecordedPets(appointment.toModelType(), modelPets));
         }
         final List<CompletedSession> modelHistory = new ArrayList<>();
         for (JsonAdaptedCompletedSession session : history) {
@@ -190,6 +195,27 @@ class JsonAdaptedClient {
         } catch (DuplicateAppointmentException e) {
             throw new IllegalValueException("Appointments list contains duplicate date/time slots.");
         }
+    }
+
+    /**
+     * Returns {@code appointment} linked to the recorded names of {@code pets}.
+     * Links are matched ignoring case, so links that name the same pet are merged.
+     *
+     * @throws IllegalValueException if a link names a pet that is not in {@code pets}.
+     */
+    private static Appointment linkToRecordedPets(Appointment appointment, List<Pet> pets)
+            throws IllegalValueException {
+        Set<PetName> recordedNames = new LinkedHashSet<>();
+        for (PetName linkedName : appointment.getPetNames()) {
+            String identityKey = linkedName.fullName.toLowerCase(Locale.ROOT);
+            Pet linkedPet = pets.stream()
+                    .filter(pet -> pet.getIdentityKey().equals(identityKey))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalValueException(
+                            String.format(MESSAGE_UNKNOWN_LINKED_PET, linkedName)));
+            recordedNames.add(linkedPet.getName());
+        }
+        return appointment.withPetNames(recordedNames);
     }
 
 }
