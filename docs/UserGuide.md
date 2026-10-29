@@ -592,7 +592,8 @@ Format: `edit c/INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Names, phone numbers, emails, addresses and tags follow the same validation rules as `addc`.
   An edit that would duplicate another client's name and phone number is rejected.
 * Pets, pet notes, appointments and completed history are preserved. After a successful edit,
-  all clients are shown again, clearing any `find` or `findp` filter.
+  any `find` or `findp` search criteria remain active. If the edited client no longer matches,
+  they disappear from the results. Use `list` to show all clients again.
 
 Examples:
 *  `edit c/1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
