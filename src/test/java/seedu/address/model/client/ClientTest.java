@@ -218,6 +218,10 @@ public class ClientTest {
                 .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSameClient(editedAlice));
 
+        // same name and phone digits with different phone formatting -> returns true
+        editedAlice = new ClientBuilder(ALICE).withPhone("+9 4351 253").build();
+        assertTrue(ALICE.isSameClient(editedAlice));
+
         // different name, all other attributes same -> returns false
         editedAlice = new ClientBuilder(ALICE).withName(VALID_NAME_BOB).build();
         assertFalse(ALICE.isSameClient(editedAlice));

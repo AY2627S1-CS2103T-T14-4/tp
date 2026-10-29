@@ -140,7 +140,7 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/regular t/vip`
 
 * `NAME` must contain 1 to 60 characters and must start and end with a letter. Only letters, spaces, apostrophes, and hyphens are allowed between those letters. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `PHONE` must contain 3 to 15 digits without spaces.
+* `PHONE` must contain 3 to 15 digits. The format is `+65 9123 4567`, where the leading `+` is optional and spaces are allowed only between groups of digits. Repeated spaces are reduced to one space, while the leading `+` and single spaces are preserved when the phone number is stored.
 * `EMAIL` must contain 3 to 254 characters and exactly one `@` symbol. The part before `@` must start and end with a letter or number, and may contain apostrophes, plus signs, underscores, periods, and hyphens between them. Punctuation characters cannot appear next to each other. The domain must contain at least one period, and each part must start and end with a letter or number. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 * `TAG` is optional, may be added more than once, and must contain only letters and numbers.
@@ -150,7 +150,7 @@ or omitting a required field, displays the standard invalid command format messa
 
 Successful output: `New client added: Alice Tan`
 
-Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
+Clients with the same name and phone digits are treated as duplicates, ignoring name capitalisation, the phone's leading `+`, and spaces.
 If the command fails because of invalid input or a duplicate client, no client is added.
 
 ### Adding a pet: `addp`
@@ -621,13 +621,18 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * A keyword matches a client if it matches their name, phone number, or email:
   * **Name:** only full words match; for example, `Han` does not match `Hans`.
-  * **Phone number:** the whole number must match exactly; for example, `9123` does not match `91234567`.
+  * **Phone number:** a keyword matches from the first digit of the stored number; for example, `9123` matches `91234567`.
+    For a stored international number such as `+65 9123 4567`, include the country code when searching (`6591` or `+65`);
+    searching `9123` does not match it. A leading `+` in the keyword requires an international number.
   * **Email:** the whole email must match, ignoring case; for example, `ALICE@example.com` matches `alice@example.com`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
-* `find 91234567` returns all clients with that exact phone number
+* `find 9123` returns clients whose phone numbers start with `9123`
+* `find 6591` returns a stored number such as `+65 9123 4567`; `find 9123` does not match it because matching starts at the first digit
+* `find +6` returns international numbers such as `+65 12345678`, but not `65 12345678`
+* `find +` returns all clients with an international phone number
 * `find alice@example.com` returns all clients with that exact email
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)

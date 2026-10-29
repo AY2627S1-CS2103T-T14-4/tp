@@ -628,7 +628,7 @@ Extensions:
     or the corresponding field validation message for an invalid value.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
-* 4a. PawPals detects an existing client with the same name and phone number.
+* 4a. PawPals detects an existing client with the same normalized name and phone digits, ignoring the phone's leading `+` and spaces.
   * 4a1. PawPals informs the user that the client already exists.
   * Use case ends.
 
@@ -745,7 +745,11 @@ MSS:
 
 1. User requests to find clients using one or more keywords.
 2. PawPals searches client names using full-word matching without regard to letter case.
-3. PawPals searches phone numbers for exact matches.
+3. PawPals searches phone numbers by matching the search keyword from the first digit of the stored number. For an
+   international number such as `+65 9123 4567`, the country code must be included in a search without `+` (for example,
+   `6591`); searching `9123` does not match it. A leading `+` in the keyword requires the phone number to have a leading
+   `+`; `+` alone matches any international phone number. Phone numbers use an optional leading `+`, and spaces are
+   allowed only between groups of digits, as in `+65 9123 4567`.
 4. PawPals searches email addresses for exact matches without regard to letter case.
 5. PawPals uses OR matching when multiple keywords are provided.
 6. PawPals displays all matching clients and their information.
@@ -758,8 +762,8 @@ Extensions:
   * 1a1. PawPals displays an error message explaining that at least one keyword is required.
   * Use case ends.
 
-* 1b. User provides a partial phone number, email address, or name word.
-  * 1b1. PawPals displays no client for that partial match.
+* 1b. User provides a phone number prefix, partial email address, or name word.
+  * 1b1. PawPals displays the clients matching the documented field-specific rules, or no clients if there is no match.
   * Use case ends.
 
 #### UC07 - View help
@@ -1286,15 +1290,18 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
 Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future appointment date where needed.
 
-| Scenario       | Commands or action                                  | Expected result                                                 |
-|----------------|-----------------------------------------------------|-----------------------------------------------------------------|
-| Find by name   | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.   |
-| Find by phone  | `find 91234567`                                     | Clients with that exact phone number are listed.                |
-| Find by email  | `find alice@example.com`                            | Clients with that exact email are listed.                       |
-| Partial phone  | `find 9123`                                         | No client is returned for the partial phone number.             |
-| Partial email  | `find alice@example`                                | No client is returned for the partial email address.            |
-| Partial name   | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.     |
-| Filtered index | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list. |
+| Scenario                    | Commands or action                                  | Expected result                                                               |
+|-----------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
+| Find by name                | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.                 |
+| Find by phone               | `find 91234567`                                     | Clients whose phone numbers start with `(+)91234567` are listed.              |
+| Find by email               | `find alice@example.com`                            | Clients with that exact email are listed.                                     |
+| Partial phone               | `find 9123`                                         | Local numbers starting with `9123` are listed; `+65 9123 4567` is not matched.|
+| International phone digits  | `find 6591`                                         | A stored `+65 9123 4567` is listed because the country code is included.      |
+| Find international prefix   | `find +6`                                           | International numbers beginning with `+6` are listed; local numbers excluded. |
+| Find international numbers  | `find +`                                            | All clients with an international phone number are listed.                    |
+| Partial email               | `find alice@example`                                | No client is returned for the partial email address.                          |
+| Partial name                | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.                   |
+| Filtered index              | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list.               |
 
 ### Finding pets
 
