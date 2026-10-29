@@ -54,7 +54,7 @@ public class ScheduleCommand extends Command {
         }
         Client selectedClient = displayedClients.get(clientIndex.getZeroBased());
         model.setClientDisplayMode(ClientDisplayMode.SCHEDULE_CLIENT);
-        model.updateFilteredClientList(client -> client.equals(selectedClient));
+        model.updateFilteredClientList(client -> client.isSameClient(selectedClient));
         return new CommandResult(String.format(MESSAGE_CLIENT_SUCCESS, selectedClient.getName()), FeedbackType.NEUTRAL);
     }
 

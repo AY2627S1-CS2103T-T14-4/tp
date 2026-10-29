@@ -2,6 +2,8 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,7 @@ import seedu.address.model.pet.Pet;
 public class ClientCard extends UiPart<Region> {
 
     private static final String FXML = "ClientListCard.fxml";
+    private static final int APPOINTMENT_DISPLAY_LIMIT = 3;
     private static final int HISTORY_DISPLAY_LIMIT = 3;
 
     /**
@@ -71,9 +74,15 @@ public class ClientCard extends UiPart<Region> {
      * Creates a client card using the requested appointment presentation mode.
      */
     public ClientCard(Client client, int displayedIndex, ClientDisplayMode displayMode) {
+        this(client, displayedIndex, displayMode, Clock.systemDefaultZone());
+    }
+
+    /** Creates a client card using {@code clock} to determine which appointments are upcoming. */
+    ClientCard(Client client, int displayedIndex, ClientDisplayMode displayMode, Clock clock) {
         super(FXML);
         this.client = requireNonNull(client);
         requireNonNull(displayMode);
+        requireNonNull(clock);
         id.setText(displayedIndex + ". ");
         name.setText(client.getName().fullName);
         phone.setText(client.getPhone().value);
@@ -94,10 +103,11 @@ public class ClientCard extends UiPart<Region> {
             pets.getChildren().add(petDetails);
         });
         client.getAppointments().stream()
-                .filter(appointment -> displayMode.getDate()
-                        .map(date -> appointment.getDate().equals(date)).orElse(true))
+                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode, clock))
                 .sorted(Comparator.comparing((Appointment appointment) -> appointment.getDate().getValue())
                         .thenComparing(appointment -> appointment.getTime().getValue()))
+                .limit(displayMode.getType() == ClientDisplayMode.Type.NORMAL
+                        ? APPOINTMENT_DISPLAY_LIMIT : Long.MAX_VALUE)
                 .forEach(appointment -> appointments.getChildren().add(
                         createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
         long historyLimit = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_CLIENT
@@ -117,6 +127,16 @@ public class ClientCard extends UiPart<Region> {
         }
         emptyHistory.setVisible(client.getHistory().isEmpty());
         emptyHistory.setManaged(emptyHistory.isVisible());
+    }
+
+    private static boolean shouldDisplayAppointment(Appointment appointment, ClientDisplayMode displayMode,
+            Clock clock) {
+        return switch (displayMode.getType()) {
+            case NORMAL -> LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue())
+                    .isAfter(LocalDateTime.now(clock));
+            case SCHEDULE_DATE -> appointment.getDate().equals(displayMode.getDate().orElseThrow());
+            case SCHEDULE_CLIENT -> true;
+        };
     }
 
     /**

@@ -110,6 +110,7 @@ public class EmptyStateUiIntegrationTest {
         runOnFxThread(() -> {
             MainWindow window = createWindow(CLIENT_WITH_APPOINTMENT);
             try {
+                enter(window, "schedule c/1");
                 assertFalse(labels(window).contains("No appointments scheduled"));
                 assertTrue(labels(window).contains("No completed sessions"));
                 enter(window, "done c/1 d/01-01-2020 t/10:00 nt/Trim completed");

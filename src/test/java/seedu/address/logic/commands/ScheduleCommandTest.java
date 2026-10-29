@@ -61,6 +61,11 @@ public class ScheduleCommandTest {
         assertEquals(ClientDisplayMode.SCHEDULE_CLIENT, model.clientDisplayModeProperty().getValue());
         assertEquals(String.format(ScheduleCommand.MESSAGE_CLIENT_SUCCESS, second.getName()),
                 result.getFeedbackToUser());
+
+        Client updatedClient = second.copyWithAppointment(
+                new Appointment(TARGET_DATE, new AppointmentTime("11:00")));
+        model.setClient(second, updatedClient);
+        assertEquals(List.of(updatedClient), model.getFilteredClientList());
     }
 
     @Test

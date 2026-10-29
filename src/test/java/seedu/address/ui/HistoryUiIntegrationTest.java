@@ -76,6 +76,7 @@ public class HistoryUiIntegrationTest {
             window.fillInnerParts();
             try {
                 enter(window, "find History Owner");
+                enter(window, "schedule c/1");
                 assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · Milo (Call on arrival)"));
                 ClientListPanel originalPanel = window.getClientListPanel();
                 enter(window, "done c/1 d/" + date + " t/14:00 nt/Fresh trim");
@@ -83,7 +84,7 @@ public class HistoryUiIntegrationTest {
                 assertFalse(labels(window).stream().anyMatch(text -> text.startsWith("Appointment: ")));
                 assertTrue(labels(window).contains(date + " 14:00–15:30 · Milo"));
                 assertTrue(labels(window).contains("Notes: Fresh trim"));
-                assertFalse(labels(window).contains("Notes: Oldest visit"));
+                assertTrue(labels(window).contains("Notes: Oldest visit"));
                 assertFalse(labels(window).contains(ALICE.getName().fullName));
                 assertEquals(1, model.getFilteredClientList().size());
                 Client completed = model.getFilteredClientList().getFirst();

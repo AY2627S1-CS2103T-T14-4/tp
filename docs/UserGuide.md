@@ -33,6 +33,11 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
    * `schedule d/29-10-2026` : Shows clients with active appointments on the specified date.
    * `schedule c/1` : Shows one displayed client's active appointments and complete session history.
 
+The normal `list` view keeps each client card compact by showing only the next three active appointments
+and the three most recent completed sessions. `schedule d/DATE` shows every active appointment on that date
+for matching clients. `schedule c/CLIENT_INDEX` shows all active appointments and completed sessions for the
+selected client, including overdue active appointments.
+
    * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe`.
 
    * `addp c/1 n/Milo s/Dog b/Poodle` : Adds a pet named `Milo` to the 1st client shown.

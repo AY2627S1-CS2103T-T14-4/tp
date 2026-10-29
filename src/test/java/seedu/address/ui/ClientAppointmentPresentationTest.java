@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -98,8 +102,7 @@ public class ClientAppointmentPresentationTest {
                     .withAppointments(first, nextYear, second, previousMonth).build();
             assertEquals(List.of("Appointment: 30-11-2026 16:00 · No pets linked",
                     "Appointment: 12-12-2026 09:00 · No pets linked",
-                    START_TEXT + "–15:30 · Missing (Legacy booking)",
-                    "Appointment: 01-01-2027 08:00 · No pets linked"),
+                    START_TEXT + "–15:30 · Missing (Legacy booking)"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
             assertEquals(List.of(first, nextYear, second, previousMonth), client.getAppointments());
             assertEquals(List.of("No appointments scheduled"),
@@ -119,6 +122,55 @@ public class ClientAppointmentPresentationTest {
             Node card = new ClientCard(client, 1, ClientDisplayMode.scheduleDate(DATE)).getRoot();
 
             assertEquals(List.of(START_TEXT + " · No pets linked"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_normalMode_displaysOnlyNextThreeUpcomingAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"),
+                    ZoneId.of("Asia/Singapore"));
+            Appointment overdue = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("11:59"));
+            Appointment first = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("12:01"));
+            Appointment second = new Appointment(new AppointmentDate("30-10-2026"),
+                    new AppointmentTime("09:00"));
+            Appointment third = new Appointment(new AppointmentDate("31-10-2026"),
+                    new AppointmentTime("09:00"));
+            Appointment fourth = new Appointment(new AppointmentDate("01-11-2026"),
+                    new AppointmentTime("09:00"));
+            Client client = new ClientBuilder().withAppointments(fourth, overdue, third, first, second).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals(List.of(
+                    "Appointment: 29-10-2026 12:01 · No pets linked",
+                    "Appointment: 30-10-2026 09:00 · No pets linked",
+                    "Appointment: 31-10-2026 09:00 · No pets linked"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_clientScheduleMode_displaysPastAndAllFutureAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"), ZoneOffset.UTC);
+            Appointment past = new Appointment(new AppointmentDate("01-01-2020"),
+                    new AppointmentTime("09:00"));
+            Appointment[] appointments = {
+                past,
+                new Appointment(new AppointmentDate("01-11-2026"), new AppointmentTime("09:00")),
+                new Appointment(new AppointmentDate("02-11-2026"), new AppointmentTime("09:00")),
+                new Appointment(new AppointmentDate("03-11-2026"), new AppointmentTime("09:00"))
+            };
+            Client client = new ClientBuilder().withAppointments(appointments).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.SCHEDULE_CLIENT, clock).getRoot();
+
+            assertEquals(4, appointmentTexts(card).size());
+            assertEquals("Appointment: 01-01-2020 09:00 · No pets linked", appointmentTexts(card).get(0));
             return null;
         });
     }
