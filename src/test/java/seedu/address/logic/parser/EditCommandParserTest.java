@@ -121,6 +121,22 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_quotedName_success() {
+        EditClientDescriptor descriptor = new EditClientDescriptorBuilder().withName("Alice Tan").build();
+        assertParseSuccess(parser, " c/1 n/\"Alice Tan\"", new EditCommand(INDEX_FIRST_CLIENT, descriptor));
+    }
+
+    @Test
+    public void parse_emptyName_usesUnquotedPath() {
+        assertParseFailure(parser, " c/1 n/", Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_unmatchedQuotedName_usesUnquotedPath() {
+        assertParseFailure(parser, " c/1 n/\"Alice", Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_someFieldsSpecified_success() {
         // Equivalence Partition: a subset of editable fields with a valid prefixed client index.
         Index targetIndex = INDEX_FIRST_CLIENT;
