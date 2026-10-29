@@ -1,0 +1,46 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":PawPalsParser" as PawPalsParser LOGIC_COLOR
+participant ":AddCommandParser" as AddCommandParser LOGIC_COLOR
+participant "a:AddCommand" as AddCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+[-> LogicManager : execute(commandText)
+activate LogicManager
+LogicManager -> PawPalsParser : parseCommand(commandText)
+activate PawPalsParser
+create AddCommandParser
+PawPalsParser -> AddCommandParser : new()
+PawPalsParser -> AddCommandParser : parse(arguments)
+activate AddCommandParser
+note right of AddCommandParser : Validate arguments and construct client
+create AddCommand
+AddCommandParser -> AddCommand : new(client)
+AddCommandParser --> PawPalsParser : a
+deactivate AddCommandParser
+PawPalsParser --> LogicManager : a
+deactivate PawPalsParser
+
+LogicManager -> AddCommand : execute(m)
+activate AddCommand
+AddCommand -> Model : hasClient(client)
+Model --> AddCommand : false
+AddCommand -> Model : addClient(client)
+Model --> AddCommand
+create CommandResult
+AddCommand -> CommandResult : new(successMessage)
+AddCommand --> LogicManager : r
+deactivate AddCommand
+ref over LogicManager : Save through executeAndSave (storage omitted)
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml

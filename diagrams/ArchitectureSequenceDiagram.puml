@@ -8,13 +8,12 @@ Participant ":Logic" as logic LOGIC_COLOR
 Participant ":Model" as model MODEL_COLOR
 Participant ":Storage" as storage STORAGE_COLOR
 
-user -[USER_COLOR]> ui : "delc c/1"
+user -[USER_COLOR]> ui : commandText
 activate ui UI_COLOR
-
-ui -[UI_COLOR]> logic : execute("delc c/1")
+ui -[UI_COLOR]> logic : execute(commandText)
 activate logic LOGIC_COLOR
 
-logic -[LOGIC_COLOR]> model : deleteClient(p)
+logic -[LOGIC_COLOR]> model : addClient(client)
 activate model MODEL_COLOR
 
 model -[MODEL_COLOR]-> logic
