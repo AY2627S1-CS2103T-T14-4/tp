@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.logic.parser.exceptions.ParseException;
+
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
  *     e.g. {@code some preamble text t/ 11.00 t/12.00 k/ m/ July}  where prefixes are {@code t/ k/ m/}.<br>
@@ -53,6 +55,25 @@ public class ArgumentTokenizer {
         }
         Prefix[] prefixes = Stream.concat(Arrays.stream(otherPrefixes), Stream.of(textPrefix)).toArray(Prefix[]::new);
         return tokenize(argsString, prefixes);
+    }
+
+    /**
+     * Ensures that slash-containing values for the supplied prefixes are enclosed in matching quotes.
+     */
+    public static void validateSlashQuoting(String argsString, Prefix... prefixes) throws ParseException {
+        List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
+        positions.sort((prefix1, prefix2) -> prefix1.getStartPosition() - prefix2.getStartPosition());
+        for (int i = 0; i < positions.size(); i++) {
+            PrefixPosition current = positions.get(i);
+            int nextPosition = i + 1 < positions.size() ? positions.get(i + 1).getStartPosition()
+                    : argsString.length();
+            String value = argsString.substring(current.getStartPosition() + current.getPrefix().getPrefix().length(),
+                    nextPosition).trim();
+            boolean quoted = value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"");
+            if (value.contains("/") && !quoted) {
+                throw new ParseException("Argument values containing '/' must be enclosed in quotes.");
+            }
+        }
     }
 
     /**

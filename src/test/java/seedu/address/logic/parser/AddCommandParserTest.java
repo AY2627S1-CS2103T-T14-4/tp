@@ -71,6 +71,13 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_slashInUnquotedName_failure() {
+        assertParseFailure(parser,
+                " n/Ravi s/o Kumar" + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
+                "Argument values containing '/' must be enclosed in quotes.");
+    }
+
+    @Test
     public void parse_repeatedNonTagValue_failure() {
         String validExpectedClientString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + ADDRESS_DESC_BOB;
