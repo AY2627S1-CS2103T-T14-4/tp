@@ -71,6 +71,11 @@ public class ClientListPanel extends UiPart<Region> {
         clientListView.setCellFactory(listView -> new ClientListViewCell());
     }
 
+    /** Recreates visible cards so time-dependent appointment previews use the current clock. */
+    public void refresh() {
+        clientListView.refresh();
+    }
+
     /**
      * Custom {@code ListCell} that displays the graphics of a {@code Client} using a {@code ClientCard}.
      */

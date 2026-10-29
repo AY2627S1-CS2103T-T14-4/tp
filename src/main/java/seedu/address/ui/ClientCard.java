@@ -83,6 +83,7 @@ public class ClientCard extends UiPart<Region> {
         this.client = requireNonNull(client);
         requireNonNull(displayMode);
         requireNonNull(clock);
+        LocalDateTime now = LocalDateTime.now(clock);
         id.setText(displayedIndex + ". ");
         name.setText(client.getName().fullName);
         phone.setText(client.getPhone().value);
@@ -103,18 +104,18 @@ public class ClientCard extends UiPart<Region> {
             pets.getChildren().add(petDetails);
         });
         client.getAppointments().stream()
-                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode, clock))
-                .sorted(Comparator.comparing((Appointment appointment) -> appointment.getDate().getValue())
+                .filter(appointment -> shouldDisplayAppointment(appointment, displayMode))
+                .sorted(Comparator.comparing((Appointment appointment) -> appointmentOrder(appointment, displayMode,
+                        now))
+                        .thenComparing(appointment -> appointment.getDate().getValue())
                         .thenComparing(appointment -> appointment.getTime().getValue()))
                 .limit(displayMode.getType() == ClientDisplayMode.Type.NORMAL
                         ? APPOINTMENT_DISPLAY_LIMIT : Long.MAX_VALUE)
                 .forEach(appointment -> appointments.getChildren().add(
-                        createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
+                        createWrappingLabel(formatAppointment(appointment, displayMode, now), "cell_small_label")));
         if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
-            long upcomingCount = client.getAppointments().stream()
-                    .filter(appointment -> shouldDisplayAppointment(appointment, displayMode, clock))
-                    .count();
-            addOverflowLabel(appointments, upcomingCount - APPOINTMENT_DISPLAY_LIMIT, "appointment");
+            addOverflowLabel(appointments, client.getAppointments().size() - APPOINTMENT_DISPLAY_LIMIT,
+                    "appointment");
         }
         long historyLimit = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_CLIENT
                 ? Long.MAX_VALUE : HISTORY_DISPLAY_LIMIT;
@@ -131,21 +132,27 @@ public class ClientCard extends UiPart<Region> {
         }
         if (appointments.getChildren().isEmpty()) {
             String emptyText = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_DATE
-                    ? "No appointments scheduled on this date" : "No appointments scheduled";
+                    ? "No appointments scheduled on this date" : "No active appointments";
             appointments.getChildren().add(createEmptyLabel(emptyText));
         }
         emptyHistory.setVisible(client.getHistory().isEmpty());
         emptyHistory.setManaged(emptyHistory.isVisible());
     }
 
-    private static boolean shouldDisplayAppointment(Appointment appointment, ClientDisplayMode displayMode,
-            Clock clock) {
+    private static boolean shouldDisplayAppointment(Appointment appointment, ClientDisplayMode displayMode) {
         return switch (displayMode.getType()) {
-            case NORMAL -> LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue())
-                    .isAfter(LocalDateTime.now(clock));
+            case NORMAL, SCHEDULE_CLIENT -> true;
             case SCHEDULE_DATE -> appointment.getDate().equals(displayMode.getDate().orElseThrow());
-            case SCHEDULE_CLIENT -> true;
         };
+    }
+
+    private static int appointmentOrder(Appointment appointment, ClientDisplayMode displayMode, LocalDateTime now) {
+        return displayMode.getType() == ClientDisplayMode.Type.NORMAL && hasStarted(appointment, now) ? 0 : 1;
+    }
+
+    private static boolean hasStarted(Appointment appointment, LocalDateTime now) {
+        LocalDateTime start = LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue());
+        return !start.isAfter(now);
     }
 
     private static void addOverflowLabel(VBox container, long hiddenCount, String itemName) {
@@ -161,9 +168,11 @@ public class ClientCard extends UiPart<Region> {
      * Returns the booking's times, recorded pet names in order and any nonblank details.
      * Empty pet links are explicit and never inferred from the client's pets.
      */
-    private static String formatAppointment(Appointment appointment) {
+    private static String formatAppointment(Appointment appointment, ClientDisplayMode displayMode, LocalDateTime now) {
         String details = appointment.getDetails().isBlank() ? "" : " (" + appointment.getDetails() + ")";
-        return "Appointment: " + formatAppointmentSummary(appointment) + details;
+        String overdue = displayMode.getType() == ClientDisplayMode.Type.NORMAL && hasStarted(appointment, now)
+                ? "Overdue · " : "";
+        return overdue + "Appointment: " + formatAppointmentSummary(appointment) + details;
     }
 
     /**

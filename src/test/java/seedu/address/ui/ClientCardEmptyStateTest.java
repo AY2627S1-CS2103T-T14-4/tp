@@ -50,7 +50,7 @@ public class ClientCardEmptyStateTest {
     public void constructor_emptyClient_displaysOnlyApplicableEmptyStates() throws Exception {
         runOnFxThread(() -> {
             Region root = new ClientCard(EMPTY_CLIENT, 1).getRoot();
-            assertEquals(List.of("No pets recorded", "No appointments scheduled", "No completed sessions"),
+            assertEquals(List.of("No pets recorded", "No active appointments", "No completed sessions"),
                     emptyLabels(root).stream().map(Label::getText).toList());
             return null;
         });
@@ -64,11 +64,11 @@ public class ClientCardEmptyStateTest {
             Region appointmentCard = new ClientCard(CLIENT_WITH_APPOINTMENT, 1,
                     ClientDisplayMode.SCHEDULE_CLIENT).getRoot();
             assertFalse(emptyLabels(appointmentCard).stream()
-                    .map(Label::getText).toList().contains("No appointments scheduled"));
+                    .map(Label::getText).toList().contains("No active appointments"));
             Label emptyHistory = (Label) new ClientCard(CLIENT_WITH_HISTORY, 1).getRoot().lookup("#emptyHistory");
             assertFalse(emptyHistory.isVisible());
             assertFalse(emptyHistory.isManaged());
-            assertTrue(emptyTexts(CLIENT_WITH_HISTORY).contains("No appointments scheduled"));
+            assertTrue(emptyTexts(CLIENT_WITH_HISTORY).contains("No active appointments"));
             return null;
         });
     }
