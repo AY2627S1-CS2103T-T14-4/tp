@@ -935,12 +935,6 @@ MSS:
 3. PawPals adds the note, or replaces the existing note of the same type for that pet.
 4. PawPals displays a success message and the updated client card. Sensitivity and temperament notes are marked with `⚠` as safety information.
 
-1. User requests to add or update a pet note.
-2. User provides the client's displayed index, the pet's name, a note type (`pref`, `sens` or `temp`),
-   and note text containing 1 to 200 characters after trimming.
-3. PawPals adds or replaces that type of note, preserving the pet's other notes and the current filter.
-4. PawPals displays success and the updated client card, with safety markers for sensitivity and temperament notes.
-
 Use case ends.
 
 Extensions:
@@ -951,6 +945,7 @@ Extensions:
   * Use case resumes from step 3.
 * 2b. The client has no pet with the provided name.
   * 2b1. PawPals informs the user that the client has no pet with that name, leaving all data unchanged.
+  * Use case ends.
 
 #### UC15 - Find pet owners
 
@@ -1286,20 +1281,20 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 
    1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
-   1. Test case: `delc 1`<br>
+   1. Test case: `delc c/1`<br>
       Expected: The first client is deleted from the list. The status message shows the deleted client's details.
 
-   1. Test case: `delc 0`<br>
+   1. Test case: `delc c/0`<br>
       Expected: No client is deleted. The status message shows error details.
 
-   1. Other incorrect delete commands to try: `delc`, `delc x`, `...` (where x is larger than the list size)<br>
+   1. Other incorrect delete commands to try: `delc`, `delc c/x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
 1. Deleting a client from a filtered list
 
    1. Prerequisites: Create multiple clients, then use `find` so that the displayed list contains only the client to delete.
 
-   1. Test case: `delc 1`<br>
+   1. Test case: `delc c/1`<br>
       Expected: The filtered client is deleted. The status message shows the deleted contact's details, and no undisplayed client is affected.
 
    1. Test case: `list`<br>
