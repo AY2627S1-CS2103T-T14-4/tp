@@ -89,6 +89,15 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_partiallyQuotedValue_preservesQuotes() {
+        ArgumentMultimap startsOnly = ArgumentTokenizer.tokenize(" n/\"Ravi\" trailing", new Prefix("n/"));
+        ArgumentMultimap endsOnly = ArgumentTokenizer.tokenize(" n/Ravi\"", new Prefix("n/"));
+
+        assertArgumentPresent(startsOnly, new Prefix("n/"), "\"Ravi\" trailing");
+        assertArgumentPresent(endsOnly, new Prefix("n/"), "Ravi\"");
+    }
+
+    @Test
     public void tokenize_multipleArguments() {
         // Only two arguments are present
         String argsString = "SomePreambleString -t dashT-Value p/pSlash value";
