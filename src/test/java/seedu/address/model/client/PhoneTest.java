@@ -81,10 +81,12 @@ public class PhoneTest {
         Phone local = new Phone("65 12345678");
 
         assertTrue(international.startsWith("+"));
+        assertFalse(international.startsWith(""));
         assertTrue(international.startsWith("+6"));
         assertTrue(international.startsWith("65"));
         assertFalse(international.startsWith("+7"));
         assertFalse(local.startsWith("+6"));
+        assertFalse(local.startsWith(""));
         assertTrue(local.startsWith("6"));
         assertFalse(local.startsWith("abc"));
     }

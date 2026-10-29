@@ -54,7 +54,10 @@ public class Phone {
         String prefixDigits = requiresPlus ? normalizedPrefix.substring(1).replace(" ", "")
                 : normalizedPrefix.replace(" ", "");
         if (prefixDigits.isEmpty()) {
-            return requiresPlus && value.startsWith("+");
+            if (!requiresPlus) {
+                return false;
+            }
+            return value.startsWith("+");
         }
         if (!prefixDigits.matches("\\d+")) {
             return false;
