@@ -80,6 +80,40 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_quotedValue_ignoresPrefixesAndPreservesQuotes() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(
+                " n/\"Ravi p/o Kumar\" p/12345678", new Prefix("n/"), pSlash);
+
+        assertArgumentPresent(argMultimap, new Prefix("n/"), "\"Ravi p/o Kumar\"");
+        assertArgumentPresent(argMultimap, pSlash, "12345678");
+    }
+
+    @Test
+    public void tokenize_quotedNonNameValue_preservesQuotes() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                " p/\"123/ABC\"", pSlash);
+
+        assertArgumentPresent(arguments, pSlash, "\"123/ABC\"");
+    }
+
+    @Test
+    public void tokenize_quoteDetection_shortCircuit() throws Exception {
+        ArgumentTokenizer.validateSlashQuoting(" n/", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/A", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/\"A", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/\"A\"", new Prefix("n/"));
+    }
+
+    @Test
+    public void tokenize_partiallyQuotedValue_preservesQuotes() {
+        ArgumentMultimap startsOnly = ArgumentTokenizer.tokenize(" n/\"Ravi\" trailing", new Prefix("n/"));
+        ArgumentMultimap endsOnly = ArgumentTokenizer.tokenize(" n/Ravi\"", new Prefix("n/"));
+
+        assertArgumentPresent(startsOnly, new Prefix("n/"), "\"Ravi\" trailing");
+        assertArgumentPresent(endsOnly, new Prefix("n/"), "Ravi\"");
+    }
+
+    @Test
     public void tokenize_multipleArguments() {
         // Only two arguments are present
         String argsString = "SomePreambleString -t dashT-Value p/pSlash value";

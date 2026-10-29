@@ -145,6 +145,9 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/r
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 * `TAG` is optional, may be added more than once, and must contain only letters and numbers.
 
+Each single-valued prefix (`n/`, `p/`, `e/` and `a/`) may appear only once. Repeating one of them,
+or omitting a required field, displays the standard invalid command format message and no client is added.
+
 Successful output: `New client added: Alice Tan`
 
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
