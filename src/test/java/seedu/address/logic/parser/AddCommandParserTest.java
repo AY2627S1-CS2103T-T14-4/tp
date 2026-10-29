@@ -81,6 +81,12 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_emptyName_usesUnquotedPath() {
+        assertParseFailure(parser, " n/ p/91234567 e/alice@example.com a/10 Dover Road",
+                Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_quotedAddress_preservesLaterPrefixes() {
         Client expectedClient = new ClientBuilder()
                 .withName("Alice Tan")
@@ -95,6 +101,21 @@ public class AddCommandParserTest {
                 new AddCommand(expectedClient));
         assertParseSuccess(parser,
                 " n/\"Alice Tan\" p/91234567 a/\"10 Dover Road\" e/alice@example.com t/regular t/vip",
+                new AddCommand(expectedClient));
+    }
+
+    @Test
+    public void parse_unmatchedQuoteInAddress_preservesLaterPrefixes() {
+        Client expectedClient = new ClientBuilder()
+                .withName("Alice Tan")
+                .withPhone("91234567")
+                .withEmail("alice@example.com")
+                .withAddress("10 \"Dover Road")
+                .withTags("regular", "vip")
+                .build();
+
+        assertParseSuccess(parser,
+                " n/Alice Tan p/91234567 a/10 \"Dover Road e/alice@example.com t/regular t/vip",
                 new AddCommand(expectedClient));
     }
 

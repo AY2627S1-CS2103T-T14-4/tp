@@ -97,6 +97,14 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_quoteDetection_shortCircuitCases_areHandled() throws Exception {
+        ArgumentTokenizer.validateSlashQuoting(" n/", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/A", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/\"A", new Prefix("n/"));
+        ArgumentTokenizer.validateSlashQuoting(" n/\"A\"", new Prefix("n/"));
+    }
+
+    @Test
     public void tokenize_partiallyQuotedValue_preservesQuotes() {
         ArgumentMultimap startsOnly = ArgumentTokenizer.tokenize(" n/\"Ravi\" trailing", new Prefix("n/"));
         ArgumentMultimap endsOnly = ArgumentTokenizer.tokenize(" n/Ravi\"", new Prefix("n/"));
