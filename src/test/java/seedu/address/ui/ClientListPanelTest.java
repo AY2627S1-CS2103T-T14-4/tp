@@ -10,6 +10,9 @@ import static seedu.address.testutil.EmptyStateFixtures.EMPTY_CLIENT;
 import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -129,34 +132,85 @@ public class ClientListPanelTest {
     }
 
     @Test
-    public void address_narrowThenWidePanel_wrapsAndReflowsWithoutClipping() throws Exception {
+    public void clientFields_narrowThenWidePanel_wrapAndReflowWithoutClipping() throws Exception {
         runOnFxThread(() -> {
+            // Equivalence Partition: text whose rendered width exceeds the available label width.
             String address = "Block 123 Clementi Avenue 4, Tower B, Level 12, Unit 1234, Singapore 120123, "
                     + "entrance beside the community centre, use the rear lift lobby";
-            Client client = new ClientBuilder().withAddress(address).build();
+            // Boundary Value Analysis: upper boundary of valid name length (60 characters).
+            String name = "W".repeat(60);
+            String email = "alexandra.catherine.elizabeth.victoria.charlotte".repeat(2) + "@example.com";
+            String longTag = "LongTag".repeat(15);
+            Client client = new ClientBuilder().withName(name).withEmail(email).withAddress(address)
+                    .withTags(longTag, "VIP", "Regular").build();
+            Map<String, String> fields = Map.of("#name", name, "#email", email, "#address", address,
+                    "#tags .label", longTag);
             ClientListPanel panel = new ClientListPanel(FXCollections.observableArrayList(client));
             Scene scene = new Scene(panel.getRoot(), 420, 600);
             scene.getStylesheets().addAll(
                     getClass().getResource("/view/DarkTheme.css").toExternalForm(),
                     getClass().getResource("/view/Extensions.css").toExternalForm());
-            layout(panel);
+            resizeAndLayout(panel, 420);
 
-            Label addressLabel = (Label) panel.getRoot().lookup("#address");
-            assertEquals(address, addressLabel.getText());
-            assertTrue(addressLabel.getHeight() > addressLabel.prefHeight(1800));
-            assertTrue(addressLabel.getHeight() >= addressLabel.prefHeight(addressLabel.getWidth()));
-            double narrowHeight = addressLabel.getHeight();
+            Map<String, Double> narrowHeights = new HashMap<>();
+            fields.forEach((selector, text) -> {
+                Label label = assertReadableLabel(panel, selector, text);
+                assertTrue(label.getHeight() > label.prefHeight(1800), text);
+                narrowHeights.put(selector, label.getHeight());
+            });
+            Label index = (Label) panel.getRoot().lookup("#id");
+            assertEquals("1. ", index.getText());
+            assertTrue(index.getWidth() >= index.prefWidth(-1));
+            // Equivalence Partition: tags whose rendered width fits within the available label width.
+            for (String tag : new String[] {"VIP", "Regular"}) {
+                Label label = assertReadableLabel(panel, "#tags .label", tag);
+                assertEquals(label.prefWidth(-1), label.getWidth(), 1);
+                assertEquals(label.prefHeight(1800), label.getHeight(), 1);
+            }
 
-            panel.getRoot().resize(1800, 600);
-            layout(panel);
-            addressLabel = (Label) panel.getRoot().lookup("#address");
-            assertEquals(address, addressLabel.getText());
-            assertTrue(addressLabel.getHeight() < narrowHeight);
-            assertTrue(addressLabel.getHeight() >= addressLabel.prefHeight(addressLabel.getWidth()));
+            resizeAndLayout(panel, 1800);
+            fields.forEach((selector, text) -> {
+                Label label = assertReadableLabel(panel, selector, text);
+                assertTrue(label.getHeight() < narrowHeights.get(selector), text);
+            });
             return null;
         });
     }
 
+    /**
+     * Resizes the panel and completes both the width-binding and wrapped-height layout passes.
+     */
+    private static void resizeAndLayout(ClientListPanel panel, double width) {
+        panel.getRoot().resize(width, 600);
+        layout(panel);
+        // A second pass measures wrapped tag heights after the container's width binding updates.
+        layout(panel);
+    }
+
+    /**
+     * Finds the expected label among selector matches and checks wrapping, allocated height, and parent containment.
+     * Returns the label for assertions specific to the current panel width.
+     */
+    private static Label assertReadableLabel(ClientListPanel panel, String selector, String expectedText) {
+        Label label = panel.getRoot().lookupAll(selector).stream()
+                .map(node -> (Label) node)
+                .filter(candidate -> candidate.getText().equals(expectedText))
+                .findFirst().orElseThrow();
+        assertTrue(label.isWrapText(), expectedText);
+        assertTrue(label.getWidth() > 0, expectedText);
+        assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()), expectedText);
+        assertTrue(label.getBoundsInParent().getMinX() >= 0, expectedText);
+        assertTrue(label.getBoundsInParent().getMaxX() <= label.getParent().getLayoutBounds().getWidth() + 1,
+                expectedText);
+        assertTrue(label.getBoundsInParent().getMaxY() <= label.getParent().getLayoutBounds().getHeight() + 1,
+                expectedText + ": bottom=" + label.getBoundsInParent().getMaxY()
+                        + ", parent height=" + label.getParent().getLayoutBounds().getHeight());
+        return label;
+    }
+
+    /**
+     * Checks the placeholder text and that its visible parent chain reaches the panel root after layout.
+     */
     private static void assertPlaceholder(ClientListPanel panel, String expected) {
         layout(panel);
         assertEquals(expected, ((Label) listView(panel).getPlaceholder()).getText());
@@ -172,6 +226,9 @@ public class ClientListPanelTest {
         return (ListView<?>) panel.getRoot().lookup("#clientListView");
     }
 
+    /**
+     * Returns whether the node is connected to the panel root through visible ancestors.
+     */
     private static boolean isAttached(ClientListPanel panel, Node node) {
         if (node == panel.getRoot()) {
             return true;
