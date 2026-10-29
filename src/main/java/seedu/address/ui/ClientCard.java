@@ -121,7 +121,7 @@ public class ClientCard extends UiPart<Region> {
             addOverflowLabel(history, client.getHistory().size() - HISTORY_DISPLAY_LIMIT, "completed session");
         }
         if (appointments.getChildren().isEmpty()) {
-            appointments.getChildren().add(createEmptyLabel("No active appointments"));
+            appointments.getChildren().add(createEmptyLabel("No started appointments"));
         }
         if (upcomingAppointments.getChildren().isEmpty()) {
             upcomingAppointments.getChildren().add(createEmptyLabel("No upcoming appointments"));
@@ -155,7 +155,7 @@ public class ClientCard extends UiPart<Region> {
                         createWrappingLabel(formatAppointment(appointment, displayMode, now), "cell_small_label")));
         if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
             addOverflowLabel(container, count - APPOINTMENT_DISPLAY_LIMIT,
-                    active ? "active appointment" : "appointment");
+                    active ? "started appointment" : "appointment");
         }
     }
 

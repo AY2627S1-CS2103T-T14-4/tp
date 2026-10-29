@@ -32,7 +32,7 @@
       <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <VBox fx:id="pets" minWidth="0" />
-      <Label text="Active Appointments" styleClass="cell_small_label" />
+      <Label text="Started Appointments" styleClass="cell_small_label" />
       <VBox fx:id="appointments" minWidth="0" />
       <Label text="Upcoming Appointments" styleClass="cell_small_label" />
       <VBox fx:id="upcomingAppointments" minWidth="0" />

@@ -142,11 +142,11 @@ stored list stays observable across changes and cannot be modified through the L
 #### Appointment presentation and refresh
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
-`ClientCard` partitions `Client#getAppointments()` when rendering. **Active Appointments** contains bookings
+`ClientCard` partitions `Client#getAppointments()` when rendering. **Started Appointments** contains bookings
 whose starts have arrived, with past starts marked `Overdue`; **Upcoming Appointments** contains future bookings.
 Each section is ordered by calendar date and start time. In the normal `list`, `find` and `findp` presentation,
 each section independently displays its first three rows. Active overflow uses
-`+N more active appointment(s)` and upcoming overflow uses `+N more appointment(s)`. The stored list remains in
+`+N more started appointment(s)` and upcoming overflow uses `+N more appointment(s)`. The stored list remains in
 insertion order. Its private appointment formatter reads
 the date, start time, optional end time, recorded linked names and booking details directly from
 `Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
@@ -1157,7 +1157,7 @@ MSS A — schedule by date:
 
 1. User enters `schedule d/DATE` with a valid date in `DD-MM-YYYY` format.
 2. PawPals displays only clients with an active appointment on that date.
-3. Each matching card shows every appointment on the selected date in either Active Appointments or Upcoming
+3. Each matching card shows every appointment on the selected date in either Started Appointments or Upcoming
    Appointments, up to three recent completed sessions, and a completed-session overflow line when further
    history exists.
 
@@ -1165,7 +1165,7 @@ MSS B — schedule by client:
 
 1. User enters `schedule c/CLIENT_INDEX` using the currently displayed client list.
 2. PawPals displays only the selected client.
-3. The card shows all started appointments in Active Appointments, all future bookings in Upcoming Appointments,
+3. The card shows all started appointments in Started Appointments, all future bookings in Upcoming Appointments,
    and all completed sessions in History.
 
 Extensions:
@@ -1571,10 +1571,10 @@ Replace `TARGET_DATE` and `OTHER_DATE` below with those recorded dates.
 
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
-| Normal compact preview | Run `list`. | Every client is shown. Alice's card independently shows up to three started appointments under Active Appointments and three future bookings under Upcoming Appointments, with an overflow line for each section when applicable. It also shows her three newest completed sessions followed by `+1 more completed session`. |
-| Schedule by date | Run `schedule d/TARGET_DATE`. | Only clients with stored appointments on `TARGET_DATE` are shown. Every matching appointment appears in Active Appointments or Upcoming Appointments, even when there are more than three. Alice still has a three-session history preview followed by `+1 more completed session`; no appointment overflow line appears. |
+| Normal compact preview | Run `list`. | Every client is shown. Alice's card independently shows up to three started appointments under Started Appointments and three future bookings under Upcoming Appointments, with an overflow line for each section when applicable. It also shows her three newest completed sessions followed by `+1 more completed session`. |
+| Schedule by date | Run `schedule d/TARGET_DATE`. | Only clients with stored appointments on `TARGET_DATE` are shown. Every matching appointment appears in Started Appointments or Upcoming Appointments, even when there are more than three. Alice still has a three-session history preview followed by `+1 more completed session`; no appointment overflow line appears. |
 | Empty date | Run `schedule d/OTHER_DATE` using a date with no active bookings. | The no-matches placeholder is shown and stored clients remain unchanged. |
-| Schedule by displayed client | Run `list`, then `schedule c/1`. | Only client 1 is shown. The card displays every started appointment under Active Appointments, every future booking under Upcoming Appointments, and every completed session under History, with no overflow lines. |
+| Schedule by displayed client | Run `list`, then `schedule c/1`. | Only client 1 is shown. The card displays every started appointment under Started Appointments, every future booking under Upcoming Appointments, and every completed session under History, with no overflow lines. |
 | Client mutation preserves schedule | While in `schedule c/1`, run a valid `addp`, `note`, `appt`, `editappt`, `cancel` or `done` targeting the displayed client as applicable. | The command uses the displayed index and the selected-client schedule remains active. The card refreshes with the changed records. |
 | Date membership refreshes | Run `schedule d/TARGET_DATE`, then move, cancel or complete one matching appointment. | The card refreshes. A client disappears only when it no longer has any active appointment on `TARGET_DATE`. |
 | Add client resets schedule | From either schedule mode, run a valid `addc`. | The new client is added and PawPals restores all clients in the normal compact view. |

@@ -80,7 +80,7 @@ Missing records are shown explicitly:
 | Client list after `find` or `findp` | `No matching clients. Try another search or use list.` | Clients exist, but none match the search. Use `list` to show all clients again.                                    |
 | Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
 | Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
-| Active Appointments section         | `No active appointments`                               | This client has no appointments whose start time has arrived.                                                      |
+| Started Appointments section        | `No started appointments`                              | This client has no appointments whose start time has arrived.                                                      |
 | Upcoming Appointments section       | `No upcoming appointments`                             | This client has no future appointments.                                                                             |
 | Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
 
@@ -88,7 +88,7 @@ For example, a newly added client shows the messages for no pets, appointments, 
 Adding a pet replaces `No pets recorded` with that pet's details and `No notes recorded`.
 Adding a note removes the pet's empty-note message; deleting its last note restores it.
 
-Cancelling or completing the last started appointment restores `No active appointments`. Cancelling the last
+Cancelling or completing the last started appointment restores `No started appointments`. Cancelling the last
 future appointment restores `No upcoming appointments`. Completing an appointment also replaces
 `No completed sessions` with a preview of up to three recent sessions, including their
 recorded times, pet names and session notes. Empty messages update immediately after commands; no restart is needed.
@@ -580,9 +580,9 @@ under its client with its name, species, and breed, followed by any pet notes. S
 are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
-Each card separates appointments into two sections. **Active Appointments** contains bookings whose start time
+Each card separates appointments into two sections. **Started Appointments** contains bookings whose start time
 has arrived; past starts are marked `Overdue`. It shows up to three rows followed by
-`+N more active appointment(s)` when necessary. **Upcoming Appointments** contains future bookings and has its
+`+N more started appointment(s)` when necessary. **Upcoming Appointments** contains future bookings and has its
 own three-row limit followed by `+N more appointment(s)`. Both kinds remain stored until completed or cancelled.
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 

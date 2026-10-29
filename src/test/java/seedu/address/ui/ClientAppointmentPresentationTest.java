@@ -170,7 +170,7 @@ public class ClientAppointmentPresentationTest {
 
             Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
 
-            assertEquals("+3 more active appointments", activeAppointmentTexts(card).getLast());
+            assertEquals("+3 more started appointments", activeAppointmentTexts(card).getLast());
             assertEquals(List.of("No upcoming appointments"), appointmentTexts(card));
             return null;
         });

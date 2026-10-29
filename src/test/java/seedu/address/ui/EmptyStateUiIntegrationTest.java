@@ -111,10 +111,10 @@ public class EmptyStateUiIntegrationTest {
             MainWindow window = createWindow(CLIENT_WITH_APPOINTMENT);
             try {
                 enter(window, "schedule c/1");
-                assertFalse(labels(window).contains("No active appointments"));
+                assertFalse(labels(window).contains("No started appointments"));
                 assertTrue(labels(window).contains("No completed sessions"));
                 enter(window, "done c/1 d/01-01-2020 t/10:00 nt/Trim completed");
-                assertTrue(labels(window).contains("No active appointments"));
+                assertTrue(labels(window).contains("No started appointments"));
                 assertFalse(labels(window).contains("No completed sessions"));
                 assertTrue(labels(window).contains("01-01-2020 10:00 · No pets linked"));
                 assertTrue(labels(window).contains("Notes: Trim completed"));
