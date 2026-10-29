@@ -618,13 +618,16 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * A keyword matches a client if it matches their name, phone number, or email:
   * **Name:** only full words match; for example, `Han` does not match `Hans`.
-  * **Phone number:** a keyword matches from the first digit; for example, `9123` matches `91234567`. A leading `+` in the keyword requires an international number.
+  * **Phone number:** a keyword matches from the first digit of the stored number; for example, `9123` matches `91234567`.
+    For a stored international number such as `+65 9123 4567`, include the country code when searching (`6591` or `+65`);
+    searching `9123` does not match it. A leading `+` in the keyword requires an international number.
   * **Email:** the whole email must match, ignoring case; for example, `ALICE@example.com` matches `alice@example.com`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
 * `find 9123` returns clients whose phone numbers start with `9123`
+* `find 6591` returns a stored number such as `+65 9123 4567`; `find 9123` does not match it because matching starts at the first digit
 * `find +6` returns international numbers such as `+65 12345678`, but not `65 12345678`
 * `find +` returns all clients with an international phone number
 * `find alice@example.com` returns all clients with that exact email

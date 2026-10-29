@@ -744,9 +744,11 @@ MSS:
 
 1. User requests to find clients using one or more keywords.
 2. PawPals searches client names using full-word matching without regard to letter case.
-3. PawPals searches phone numbers by matching the search keyword from the first digit. A leading `+` in the keyword
-   requires the phone number to have a leading `+`; `+` alone matches any international phone number. Phone numbers
-   use an optional leading `+`, and spaces are allowed only between groups of digits, as in `+65 9123 4567`.
+3. PawPals searches phone numbers by matching the search keyword from the first digit of the stored number. For an
+   international number such as `+65 9123 4567`, the country code must be included in a search without `+` (for example,
+   `6591`); searching `9123` does not match it. A leading `+` in the keyword requires the phone number to have a leading
+   `+`; `+` alone matches any international phone number. Phone numbers use an optional leading `+`, and spaces are
+   allowed only between groups of digits, as in `+65 9123 4567`.
 4. PawPals searches email addresses for exact matches without regard to letter case.
 5. PawPals uses OR matching when multiple keywords are provided.
 6. PawPals displays all matching clients and their information.
@@ -759,8 +761,8 @@ Extensions:
   * 1a1. PawPals displays an error message explaining that at least one keyword is required.
   * Use case ends.
 
-* 1b. User provides a partial phone number, email address, or name word.
-  * 1b1. PawPals displays no client for that partial match.
+* 1b. User provides a phone number prefix, partial email address, or name word.
+  * 1b1. PawPals displays the clients matching the documented field-specific rules, or no clients if there is no match.
   * Use case ends.
 
 #### UC07 - View help
@@ -1270,7 +1272,8 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 | Find by name                | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.                 |
 | Find by phone               | `find 91234567`                                     | Clients whose phone numbers start with `(+)91234567` are listed.              |
 | Find by email               | `find alice@example.com`                            | Clients with that exact email are listed.                                     |
-| Partial phone               | `find 9123`                                         | Clients whose phone numbers start with `(+)9123` are listed.                  |
+| Partial phone               | `find 9123`                                         | Local numbers starting with `9123` are listed; `+65 9123 4567` is not matched.|
+| International phone digits  | `find 6591`                                         | A stored `+65 9123 4567` is listed because the country code is included.      |
 | Find international prefix   | `find +6`                                           | International numbers beginning with `+6` are listed; local numbers excluded. |
 | Find international numbers  | `find +`                                            | All clients with an international phone number are listed.                    |
 | Partial email               | `find alice@example`                                | No client is returned for the partial email address.                          |
