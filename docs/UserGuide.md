@@ -575,7 +575,7 @@ Each client entry displays the client's phone number, address, email, pets, and 
 under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
 are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
-and any stored booking details. Pet names and appointment rows wrap within the card.
+and any stored booking details. Addresses, pet names, and appointment rows wrap within the card.
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`

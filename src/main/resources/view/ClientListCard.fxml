@@ -29,7 +29,8 @@
       </HBox>
       <FlowPane fx:id="tags" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
-      <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
+      <Label fx:id="address" styleClass="cell_small_label" text="\$address"
+             wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <VBox fx:id="pets" minWidth="0" />
       <VBox fx:id="appointments" minWidth="0" />

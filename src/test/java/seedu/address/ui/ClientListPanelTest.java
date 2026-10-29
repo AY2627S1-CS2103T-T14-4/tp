@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.model.client.Client;
+import seedu.address.testutil.ClientBuilder;
 
 public class ClientListPanelTest {
     @BeforeAll
@@ -123,6 +124,35 @@ public class ClientListPanelTest {
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
+            return null;
+        });
+    }
+
+    @Test
+    public void address_narrowThenWidePanel_wrapsAndReflowsWithoutClipping() throws Exception {
+        runOnFxThread(() -> {
+            String address = "Block 123 Clementi Avenue 4, Tower B, Level 12, Unit 1234, Singapore 120123, "
+                    + "entrance beside the community centre, use the rear lift lobby";
+            Client client = new ClientBuilder().withAddress(address).build();
+            ClientListPanel panel = new ClientListPanel(FXCollections.observableArrayList(client));
+            Scene scene = new Scene(panel.getRoot(), 420, 600);
+            scene.getStylesheets().addAll(
+                    getClass().getResource("/view/DarkTheme.css").toExternalForm(),
+                    getClass().getResource("/view/Extensions.css").toExternalForm());
+            layout(panel);
+
+            Label addressLabel = (Label) panel.getRoot().lookup("#address");
+            assertEquals(address, addressLabel.getText());
+            assertTrue(addressLabel.getHeight() > addressLabel.prefHeight(1800));
+            assertTrue(addressLabel.getHeight() >= addressLabel.prefHeight(addressLabel.getWidth()));
+            double narrowHeight = addressLabel.getHeight();
+
+            panel.getRoot().resize(1800, 600);
+            layout(panel);
+            addressLabel = (Label) panel.getRoot().lookup("#address");
+            assertEquals(address, addressLabel.getText());
+            assertTrue(addressLabel.getHeight() < narrowHeight);
+            assertTrue(addressLabel.getHeight() >= addressLabel.prefHeight(addressLabel.getWidth()));
             return null;
         });
     }
