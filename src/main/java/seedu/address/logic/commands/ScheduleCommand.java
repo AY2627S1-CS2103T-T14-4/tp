@@ -21,7 +21,7 @@ public class ScheduleCommand extends Command {
             + "Parameters: d/DATE or c/CLIENT_INDEX\n"
             + "Examples: " + COMMAND_WORD + " d/29-10-2026, " + COMMAND_WORD + " c/1";
     public static final String MESSAGE_DATE_SUCCESS = "Listed appointments for %1$s.";
-    public static final String MESSAGE_CLIENT_SUCCESS = "Listed complete appointment history for %1$s.";
+    public static final String MESSAGE_CLIENT_SUCCESS = "Listed all appointments and completed sessions for %1$s.";
 
     private final AppointmentDate date;
     private final Index clientIndex;
