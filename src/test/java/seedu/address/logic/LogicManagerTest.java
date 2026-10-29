@@ -69,7 +69,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteClientCommand = DeleteClientCommand.COMMAND_WORD + " 9";
+        String deleteClientCommand = DeleteClientCommand.COMMAND_WORD + " c/9";
         assertCommandException(deleteClientCommand, MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
     }
 

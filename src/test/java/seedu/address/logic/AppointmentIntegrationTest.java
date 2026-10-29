@@ -181,7 +181,7 @@ public class AppointmentIntegrationTest {
         logic.execute(appointmentCommand(1));
 
         assertEquals(1, logic.getFilteredClientList().size());
-        assertEquals("Bob Test", logic.getFilteredClientList().get(0).getName().fullName);
+        assertEquals("Bob Test", logic.getFilteredClientList().getFirst().getName().fullName);
         ReadOnlyPawPals saved = readSavedPawPals();
         assertTrue(saved.getClientList().get(0).getAppointments().isEmpty());
         assertEquals(List.of(appointment), saved.getClientList().get(1).getAppointments());
@@ -198,21 +198,21 @@ public class AppointmentIntegrationTest {
         logic.execute("edit c/1 p/93456789");
 
         ReadOnlyPawPals saved = readSavedPawPals();
-        assertEquals("93456789", saved.getClientList().get(0).getPhone().value);
-        assertEquals(List.of(appointment), saved.getClientList().get(0).getAppointments());
+        assertEquals("93456789", saved.getClientList().getFirst().getPhone().value);
+        assertEquals(List.of(appointment), saved.getClientList().getFirst().getAppointments());
     }
 
     @Test
     public void execute_deleteAndClear_removeSavedAppointments() throws Exception {
         logic.execute(appointmentCommand(1));
         logic.execute("appt c/2 d/" + futureDate + " t/12:35");
-        logic.execute("delc 1");
+        logic.execute("delc c/1");
 
         ReadOnlyPawPals afterDelete = readSavedPawPals();
         assertEquals(1, afterDelete.getClientList().size());
-        assertEquals("Bob Test", afterDelete.getClientList().get(0).getName().fullName);
+        assertEquals("Bob Test", afterDelete.getClientList().getFirst().getName().fullName);
         assertEquals(List.of(new Appointment(appointment.getDate(), new AppointmentTime("12:35"))),
-                afterDelete.getClientList().get(0).getAppointments());
+                afterDelete.getClientList().getFirst().getAppointments());
 
         logic.execute("clear");
         // Requesting clear preserves saved appointments until confirmation.
@@ -239,7 +239,7 @@ public class AppointmentIntegrationTest {
 
         assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
                 exception.getMessage());
-        assertEquals(List.of(appointment), model.getPawPals().getClientList().get(0).getAppointments());
+        assertEquals(List.of(appointment), model.getPawPals().getClientList().getFirst().getAppointments());
         assertEquals(savedJson, Files.readString(dataFile));
     }
 
