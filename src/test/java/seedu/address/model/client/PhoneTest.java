@@ -1,5 +1,6 @@
 package seedu.address.model.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -30,13 +31,27 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("91")); // less than 3 numbers
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
-        assertFalse(Phone.isValidPhone("9312 1534")); // spaces within digits
+        assertFalse(Phone.isValidPhone("12-34")); // invalid formatting
+        assertFalse(Phone.isValidPhone("+ 65 91234567")); // space after leading plus
+        assertFalse(Phone.isValidPhone("65 +91234567")); // plus sign not at the beginning
+        assertFalse(Phone.isValidPhone("65 9123+4567")); // plus sign within a digit group
         assertFalse(Phone.isValidPhone("1242938420331234")); // too long
+        assertFalse(Phone.isValidPhone("+123 4567 8901 2345 6")); // 16 digits
 
         // valid phone numbers
         assertTrue(Phone.isValidPhone("911")); // minimum length
         assertTrue(Phone.isValidPhone("93121534"));
+        assertTrue(Phone.isValidPhone("+65 9123 4567")); // optional country code and spaces
+        assertTrue(Phone.isValidPhone("65 9123 4567")); // spaces between digit groups
         assertTrue(Phone.isValidPhone("124293842033123")); // maximum length
+        assertTrue(Phone.isValidPhone("+123 4567 8901 2345")); // 15 digits with formatting
+    }
+
+    @Test
+    public void constructor_formattedPhone_normalizesValue() {
+        Phone phone = new Phone("  +65  9123   4567  ");
+
+        assertEquals("+65 9123 4567", phone.value);
     }
 
     @Test
@@ -45,6 +60,7 @@ public class PhoneTest {
 
         // same values -> returns true
         assertTrue(phone.equals(new Phone("99999999")));
+        assertTrue(new Phone("+65 9123 4567").equals(new Phone("6591234567")));
 
         // same object -> returns true
         assertTrue(phone.equals(phone));
@@ -57,5 +73,21 @@ public class PhoneTest {
 
         // different values -> returns false
         assertFalse(phone.equals(new Phone("99999995")));
+    }
+
+    @Test
+    public void startsWith_matchesDigitsAndPlusPrefixes() {
+        Phone international = new Phone("+65 12345678");
+        Phone local = new Phone("65 12345678");
+
+        assertTrue(international.startsWith("+"));
+        assertFalse(international.startsWith(""));
+        assertTrue(international.startsWith("+6"));
+        assertTrue(international.startsWith("65"));
+        assertFalse(international.startsWith("+7"));
+        assertFalse(local.startsWith("+6"));
+        assertFalse(local.startsWith(""));
+        assertTrue(local.startsWith("6"));
+        assertFalse(local.startsWith("abc"));
     }
 }

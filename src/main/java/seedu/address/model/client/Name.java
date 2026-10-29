@@ -12,14 +12,14 @@ import java.util.Locale;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should contain only letters, spaces, apostrophes and hyphens, and should be between 1 and 60 "
-            + "characters long.";
+            "Names should contain only letters, spaces, apostrophes, slashes and hyphens, and should be between 1 and "
+            + "60 characters long. Names containing slashes must be enclosed in quotation marks.";
 
     /*
      * The first character of the name must be a letter,
      * otherwise punctuation-only or blank values become valid inputs.
      */
-    public static final String VALIDATION_REGEX = "[\\p{L}](?:[\\p{L} '\\-]*[\\p{L}])?";
+    public static final String VALIDATION_REGEX = "[\\p{L}](?:[\\p{L} '/\\-]*[\\p{L}])?";
 
     public final String fullName;
 

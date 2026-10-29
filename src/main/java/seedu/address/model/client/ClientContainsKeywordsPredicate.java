@@ -20,7 +20,7 @@ public class ClientContainsKeywordsPredicate implements Predicate<Client> {
     public boolean test(Client client) {
         return keywords.stream().anyMatch(keyword ->
                 StringUtil.containsWordIgnoreCase(client.getName().fullName, keyword)
-                        || client.getPhone().value.equals(keyword)
+                        || client.getPhone().startsWith(keyword)
                         || client.getEmail().value.equalsIgnoreCase(keyword));
     }
 
