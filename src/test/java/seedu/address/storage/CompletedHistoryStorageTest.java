@@ -130,7 +130,8 @@ public class CompletedHistoryStorageTest {
         Model model = modelWithHistory();
         LogicManager logic = new LogicManager(model, createStorage());
         logic.execute("find Alice");
-        logic.execute("edit 1 n/Alice Updated p/98765432 e/updated@example.com a/New address t/vip");
+        // Equivalence Partition: client edit with c/ preserves completed history.
+        logic.execute("edit c/1 n/Alice Updated p/98765432 e/updated@example.com a/New address t/vip");
         logic.execute("addp c/1 n/Luna s/Cat b/Persian");
         logic.execute("appt c/1 d/31-12-9999 t/12:00");
 
@@ -152,7 +153,7 @@ public class CompletedHistoryStorageTest {
         LogicManager logic = new LogicManager(model, createStorage());
 
         logic.execute("find Alice");
-        logic.execute("delc 1");
+        logic.execute("delc c/1");
         assertEquals(List.of(bensonWithHistory), createStorage().readPawPals().orElseThrow().getClientList());
 
         StorageManager restartedStorage = createStorage();

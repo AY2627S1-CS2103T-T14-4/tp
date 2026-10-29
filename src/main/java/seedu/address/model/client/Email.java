@@ -14,7 +14,7 @@ public class Email {
             + "have a valid domain containing at least one \".\", and should not contain spaces.";
     public static final String VALIDATION_REGEX;
 
-    private static final String SPECIAL_CHARACTERS = "+_.-";
+    private static final String SPECIAL_CHARACTERS = "+_.'-";
     // Alphanumeric characters and special characters allowed in an email address.
     private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+";
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"

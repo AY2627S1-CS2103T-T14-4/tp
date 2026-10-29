@@ -52,6 +52,18 @@ public class JsonAdaptedPetTest {
     }
 
     @Test
+    public void toModelType_extraSpacesAroundValues_cleansThemUp() throws Exception {
+        // 38 characters plus trailing spaces is over the 40-character limit until the spaces are removed
+        String name = "Sir Reginald Fluffington the Third Esq";
+        JsonAdaptedPet pet = new JsonAdaptedPet(name + "    ", "\tDog ", "Toy   Poodle");
+
+        Pet modelPet = pet.toModelType();
+        assertEquals(name, modelPet.getName().fullName);
+        assertEquals("Dog", modelPet.getSpecies().toString());
+        assertEquals("Toy Poodle", modelPet.getBreed().toString());
+    }
+
+    @Test
     public void toModelType_missingOrInvalidName_throwsIllegalValueException() {
         JsonAdaptedPet missingName = new JsonAdaptedPet(null, "Dog", "Poodle");
         JsonAdaptedPet invalidName = new JsonAdaptedPet(" ", "Dog", "Poodle");

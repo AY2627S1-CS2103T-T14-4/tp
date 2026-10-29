@@ -123,6 +123,41 @@ public class EditAppointmentUiIntegrationTest {
         });
     }
 
+    @Test
+    public void enter_clearEndAfterFind_refreshesRowAndFeedbackAndSavesWithoutEnd() throws Exception {
+        runOnFxThread(() -> {
+            String date = LocalDate.now().plusDays(1).format(DATE_FORMATTER);
+            MainWindow window = createWindow(date);
+            try {
+                enter(window, "find " + BENSON.getName());
+                assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                        + BOOKING_DETAILS + ")"));
+
+                enter(window, "editappt c/1 d/" + date + " t/14:00 ns/16:00 ne/");
+
+                List<String> labels = labels(window);
+                assertTrue(labels.contains("Appointment: " + date + " 16:00 · No pets linked ("
+                        + BOOKING_DETAILS + ")"));
+                assertFalse(labels.contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                        + BOOKING_DETAILS + ")"));
+                assertFalse(labels.contains(ALICE.getName().fullName));
+                assertTrue(labels.contains(BENSON.getName().fullName));
+                assertEquals("", input(window).getText());
+                assertFalse(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals("Rescheduled appointment: " + BENSON.getName() + " " + date + " 14:00 → " + date
+                        + " 16:00", feedback(window).getText());
+                Appointment saved = new JsonPawPalsStorage(dataFile()).readPawPals().orElseThrow()
+                        .getClientList().get(1).getAppointments().getFirst();
+                assertTrue(saved.getEndTime().isEmpty());
+                assertEquals(new AppointmentTime("16:00"), saved.getTime());
+                assertEquals(BOOKING_DETAILS, saved.getDetails());
+            } finally {
+                window.getPrimaryStage().close();
+            }
+            return null;
+        });
+    }
+
     private MainWindow createWindow(String date) {
         Appointment appointment = new Appointment(new AppointmentDate(date), new AppointmentTime("14:00"),
                 BOOKING_DETAILS).withEndTime(new AppointmentTime("15:30"));

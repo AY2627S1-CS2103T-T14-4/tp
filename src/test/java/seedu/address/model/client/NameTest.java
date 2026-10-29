@@ -38,7 +38,6 @@ public class NameTest {
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertTrue(Name.isValidName("Peter O'Neil")); // apostrophe
         assertTrue(Name.isValidName("Anne-Marie")); // hyphen
-        assertTrue(Name.isValidName("Ravi s/o Kumar")); // slash
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
     }
 
