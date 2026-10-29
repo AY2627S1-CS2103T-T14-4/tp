@@ -136,7 +136,8 @@ public class PawPalsParserTest {
     public void parseCommand_edit() throws Exception {
         Client client = new ClientBuilder().build();
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(client).build();
-        EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
+        // Equivalence Partition: edit command with a valid prefixed client index.
+        EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " c/"
                 + INDEX_FIRST_CLIENT.getOneBased() + " " + ClientUtil.getEditClientDescriptorDetails(descriptor));
         assertEquals(new EditCommand(INDEX_FIRST_CLIENT, descriptor), command);
     }
