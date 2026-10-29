@@ -1312,7 +1312,8 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 | Partial pet word   | `findp Mil`                                         | No clients are listed because partial words do not match.      |
 | No match           | `findp Rex`                                         | No clients are listed and the result reports zero pets found.  |
 | No keyword         | `findp`                                             | An invalid command format message is shown.                    |
-| Filtered index     | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list. |
+| Filtered index     | `findp Milo`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first owner in the filtered list, and the filtered list remains active. |
+| Index outside filter | `findp Milo`, then `addp c/2 n/Coco s/Dog b/Poodle` | The index is rejected because it is outside the filtered list; no client data changes. |
 | Future appointment | `findp Milo`, then `appt c/1 d/FUTURE_DATE t/12:00` | The appointment is added to the filtered owner.                |
 
 ### Deleting a client

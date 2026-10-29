@@ -192,6 +192,44 @@ public class AppointmentIntegrationTest {
     }
 
     @Test
+    public void execute_findThenAddPet_usesDisplayedIndexAndKeepsFilter() throws Exception {
+        // Alice is inserted first and Bob second; after filtering, Bob must become displayed index 1.
+        logic.execute("find Bob");
+        logic.execute("addp c/1 n/Milo s/Dog b/Poodle");
+
+        assertEquals(1, logic.getFilteredClientList().size());
+        assertEquals("Bob Test", logic.getFilteredClientList().getFirst().getName().fullName);
+        assertTrue(readSavedPawPals().getClientList().getFirst().getPets().isEmpty());
+        assertEquals("Milo", readSavedPawPals().getClientList().get(1).getPets().getFirst().getName().fullName);
+    }
+
+    @Test
+    public void execute_findThenAddPet_indexOutsideFilteredListRejected() throws Exception {
+        // Bob is second in the original list, but is the only client in the filtered list.
+        logic.execute("find Bob");
+
+        assertThrows(CommandException.class, () -> logic.execute("addp c/2 n/Milo s/Dog b/Poodle"));
+
+        assertEquals(1, logic.getFilteredClientList().size());
+        assertEquals("Bob Test", logic.getFilteredClientList().getFirst().getName().fullName);
+        assertTrue(readSavedPawPals().getClientList().stream().allMatch(client -> client.getPets().isEmpty()));
+    }
+
+    @Test
+    public void execute_findPetThenAppointment_usesDisplayedIndexAndKeepsFilter() throws Exception {
+        // Alice is first and Bob is second in the original list; findp Luna leaves only Bob displayed.
+        logic.execute("addp c/1 n/Milo s/Dog b/Poodle");
+        logic.execute("addp c/2 n/Luna s/Cat b/Persian");
+        logic.execute("findp Luna");
+        logic.execute(appointmentCommand(1));
+
+        assertEquals(1, logic.getFilteredClientList().size());
+        assertEquals("Bob Test", logic.getFilteredClientList().getFirst().getName().fullName);
+        assertTrue(readSavedPawPals().getClientList().getFirst().getAppointments().isEmpty());
+        assertEquals(List.of(appointment), readSavedPawPals().getClientList().get(1).getAppointments());
+    }
+
+    @Test
     public void execute_editClient_preservesSavedAppointments() throws Exception {
         logic.execute(appointmentCommand(1));
         // Equivalence Partition: client edit with c/ preserves saved appointments.
