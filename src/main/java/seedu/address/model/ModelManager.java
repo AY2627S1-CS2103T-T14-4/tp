@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
@@ -25,6 +28,8 @@ public class ModelManager implements Model {
     private final PawPals pawPals;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
+    private final ObjectProperty<ClientDisplayMode> clientDisplayMode =
+            new SimpleObjectProperty<>(ClientDisplayMode.NORMAL);
 
     /**
      * Initializes a ModelManager with the given pawPals and userPrefs.
@@ -87,6 +92,7 @@ public class ModelManager implements Model {
     @Override
     public void addClient(Client client) {
         pawPals.addClient(client);
+        setClientDisplayMode(ClientDisplayMode.NORMAL);
         updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
@@ -125,6 +131,16 @@ public class ModelManager implements Model {
     public void updateFilteredClientList(Predicate<Client> predicate) {
         requireNonNull(predicate);
         filteredClients.setPredicate(predicate);
+    }
+
+    @Override
+    public ObservableValue<ClientDisplayMode> clientDisplayModeProperty() {
+        return clientDisplayMode;
+    }
+
+    @Override
+    public void setClientDisplayMode(ClientDisplayMode mode) {
+        clientDisplayMode.set(requireNonNull(mode));
     }
 
     @Override

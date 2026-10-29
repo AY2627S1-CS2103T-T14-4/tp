@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.Model;
 import seedu.address.model.client.ClientContainsKeywordsPredicate;
 
@@ -29,6 +30,7 @@ public class FindCommand extends Command {
 
     @Override
     public CommandResult execute(Model model) {
+        model.setClientDisplayMode(ClientDisplayMode.NORMAL);
         requireNonNull(model);
         model.updateFilteredClientList(predicate);
         return new CommandResult(

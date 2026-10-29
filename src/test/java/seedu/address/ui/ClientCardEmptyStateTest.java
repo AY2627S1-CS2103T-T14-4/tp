@@ -24,6 +24,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
@@ -49,7 +50,8 @@ public class ClientCardEmptyStateTest {
     public void constructor_emptyClient_displaysOnlyApplicableEmptyStates() throws Exception {
         runOnFxThread(() -> {
             Region root = new ClientCard(EMPTY_CLIENT, 1).getRoot();
-            assertEquals(List.of("No pets recorded", "No appointments scheduled", "No completed sessions"),
+            assertEquals(List.of("No pets recorded", "No started appointments", "No upcoming appointments",
+                    "No completed sessions"),
                     emptyLabels(root).stream().map(Label::getText).toList());
             return null;
         });
@@ -60,11 +62,17 @@ public class ClientCardEmptyStateTest {
         runOnFxThread(() -> {
             assertFalse(emptyTexts(CLIENT_WITH_PET).contains("No pets recorded"));
             assertTrue(emptyTexts(CLIENT_WITH_PET).contains("No notes recorded"));
-            assertFalse(emptyTexts(CLIENT_WITH_APPOINTMENT).contains("No appointments scheduled"));
+            Region appointmentCard = new ClientCard(CLIENT_WITH_APPOINTMENT, 1,
+                    ClientDisplayMode.SCHEDULE_CLIENT).getRoot();
+            assertFalse(emptyLabels(appointmentCard).stream()
+                    .map(Label::getText).toList().contains("No started appointments"));
+            assertTrue(emptyLabels(appointmentCard).stream()
+                    .map(Label::getText).toList().contains("No upcoming appointments"));
             Label emptyHistory = (Label) new ClientCard(CLIENT_WITH_HISTORY, 1).getRoot().lookup("#emptyHistory");
             assertFalse(emptyHistory.isVisible());
             assertFalse(emptyHistory.isManaged());
-            assertTrue(emptyTexts(CLIENT_WITH_HISTORY).contains("No appointments scheduled"));
+            assertTrue(emptyTexts(CLIENT_WITH_HISTORY).contains("No started appointments"));
+            assertTrue(emptyTexts(CLIENT_WITH_HISTORY).contains("No upcoming appointments"));
             return null;
         });
     }

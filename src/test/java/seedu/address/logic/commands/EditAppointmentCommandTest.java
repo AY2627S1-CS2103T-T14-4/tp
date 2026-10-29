@@ -449,5 +449,16 @@ public class EditAppointmentCommandTest {
         public void updateFilteredClientList(Predicate<Client> predicate) {
             throw new AssertionError(UNEXPECTED_CALL);
         }
+
+        @Override
+        public javafx.beans.value.ObservableValue<seedu.address.model.ClientDisplayMode>
+                clientDisplayModeProperty() {
+            throw new AssertionError(UNEXPECTED_CALL);
+        }
+
+        @Override
+        public void setClientDisplayMode(seedu.address.model.ClientDisplayMode mode) {
+            throw new AssertionError(UNEXPECTED_CALL);
+        }
     }
 }

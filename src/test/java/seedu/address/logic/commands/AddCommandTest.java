@@ -17,12 +17,15 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.PawPals;
 import seedu.address.model.ReadOnlyPawPals;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;
+import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.client.Client;
 import seedu.address.testutil.ClientBuilder;
 
@@ -52,6 +55,39 @@ public class AddCommandTest {
         ModelStub modelStub = new ModelStubWithClient(validClient);
 
         assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_CLIENT, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_successFromScheduleModes_resetsView() throws Exception {
+        for (ClientDisplayMode mode : List.of(ClientDisplayMode.SCHEDULE_CLIENT,
+                ClientDisplayMode.scheduleDate(new AppointmentDate("29-10-2026")))) {
+            Model model = new ModelManager();
+            model.setClientDisplayMode(mode);
+            model.updateFilteredClientList(client -> false);
+
+            new AddCommand(new ClientBuilder().build()).execute(model);
+
+            assertEquals(ClientDisplayMode.NORMAL, model.clientDisplayModeProperty().getValue());
+            assertEquals(1, model.getFilteredClientList().size());
+        }
+    }
+
+    @Test
+    public void execute_failureFromScheduleModes_preservesView() {
+        for (ClientDisplayMode mode : List.of(ClientDisplayMode.SCHEDULE_CLIENT,
+                ClientDisplayMode.scheduleDate(new AppointmentDate("29-10-2026")))) {
+            Model model = new ModelManager();
+            Client existing = new ClientBuilder().build();
+            model.addClient(existing);
+            model.setClientDisplayMode(mode);
+            model.updateFilteredClientList(client -> client.equals(existing));
+
+            assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_CLIENT, () ->
+                    new AddCommand(existing).execute(model));
+
+            assertEquals(mode, model.clientDisplayModeProperty().getValue());
+            assertEquals(List.of(existing), model.getFilteredClientList());
+        }
     }
 
     @Test
@@ -152,6 +188,17 @@ public class AddCommandTest {
 
         @Override
         public void updateFilteredClientList(Predicate<Client> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public javafx.beans.value.ObservableValue<seedu.address.model.ClientDisplayMode>
+                clientDisplayModeProperty() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setClientDisplayMode(seedu.address.model.ClientDisplayMode mode) {
             throw new AssertionError("This method should not be called.");
         }
     }

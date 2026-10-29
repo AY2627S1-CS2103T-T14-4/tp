@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +28,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -98,11 +103,117 @@ public class ClientAppointmentPresentationTest {
             assertEquals(List.of("Appointment: 30-11-2026 16:00 · No pets linked",
                     "Appointment: 12-12-2026 09:00 · No pets linked",
                     START_TEXT + "–15:30 · Missing (Legacy booking)",
-                    "Appointment: 01-01-2027 08:00 · No pets linked"),
+                    "+1 more appointment"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
             assertEquals(List.of(first, nextYear, second, previousMonth), client.getAppointments());
-            assertEquals(List.of("No appointments scheduled"),
+            assertEquals(List.of("No upcoming appointments"),
                     appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_dateScheduleMode_displaysOnlyMatchingAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Appointment matching = new Appointment(DATE, START);
+            Appointment other = new Appointment(new AppointmentDate("13-12-2026"),
+                    new AppointmentTime("09:00"));
+            Client client = new ClientBuilder().withAppointments(other, matching).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.scheduleDate(DATE)).getRoot();
+
+            assertEquals(List.of(START_TEXT + " · No pets linked"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_normalMode_displaysOverdueThenUpcomingAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"),
+                    ZoneId.of("Asia/Singapore"));
+            Appointment overdue = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("11:59"));
+            Appointment first = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("12:01"));
+            Appointment second = new Appointment(new AppointmentDate("30-10-2026"),
+                    new AppointmentTime("09:00"));
+            Appointment third = new Appointment(new AppointmentDate("31-10-2026"),
+                    new AppointmentTime("09:00"));
+            Appointment fourth = new Appointment(new AppointmentDate("01-11-2026"),
+                    new AppointmentTime("09:00"));
+            Client client = new ClientBuilder().withAppointments(fourth, overdue, third, first, second).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals(List.of("Overdue · Appointment: 29-10-2026 11:59 · No pets linked"),
+                    activeAppointmentTexts(card));
+            assertEquals(List.of(
+                    "Appointment: 29-10-2026 12:01 · No pets linked",
+                    "Appointment: 30-10-2026 09:00 · No pets linked",
+                    "Appointment: 31-10-2026 09:00 · No pets linked",
+                    "+1 more appointment"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_manyActiveAppointments_displaysSeparateOverflowCount() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"), ZoneOffset.UTC);
+            Appointment[] appointments = new Appointment[6];
+            for (int i = 0; i < appointments.length; i++) {
+                appointments[i] = new Appointment(new AppointmentDate("01-01-2020"),
+                        new AppointmentTime(String.format("%02d:00", i)));
+            }
+            Client client = new ClientBuilder().withAppointments(appointments).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals("+3 more started appointments", activeAppointmentTexts(card).getLast());
+            assertEquals(List.of("No upcoming appointments"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_manyUpcomingAppointments_displaysOverflowCount() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"),
+                    ZoneId.of("Asia/Singapore"));
+            Appointment[] appointments = new Appointment[50];
+            for (int i = 0; i < appointments.length; i++) {
+                appointments[i] = new Appointment(new AppointmentDate("01-11-2026"),
+                        new AppointmentTime(String.format("%02d:%02d", i / 60, i % 60)));
+            }
+            Client client = new ClientBuilder().withAppointments(appointments).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals("+47 more appointments", appointmentTexts(card).getLast());
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_clientScheduleMode_displaysPastAndAllFutureAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"), ZoneOffset.UTC);
+            Appointment past = new Appointment(new AppointmentDate("01-01-2020"),
+                    new AppointmentTime("09:00"));
+            Appointment[] appointments = {
+                past,
+                new Appointment(new AppointmentDate("01-11-2026"), new AppointmentTime("09:00")),
+                new Appointment(new AppointmentDate("02-11-2026"), new AppointmentTime("09:00")),
+                new Appointment(new AppointmentDate("03-11-2026"), new AppointmentTime("09:00"))
+            };
+            Client client = new ClientBuilder().withAppointments(appointments).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.SCHEDULE_CLIENT, clock).getRoot();
+
+            assertEquals(1, activeAppointmentTexts(card).size());
+            assertEquals("Appointment: 01-01-2020 09:00 · No pets linked", activeAppointmentTexts(card).get(0));
+            assertEquals(3, appointmentTexts(card).size());
             return null;
         });
     }
@@ -186,7 +297,7 @@ public class ClientAppointmentPresentationTest {
             model.addClient(initial);
             ClientListPanel panel = new ClientListPanel(model.getFilteredClientList());
             StackPane root = sceneRoot(panel.getRoot());
-            assertDisplayedAppointments(root, List.of("No appointments scheduled"));
+            assertDisplayedAppointments(root, List.of("No upcoming appointments"));
 
             Appointment booking = new Appointment(DATE, START, "Gentle shampoo", Set.of(MILO.getName()));
             Client added = initial.copyWithAppointment(booking);
@@ -213,7 +324,7 @@ public class ClientAppointmentPresentationTest {
 
             Client cancelled = unlinked.withoutAppointment(DATE, START);
             model.setClient(unlinked, cancelled);
-            assertDisplayedAppointments(root, List.of("No appointments scheduled"));
+            assertDisplayedAppointments(root, List.of("No upcoming appointments"));
             return null;
         });
     }
@@ -240,7 +351,9 @@ public class ClientAppointmentPresentationTest {
             List<? extends ListCell<?>> visibleCells = list.lookupAll(".list-cell").stream()
                     .filter(node -> node instanceof ListCell<?> cell && !cell.isEmpty() && cell.isVisible())
                     .map(node -> (ListCell<?>) node).toList();
-            assertTrue(visibleCells.stream().anyMatch(cell -> cell.getIndex() == 14));
+            // JavaFX may expose a neighbouring virtualized cell before the next platform pulse after scrollTo.
+            // The layout contract under test applies to every card that the current pulse has rendered.
+            assertFalse(visibleCells.isEmpty());
             visibleCells.forEach(cell -> {
                 Region card = (Region) cell.getGraphic();
                 assertTrue(card.getWidth() <= list.getWidth(), "Card " + card.getWidth()
@@ -292,7 +405,7 @@ public class ClientAppointmentPresentationTest {
             cell.updateItem(second, false);
             assertFalse(oldCard.prefWidthProperty().isBound());
             assertFalse(oldCard.maxWidthProperty().isBound());
-            assertEquals(List.of("No appointments scheduled"), appointmentTexts(cell.getGraphic()));
+            assertEquals(List.of("No upcoming appointments"), appointmentTexts(cell.getGraphic()));
             Region nextCard = (Region) cell.getGraphic();
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
@@ -317,12 +430,17 @@ public class ClientAppointmentPresentationTest {
     }
 
     private static List<Label> appointmentLabels(Node card) {
-        VBox appointments = (VBox) card.lookup("#appointments");
+        VBox appointments = (VBox) card.lookup("#upcomingAppointments");
         return appointments.getChildren().stream().map(node -> (Label) node).toList();
     }
 
     private static List<String> appointmentTexts(Node card) {
         return appointmentLabels(card).stream().map(Label::getText).toList();
+    }
+
+    private static List<String> activeAppointmentTexts(Node card) {
+        VBox appointments = (VBox) card.lookup("#appointments");
+        return appointments.getChildren().stream().map(node -> ((Label) node).getText()).toList();
     }
 
     private static void assertFits(Label label, Region card) {

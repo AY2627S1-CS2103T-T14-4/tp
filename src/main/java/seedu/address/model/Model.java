@@ -3,6 +3,7 @@ package seedu.address.model;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.appointment.Appointment;
@@ -90,4 +91,10 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredClientList(Predicate<Client> predicate);
+
+    /** Returns an observable view of the current client-card presentation mode. */
+    ObservableValue<ClientDisplayMode> clientDisplayModeProperty();
+
+    /** Changes how client cards present appointments and history. */
+    void setClientDisplayMode(ClientDisplayMode mode);
 }
