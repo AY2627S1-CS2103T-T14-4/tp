@@ -8,14 +8,21 @@ import seedu.address.model.PawPals;
 /**
  * Clears the PawPals data.
  */
-public class ClearCommand extends Command {
+public class ClearCommand extends Command implements ConfirmableCommand {
 
     public static final String COMMAND_WORD = "clear";
     public static final String MESSAGE_SUCCESS = "PawPals has been cleared!";
-    public static final String MESSAGE_CONFIRMATION = "Clearing all client data:\nConfirm (Y/n)?";
-    public static final String MESSAGE_CANCELLED = "Deletion cancelled.";
-    public static final String MESSAGE_INVALID_CONFIRMATION = "Invalid input.\n" + MESSAGE_CONFIRMATION;
+    private static final String DESCRIPTION = "Clearing all client data:";
+    public static final String MESSAGE_CONFIRMATION = DESCRIPTION + ConfirmationRequest.MESSAGE_CONFIRMATION_SUFFIX;
+    public static final String MESSAGE_CANCELLED = ConfirmationRequest.MESSAGE_CANCELLED;
+    public static final String MESSAGE_INVALID_CONFIRMATION =
+            ConfirmationRequest.MESSAGE_INVALID_RESPONSE + MESSAGE_CONFIRMATION;
 
+    @Override
+    public ConfirmationRequest prepareConfirmation(Model model) {
+        requireNonNull(model);
+        return new ConfirmationRequest(DESCRIPTION, this);
+    }
 
     @Override
     public CommandResult execute(Model model) {
