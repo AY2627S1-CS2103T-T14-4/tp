@@ -27,6 +27,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentTime;
+import seedu.address.model.client.Client;
 import seedu.address.model.history.CompletedSession;
 import seedu.address.model.history.SessionNotes;
 import seedu.address.model.pet.PetName;
@@ -197,10 +198,15 @@ public class AppointmentIntegrationTest {
         logic.execute("find Bob");
         logic.execute("addp c/1 n/Milo s/Dog b/Poodle");
 
+        Client displayedBob = logic.getFilteredClientList().getFirst();
+        ReadOnlyPawPals savedPawPals = readSavedPawPals();
+        Client savedAlice = savedPawPals.getClientList().getFirst();
+        Client savedBob = savedPawPals.getClientList().get(1);
+
         assertEquals(1, logic.getFilteredClientList().size());
-        assertEquals("Bob Test", logic.getFilteredClientList().getFirst().getName().fullName);
-        assertTrue(readSavedPawPals().getClientList().getFirst().getPets().isEmpty());
-        assertEquals("Milo", readSavedPawPals().getClientList().get(1).getPets().getFirst().getName().fullName);
+        assertEquals("Bob Test", displayedBob.getName().fullName);
+        assertTrue(savedAlice.getPets().isEmpty());
+        assertEquals("Milo", savedBob.getPets().getFirst().getName().fullName);
     }
 
     @Test
