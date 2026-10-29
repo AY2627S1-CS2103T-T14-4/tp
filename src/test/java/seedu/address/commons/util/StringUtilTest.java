@@ -1,5 +1,6 @@
 package seedu.address.commons.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -140,4 +141,22 @@ public class StringUtilTest {
         assertThrows(NullPointerException.class, () -> StringUtil.getDetails(null));
     }
 
+    //---------------- Tests for normalizeSpaces --------------------------------------
+
+    @Test
+    public void normalizeSpaces_nullText_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.normalizeSpaces(null));
+    }
+
+    @Test
+    public void normalizeSpaces_variousSpacing_trimsAndCollapses() {
+        // already tidy, so unchanged
+        assertEquals("Toy Poodle", StringUtil.normalizeSpaces("Toy Poodle"));
+
+        // leading, trailing and repeated spaces
+        assertEquals("Toy Poodle", StringUtil.normalizeSpaces("  Toy    Poodle \t"));
+
+        // only spaces, so empty
+        assertEquals("", StringUtil.normalizeSpaces("   "));
+    }
 }

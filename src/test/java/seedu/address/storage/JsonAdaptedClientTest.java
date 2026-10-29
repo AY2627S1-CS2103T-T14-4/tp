@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.storage.JsonAdaptedClient.MESSAGE_MISSING_SESSION;
 import static seedu.address.storage.JsonAdaptedClient.MESSAGE_UNKNOWN_LINKED_PET;
 import static seedu.address.storage.JsonAdaptedClient.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -95,6 +96,15 @@ public class JsonAdaptedClientTest {
         JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_ADDRESS, VALID_TAGS, pets, List.of());
         assertThrows(IllegalValueException.class, "Pets list contains duplicate pet names.", client::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullHistoryEntry_throwsIllegalValueException() {
+        List<JsonAdaptedCompletedSession> history = new ArrayList<>();
+        history.add(null);
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, List.of(), List.of(), history);
+        assertThrows(IllegalValueException.class, MESSAGE_MISSING_SESSION, client::toModelType);
     }
 
     @Test
