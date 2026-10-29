@@ -143,7 +143,10 @@ stored list stays observable across changes and cannot be modified through the L
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
 `ClientCard` sorts `Client#getAppointments()` by calendar date and then start time, earliest first,
-when rendering. The stored list remains in insertion order. Its private appointment formatter reads
+when rendering. In the normal `list`, `find` and `findp` presentation it displays only the next three
+appointments whose starts are after the computer's current local date and time. Overdue active appointments
+remain stored but are hidden from this compact preview. If further upcoming appointments exist, the card adds
+`+N more appointment(s)`. The stored list remains in insertion order. Its private appointment formatter reads
 the date, start time, optional end time, recorded linked names and booking details directly from
 `Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
 end-time range when no end time exists and omits parentheses for blank details.
@@ -151,6 +154,19 @@ end-time range when no end time exists and omits parentheses for blank details.
 The formatter uses `Appointment#getPetNames()` in recorded order, rather than looking up the client's
 current pets. An empty collection displays `No pets linked`; it never implies all the client's pets.
 Unresolved names in existing records remain visible, so displaying a card does not lose booking information.
+
+`ClientDisplayMode` separates the client-list predicate from appointment presentation. Normal mode uses the
+compact limits above and shows the three most recent completed sessions, followed by
+`+N more completed session(s)` when applicable. Date schedule mode filters clients to those with an active
+appointment on the selected date, displays every active appointment on that date, and retains the three-session
+history preview and its overflow line. Client schedule mode filters to one displayed client and removes both
+limits, showing every active appointment (including overdue ones) and every completed session. The observable
+mode property causes `ClientListPanel` to refresh its cards without rebuilding the panel.
+
+`list`, `find` and `findp` select normal mode. Successful `addc` and `edit` also restore the unfiltered normal
+view, matching their existing search-filter behavior. Validation failures do not change the current predicate
+or display mode. Other client-targeting commands preserve the current mode; a date-schedule client naturally
+leaves the filtered list if its final matching appointment is moved, cancelled or completed.
 
 Pet summaries, appointment rows and pet notes share wrapping-label configuration. The FXML containers
 allow content to shrink horizontally, while labels keep their computed preferred height. Each list
@@ -611,7 +627,8 @@ MSS:
 1. User requests to add a client.
 2. User provides the client's name, phone number, email address, and home address.
 3. PawPals validates the details and adds the new client.
-4. PawPals displays a success message and the new client in the client list.
+4. PawPals displays a success message and all clients, including the new client, clearing any search or
+   schedule filter and restoring the normal compact card view.
 
 Use case ends.
 
@@ -716,8 +733,9 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to view the records.
-2. PawPals displays all clients with their phone number, address, email, tags, pets, pet notes, appointments,
-   and up to three recent completed sessions per client.
+2. PawPals displays all clients with their phone number, address, email, tags and pet information. Each card
+   shows up to three upcoming active appointments and three recent completed sessions. Overflow lines report
+   how many additional appointments or sessions are stored.
 
 Use case ends.
 
@@ -1106,7 +1124,8 @@ MSS:
 3. PawPals validates the supplied values and checks that the resulting name and phone number do not duplicate another client.
 4. PawPals replaces the supplied fields, preserving pets, pet notes, appointments and completed history.
    Supplied tags replace the whole tag set; an empty `t/` clears it.
-5. PawPals displays success and all clients, clearing any search filter.
+5. PawPals displays success and all clients, clearing any search or schedule filter and restoring the normal
+   compact card view.
 
 Use case ends.
 
@@ -1121,6 +1140,41 @@ Extensions:
   * Use case ends.
 
 Save failures for record changes follow UC10.
+
+#### UC20 - View schedule
+
+System: PawPals<br>
+Use case: UC20 - View schedule<br>
+Actor: User<br>
+Preconditions: PawPals is running.
+
+MSS A — schedule by date:
+
+1. User enters `schedule d/DATE` with a valid date in `DD-MM-YYYY` format.
+2. PawPals displays only clients with an active appointment on that date.
+3. Each matching card shows every active appointment on the selected date, up to three recent completed
+   sessions, and a completed-session overflow line when further history exists.
+
+MSS B — schedule by client:
+
+1. User enters `schedule c/CLIENT_INDEX` using the currently displayed client list.
+2. PawPals displays only the selected client.
+3. The card shows all active appointments, including overdue appointments, and all completed sessions.
+
+Extensions:
+
+* 1a. User supplies neither prefix, both prefixes, a repeated prefix, an invalid date or an invalid index.
+  * 1a1. PawPals displays the corresponding validation message and leaves the current view unchanged.
+  * Use case ends.
+* 2a. No client has an active appointment on the requested date.
+  * 2a1. PawPals displays the no-matches placeholder.
+  * Use case ends.
+* 3a. While viewing a date schedule, the final matching appointment for a client is moved, cancelled or completed.
+  * 3a1. The client leaves the date-filtered list.
+* 3b. User successfully runs `addc` or `edit` from either schedule mode.
+  * 3b1. PawPals restores the unfiltered normal client view.
+
+Use case ends.
 
 ### Non-Functional Requirements
 
@@ -1502,6 +1556,24 @@ For rejection rows, compare the saved file before and after and verify that no h
 | Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt`. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, the booking is still accepted with an informational note. |
 | Completion survives restart | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`. | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session. |
 
+### Viewing schedules and compact card overflow
+
+Use a disposable folder and create at least two clients. Give Alice four future active appointments, with at
+least two on the same date, and four completed sessions. Give Bob one active appointment on a different date.
+Replace `TARGET_DATE` and `OTHER_DATE` below with those recorded dates.
+
+| Scenario | Commands or action | Expected result |
+| --- | --- | --- |
+| Normal compact preview | Run `list`. | Every client is shown. Alice's card shows only her next three future active appointments followed by `+1 more appointment`, and her three newest completed sessions followed by `+1 more completed session`. Overdue active appointments are not included in the preview. |
+| Schedule by date | Run `schedule d/TARGET_DATE`. | Only clients with active appointments on `TARGET_DATE` are shown. Every matching active appointment on that date appears, even when there are more than three. Alice still has a three-session history preview followed by `+1 more completed session`; no appointment overflow line appears. |
+| Empty date | Run `schedule d/OTHER_DATE` using a date with no active bookings. | The no-matches placeholder is shown and stored clients remain unchanged. |
+| Schedule by displayed client | Run `list`, then `schedule c/1`. | Only client 1 is shown. The card displays every active appointment, including overdue ones, and every completed session, with no overflow lines. |
+| Client mutation preserves schedule | While in `schedule c/1`, run a valid `addp`, `note`, `appt`, `editappt`, `cancel` or `done` targeting the displayed client as applicable. | The command uses the displayed index and the selected-client schedule remains active. The card refreshes with the changed records. |
+| Date membership refreshes | Run `schedule d/TARGET_DATE`, then move, cancel or complete one matching appointment. | The card refreshes. A client disappears only when it no longer has any active appointment on `TARGET_DATE`. |
+| Add client resets schedule | From either schedule mode, run a valid `addc`. | The new client is added and PawPals restores all clients in the normal compact view. |
+| Edit client resets schedule | From either schedule mode, run a valid `edit` on a displayed client. | The client is edited and PawPals restores all clients in the normal compact view. |
+| Failed add or edit preserves schedule | Enter a duplicate `addc`, or an `edit` that would duplicate another client. | The error is shown and the current schedule filter and card presentation remain unchanged. |
+
 ### Viewing completed-session history
 
 Use the disposable folder described under [Adding appointments](#adding-appointments). Run the setup below
@@ -1522,9 +1594,9 @@ find Alice
 
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
-| Preview limit and order | Run `done c/1 d/03-01-2000 t/14:00 nt/Trim completed`, then repeat with dates `01-01-2000`, `04-01-2000` and `02-01-2000` in that order. | Alice has no active bookings. History shows exactly three sessions, dated 04, 03 and 02 January 2000 in that order, each with 14:00–15:00, Milo and `Notes: Trim completed`. All four sessions remain in her saved `history` array. Bob remains hidden. |
+| Preview limit and order | Run `done c/1 d/03-01-2000 t/14:00 nt/Trim completed`, then repeat with dates `01-01-2000`, `04-01-2000` and `02-01-2000` in that order. | Alice has no active bookings. History shows exactly three sessions, dated 04, 03 and 02 January 2000 in that order, each with 14:00–15:00, Milo and `Notes: Trim completed`, followed by `+1 more completed session`. All four sessions remain in her saved `history` array. Bob remains hidden. |
 | Historical names | Run `editp c/1 pn/Milo n/Max`, then `delp c/1 pn/Max`. | Alice has no current pets, but all displayed and stored historical pet names remain Milo. The preview still shows three sessions. |
-| Reload showing three of four | Run `exit`, relaunch from the same folder and run `list`. | Alice still has four stored sessions, with only the newest three displayed in the same order and with Milo recorded. Bob's records are unchanged. |
+| Reload showing three of four | Run `exit`, relaunch from the same folder and run `list`. | Alice still has four stored sessions, with only the newest three displayed in the same order and with Milo recorded, followed by `+1 more completed session`. Bob's records are unchanged. |
 
 History is ordered by appointment date, then start time, then logging instant, all newest first.
 Use the existing fixed-clock history tests for timestamp tie-breaking. Command validation, repeated completion
