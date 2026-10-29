@@ -288,7 +288,7 @@ If the command fails, no pet is deleted. Feedback includes:
 
 ### Deleting a client: `delc`
 
-Removes an unwanted client record, all their pets, and all their appointments.
+Removes an unwanted client record, all their pets, pet notes, appointments, and completed history after confirmation.
 
 Format: `delc c/CLIENT_INDEX`
 
@@ -297,12 +297,28 @@ Example: `delc c/2`
 * The `c/` prefix is required and must appear exactly once. Do not put text before it.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 
-Successful output, if the selected client is Ben Lim:<br>
+PawPals previews the selected client's details before deleting anything:
+
+```text
+Deleting client: Ben Lim; Phone: 91234567; Email: benlim@example.com; Address: 10 Dover Road; Tags:
+Confirm (Y/n)?
+```
+
+Enter `y` or `Y` to delete, or `n` or `N` to cancel with `Deletion cancelled.`. Surrounding spaces are ignored.
+Any other submitted response shows `Invalid input.` followed by the same prompt and leaves the request pending.
+Other commands are treated as invalid responses until you confirm or cancel. Pressing Enter with an entirely
+empty command box does nothing. Pending requests are forgotten when PawPals closes.
+Requesting, cancelling, or entering an invalid response does not change or save data.
+
+Successful output after confirmation:<br>
 `Deleted client: Ben Lim; Phone: 91234567; Email: benlim@example.com; Address: 10 Dover Road; Tags: `
 
-The message lists the deleted client's details so you can confirm the right client was removed.
+The success message repeats the details of the client you confirmed.
 
-The deleted client disappears from the client list, and the remaining clients are renumbered. If the command fails, no client, pet, or appointment is deleted.
+The deleted client disappears from the client list, and the remaining clients are renumbered.
+Invalid requests leave data unchanged. If the previewed client changes or disappears before confirmation,
+PawPals reports `Client changed or no longer exists. Run delc again.` and deletes nothing.
+If saving fails after confirmed deletion, the in-memory deletion remains; see [Saving the data](#saving-the-data).
 
 | Problem                                                              | Feedback                                                                 |
 |----------------------------------------------------------------------|--------------------------------------------------------------------------|
@@ -682,8 +698,8 @@ Format: `exit`
 ### Saving the data
 
 PawPals automatically saves all data after every command that executes successfully, including commands such as
-`list` that do not change records. Requesting or cancelling `clear` does not save; confirming with `y` or `Y`
-saves the empty database. Commands rejected during parsing or execution do not save.
+`list` that do not change records. Requesting or cancelling `clear` or `delc` does not save; confirming with `y` or `Y`
+saves the deletion. Invalid confirmation responses do not save. Commands rejected during parsing or execution do not save.
 Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
@@ -761,7 +777,7 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                                                                        |
 | **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                                                                        |
 | **Clear**                  | `clear`, then `y` to confirm or `n` to cancel                                                                                                                                               |
-| **Delete client**          | `delc c/CLIENT_INDEX`<br> e.g., `delc c/3`                                                                                                                                                  |
+| **Delete client**          | `delc c/CLIENT_INDEX`, then `y` to confirm or `n` to cancel<br> e.g., `delc c/3`                                                                                                                                                  |
 | **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                                                                              |
 | **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`                                                  |
 | **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` <br> Use empty `ne/` to remove the end time. |

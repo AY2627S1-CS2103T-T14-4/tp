@@ -206,7 +206,9 @@ public class AppointmentIntegrationTest {
     public void execute_deleteAndClear_removeSavedAppointments() throws Exception {
         logic.execute(appointmentCommand(1));
         logic.execute("appt c/2 d/" + futureDate + " t/12:35");
+        // Confirmed deletion must preserve the other client's saved appointments.
         logic.execute("delc c/1");
+        logic.execute("y");
 
         ReadOnlyPawPals afterDelete = readSavedPawPals();
         assertEquals(1, afterDelete.getClientList().size());

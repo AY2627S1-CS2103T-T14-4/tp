@@ -67,7 +67,9 @@ public class EmptyStateUiIntegrationTest {
                     assertEquals(1, listView(window).getItems().size());
                 }
 
+                // Boundary Value: delete the only client, reducing the list size from one to zero.
                 enter(window, "delc c/1");
+                enter(window, "y");
                 assertPlaceholder(window, "No clients yet. Use addc to create a client.");
                 enter(window, ClientUtil.getAddCommand(EMPTY_CLIENT));
                 enter(window, "find Nobody");

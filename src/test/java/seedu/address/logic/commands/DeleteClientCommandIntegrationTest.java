@@ -148,7 +148,9 @@ public class DeleteClientCommandIntegrationTest {
         logic.execute("find Benson");
         assertEquals(List.of(BENSON), model.getFilteredClientList());
 
+        // Black-box test design: index 1 must select the first displayed client after filtering.
         logic.execute("delc c/1");
+        logic.execute("y");
 
         assertEquals(List.of(ALICE), model.getPawPals().getClientList());
         assertTrue(model.getFilteredClientList().isEmpty());
@@ -162,7 +164,9 @@ public class DeleteClientCommandIntegrationTest {
         model = new ModelManager(pawPals, new UserPrefs());
         LogicManager logic = new LogicManager(model, createStorage());
 
+        // Black-box test design: a confirmed deletion must remain effective after reloading saved data.
         logic.execute("delc c/1");
+        logic.execute("y");
         assertEquals(List.of(BENSON), model.getPawPals().getClientList());
 
         StorageManager restartedStorage = createStorage();
@@ -185,7 +189,9 @@ public class DeleteClientCommandIntegrationTest {
         model = new ModelManager(pawPals, new UserPrefs());
         LogicManager logic = new LogicManager(model, createStorage());
 
+        // Confirm deletion must preserve the other client and its associated data.
         logic.execute("delc c/1");
+        logic.execute("y");
 
         StorageManager restartedStorage = createStorage();
         Model restartedModel = new ModelManager(restartedStorage.readPawPals().orElseThrow(), new UserPrefs());

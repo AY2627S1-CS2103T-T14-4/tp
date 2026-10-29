@@ -7,9 +7,10 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.ConfirmableCommand;
+import seedu.address.logic.commands.ConfirmationRequest;
 import seedu.address.logic.commands.FeedbackType;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.PawPalsParser;
@@ -32,7 +33,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final PawPalsParser pawPalsParser;
-    private boolean awaitingClearConfirmation;
+    private ConfirmationRequest pendingConfirmation;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -47,33 +48,34 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        if (awaitingClearConfirmation) {
-            return handleClearConfirmation(commandText);
+        if (pendingConfirmation != null) {
+            return handleConfirmation(commandText);
         }
 
         Command command = pawPalsParser.parseCommand(commandText);
-        if (command instanceof ClearCommand) {
-            awaitingClearConfirmation = true;
-            return new CommandResult(ClearCommand.MESSAGE_CONFIRMATION, FeedbackType.NEUTRAL);
+        if (command instanceof ConfirmableCommand confirmableCommand) {
+            pendingConfirmation = confirmableCommand.prepareConfirmation(model);
+            return new CommandResult(pendingConfirmation.getPrompt(), FeedbackType.NEUTRAL);
         }
         return executeAndSave(command);
     }
 
     /**
-     * Handles a response to the pending clear request without parsing it as another command.
+     * Handles a response to the pending request without parsing it as another command.
      */
-    private CommandResult handleClearConfirmation(String commandText) throws CommandException, ParseException {
+    private CommandResult handleConfirmation(String commandText) throws CommandException, ParseException {
         String response = commandText.trim();
         if (response.equalsIgnoreCase("n")) {
-            awaitingClearConfirmation = false;
-            return new CommandResult(ClearCommand.MESSAGE_CANCELLED, FeedbackType.NEUTRAL);
+            pendingConfirmation = null;
+            return new CommandResult(ConfirmationRequest.MESSAGE_CANCELLED, FeedbackType.NEUTRAL);
         }
         if (!response.equalsIgnoreCase("y")) {
-            throw new ParseException(ClearCommand.MESSAGE_INVALID_CONFIRMATION);
+            throw new ParseException(ConfirmationRequest.MESSAGE_INVALID_RESPONSE + pendingConfirmation.getPrompt());
         }
 
-        awaitingClearConfirmation = false;
-        return executeAndSave(new ClearCommand());
+        Command confirmedCommand = pendingConfirmation.getCommand();
+        pendingConfirmation = null;
+        return executeAndSave(confirmedCommand);
     }
 
     /**

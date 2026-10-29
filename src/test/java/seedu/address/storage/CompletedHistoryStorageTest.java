@@ -153,7 +153,9 @@ public class CompletedHistoryStorageTest {
         LogicManager logic = new LogicManager(model, createStorage());
 
         logic.execute("find Alice");
+        // Confirm deletion must preserve the other client's saved history.
         logic.execute("delc c/1");
+        logic.execute("y");
         assertEquals(List.of(bensonWithHistory), createStorage().readPawPals().orElseThrow().getClientList());
 
         StorageManager restartedStorage = createStorage();

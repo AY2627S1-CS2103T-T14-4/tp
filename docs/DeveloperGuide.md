@@ -57,7 +57,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delc c/1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user adds a new client using `addc`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
@@ -175,23 +175,51 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delc c/1")` API call as an example.
+The sequence diagram below illustrates how the `Logic` component processes a successful `addc`
+command when no confirmation is pending and the client does not already exist. For example:
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delc c/1` Command" />
+```text
+addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
+```
 
-<box type="info" seamless>
+In the diagram, `commandText` is the full command above and `arguments` is the text after `addc`.
 
-**Note:** The lifeline for `DeleteClientCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
-</box>
-
+<puml src="diagrams/AddSequenceDiagram.puml" alt="Parsing and executing an addc command inside the Logic component" />
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `PawPalsParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a client).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. `LogicManager` passes the command text to `PawPalsParser`.
+1. `PawPalsParser` creates an `AddCommandParser`, which validates the arguments, constructs a client,
+   and returns an `AddCommand`. Argument-parsing details are omitted from the sequence diagram.
+1. `LogicManager` executes the returned command through the shared `executeAndSave` path.
+1. `AddCommand` checks for a duplicate through `Model#hasClient` and adds the new client through
+   `Model#addClient`. It returns a `CommandResult` containing the success feedback.
+1. `LogicManager` saves the data and returns the result. Storage interactions are omitted here;
+   the [architecture sequence diagram](#architecture) shows the interaction between components.
+
+#### Confirmation before destructive commands
+
+`ClearCommand` and `DeleteClientCommand` also implement `ConfirmableCommand`. Instead of immediately
+executing them, `LogicManager` calls `prepareConfirmation(model)` and stores the resulting immutable
+`ConfirmationRequest`. Preparation validates the request without mutation or saving. `delc` captures
+the client from the displayed list and uses `Messages.format` for its preview; `clear` prepares its
+existing command.
+
+While a request is pending, `LogicManager` handles trimmed, case-insensitive `y`/`n` responses before
+parsing commands. Cancellation returns neutral feedback without saving. Invalid responses throw a
+`ParseException` with the original prompt and retain the request. Confirmation removes the pending
+request before executing its deferred `Command` through `executeAndSave`, including when saving fails.
+The UI and model do not own confirmation state.
+
+Deferred deletion checks that the captured client remains unchanged in the full list. A changed or
+missing client causes a `CommandException` without deletion or saving; filter changes cannot redirect
+the deletion. Direct `Command.execute` remains the internal mutation operation.
+
+Both deletion commands share response handling and confirmation text. The narrow interface keeps
+confirmation concerns off unrelated commands, and the existing Command pattern represents deferred
+actions without a separate state-pattern hierarchy.
+
+#### Command parsing
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -444,11 +472,9 @@ The `Storage` component,
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
 `LogicManager#execute(...)` saves after a command returns successfully, including read-only commands such
-as `list`, `find` and `help`. A `clear` request only sets a private, session-local confirmation flag and returns
-neutral feedback. While pending, Logic handles the next input as a confirmation response before normal parsing.
-Only `y`/`Y` (after trimming whitespace) executes `ClearCommand` through the shared execution-and-save path;
-`n`/`N` cancels without saving. Invalid responses throw `ParseException` and retain the flag. The flag resets
-before confirmed execution, including when saving fails. The UI and model do not own confirmation state.
+as `list`, `find` and `help`. Requesting or cancelling `clear` or `delc` does not save, and invalid
+confirmation responses do not save. Confirming with `y`/`Y` executes the deferred command through the
+shared execution-and-save path. See [Confirmation before destructive commands](#confirmation-before-destructive-commands).
 Parsing and command-execution failures bypass saving. A save failure becomes
 a `CommandException`; model changes have already happened and are not rolled back. `FileUtil#writeToFile(...)`
 uses `Files.write(...)` directly, so writes are not atomic and an I/O failure does not guarantee an unchanged file.
@@ -669,8 +695,10 @@ MSS:
 
 1. User requests to delete a client.
 2. User provides the client's index.
-3. PawPals removes the client and all appointments, pets, pet notes and completed history belonging to the client.
-4. PawPals displays a success message and the updated client list.
+3. PawPals previews the client's details and asks `Confirm (Y/n)?` without changing or saving data.
+4. User confirms with `y` or `Y`.
+5. PawPals removes the previewed client and all appointments, pets, pet notes and completed history belonging to the client.
+6. PawPals saves the deletion and displays a success message and the updated client list.
 
 Use case ends.
 
@@ -679,6 +707,18 @@ Extensions:
 * 2a. User provides a missing, extra, or invalid index.
   * 2a1. PawPals displays the corresponding validation message.
   * Use case ends.
+* 4a. User enters `n` or `N`.
+  * 4a1. PawPals displays `Deletion cancelled.` without changing or saving data.
+  * Use case ends.
+* 4b. User submits any other response, including another command.
+  * 4b1. PawPals displays `Invalid input.` followed by the original prompt; no data is changed or saved.
+  * Use case resumes from step 4.
+* 5a. The previewed client has changed or disappeared.
+  * 5a1. PawPals displays `Client changed or no longer exists. Run delc again.` and ends confirmation.
+  * Use case ends without deletion or saving.
+* 6a. Saving fails.
+  * 6a1. PawPals reports the save error; the in-memory deletion remains as described in UC10.
+  * Use case ends with confirmation cleared.
 
 #### UC04 - Add appointment
 
@@ -852,6 +892,8 @@ Preconditions: PawPals is running and the data file is writable.
 MSS:
 
 1. User executes a command successfully, including a command that only displays records or help.
+   For `clear` and `delc`, execution occurs only after confirmation; prompting, cancellation and invalid
+   responses do not save.
 2. PawPals saves the updated data automatically.
 3. PawPals keeps the saved data available for the next application launch.
 
@@ -1207,7 +1249,7 @@ Resize to the minimum window width and check that text remains readable.
 | Scenario                   | Commands or action                                                                                                             | Expected result                                                                                                                                                                 |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Initial feedback           | Launch PawPals.                                                                                                                | `Info` shows the initial command guidance.                                                                                                                                      |
-| Empty database             | Run `clear`, confirm with `y`, then `find Nobody`.                                                                                               | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`.                                                              |
+| Empty database             | Run `clear`, confirm with `y`, then `find Nobody`.                                                                             | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`.                                                              |
 | Empty card                 | Run `addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road`.                                                        | `Success` identifies Alice. Her card shows no pets, appointments, or completed sessions.                                                                                        |
 | Search without matches     | Run `find Nobody`, then `findp Nobody`, then `list`.                                                                           | Each search shows the no-matches placeholder with `Info`; `list` restores Alice's card.                                                                                         |
 | Empty notes                | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`.                                       | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`.                                                                       |
@@ -1217,7 +1259,7 @@ Resize to the minimum window width and check that text remains readable.
 | Error and correction       | Submit `unknown` twice. Edit it to `list`, then press Enter.                                                                   | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input.                 |
 | Error to success           | Submit `unknown`, then a valid `addc` for another client.                                                                      | `Success` replaces `Error` without stale error styling.                                                                                                                         |
 | Long feedback              | Submit `appt` without arguments and scroll within its feedback. Then submit `list`.                                            | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling.                                                           |
-| Last client removed        | Run `clear`, confirm with `y`, add Alice again, then run `delc c/1`.                                                           | The empty-database message returns after the last client is deleted.                                                                                                            |
+| Last client removed        | Run `clear`, confirm with `y`, add Alice again, then run `delc c/1` and confirm with `y`.                                      | The empty-database message returns after the last client is deleted.                                                                                                            |
 
 ### Adding and persisting pets
 
@@ -1250,18 +1292,18 @@ addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
 ```
 
-| Scenario | Commands or action | Expected result                                                                                                                                            |
-| --- | --- |------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Add a preference note | `note c/1 pn/Milo ty/pref nt/Likes quiet grooming` | `Updated preference note for Milo: Likes quiet grooming`. The note appears without `⚠`.                                                                    |
-| Add a sensitivity note | `note c/1 pn/Milo ty/sens nt/Sensitive paws` | `Updated sensitivity note for Milo: Sensitive paws`. The note appears with `⚠ Sens`.                                                                       |
-| Add a temperament note | `note c/1 pn/Milo ty/temp nt/Anxious around dryers` | `Updated temperament note for Milo: Anxious around dryers`. The note appears with `⚠ Temp`.                                                                |
-| Replace an existing note | `note c/1 pn/Milo ty/pref nt/Prefers a teddy cut` | The preference note is replaced; the old preference text is no longer shown. Existing sensitivity and temperament notes remain.                            |
-| Unknown pet | `note c/1 pn/Rex ty/pref nt/Likes treats` | `This client has no pet named Rex.` No data changes.                                                                                                       |
-| Invalid note type | `note c/1 pn/Milo ty/mood nt/Likes treats` | `Note type must be pref, sens or temp.`                                                                                                                    |
-| Empty note | `note c/1 pn/Milo ty/pref nt/` | The note-length validation message is shown. No data changes.                                                                                              |
-| Note over 200 characters | `note c/1 pn/Milo ty/pref nt/<201-character note>` | The note-length validation message is shown. No data changes.                                                                                              |
-| Repeated prefix | `note c/1 pn/Milo ty/pref ty/temp nt/Note` | Invalid command format message is shown. No data changes. |
-| Restart | Add or replace a note, then run `exit`, relaunch and run `list`. | The latest note remains visible after restart.                                                                                                             |
+| Scenario                 | Commands or action                                               | Expected result                                                                                                                 |
+|--------------------------|------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| Add a preference note    | `note c/1 pn/Milo ty/pref nt/Likes quiet grooming`               | `Updated preference note for Milo: Likes quiet grooming`. The note appears without `⚠`.                                        |
+| Add a sensitivity note   | `note c/1 pn/Milo ty/sens nt/Sensitive paws`                     | `Updated sensitivity note for Milo: Sensitive paws`. The note appears with `⚠ Sens`.                                           |
+| Add a temperament note   | `note c/1 pn/Milo ty/temp nt/Anxious around dryers`              | `Updated temperament note for Milo: Anxious around dryers`. The note appears with `⚠ Temp`.                                    |
+| Replace an existing note | `note c/1 pn/Milo ty/pref nt/Prefers a teddy cut`                | The preference note is replaced; the old preference text is no longer shown. Existing sensitivity and temperament notes remain. |
+| Unknown pet              | `note c/1 pn/Rex ty/pref nt/Likes treats`                        | `This client has no pet named Rex.` No data changes.                                                                            |
+| Invalid note type        | `note c/1 pn/Milo ty/mood nt/Likes treats`                       | `Note type must be pref, sens or temp.`                                                                                         |
+| Empty note               | `note c/1 pn/Milo ty/pref nt/`                                   | The note-length validation message is shown. No data changes.                                                                   |
+| Note over 200 characters | `note c/1 pn/Milo ty/pref nt/<201-character note>`               | The note-length validation message is shown. No data changes.                                                                   |
+| Repeated prefix          | `note c/1 pn/Milo ty/pref ty/temp nt/Note`                       | Invalid command format message is shown. No data changes.                                                                       |
+| Restart                  | Add or replace a note, then run `exit`, relaunch and run `list`. | The latest note remains visible after restart.                                                                                  |
 
 ### Deleting a pet note
 
@@ -1322,7 +1364,10 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
    1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
    1. Test case: `delc c/1`<br>
-      Expected: The first client is deleted from the list. The status message shows the deleted client's details.
+      Expected: The client's details and `Confirm (Y/n)?` appear; the list and saved file are unchanged.
+      Enter `yes`, `clear`, and a space: each must show `Invalid input.` and the same prompt without saving.
+      Enter `n`: expect `Deletion cancelled.` and unchanged records. Run `delc c/1` again, then ` Y `:
+      the first client is deleted and saved; Success feedback repeats the deleted client's details.
 
    1. Test case: `delc c/0`<br>
       Expected: No client is deleted. The status message shows `Index must be a positive integer.`
@@ -1353,7 +1398,7 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 
    1. Prerequisites: Have an existing client named Bob with pets, notes, appointments and history.
 
-   1. Test case: `find Bob`, then `delc c/1`<br>
+   1. Run `find Bob` with an existing Bob client, then `delc c/1` and confirm with `y`.<br>
       Expected: Bob and his pets, notes, appointments and history are removed. Other clients are unchanged
       when shown again with `list`. Restarting does not restore Bob.
 
@@ -1439,7 +1484,7 @@ The separate client-add section of the User Guide also uses `addc`.
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`.             | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.                                  |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                                       | Each appointment is still displayed under its original client.                                                                                |
 | Edit preservation                       | `edit c/2 p/93456789`, then restart.                                                                             | Bob's phone changes, and all his appointments remain.                                                                                         |
-| Delete and clear                        | `delc c/1`, restart; then `clear`, confirm with `y`, and restart.                                                | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
+| Delete and clear                        | `delc c/1`, confirm with `y`, restart; then `clear`, confirm with `y`, and restart.                              | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
 
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
@@ -1503,8 +1548,8 @@ find Alice
 | Start-only booking                     | Add `appt c/1 d/FUTURE_DATE t/18:00`, then edit that slot with `ns/19:00`. Edit the new 19:00 slot with `ne/20:00`. | First move retains no end; the second edit adds one.                                                                                                                  |
 | Hidden conflict                        | `editappt c/1 d/FUTURE_DATE t/14:00 ns/16:00`                                                                       | Rejects Bob's hidden booking. Alice's booking, filter and saved file remain unchanged.                                                                                |
 | Missing edits or malformed time        | Use the original target with no edits, then with `ns/24:00`.                                                        | Corresponding error feedback appears; failed input remains for correction and the row is unchanged.                                                                   |
-| Invalid end                            | Use the original target with `ne/14:00`.                                                                           | Rejects the invalid end without changing data. |
-| Past start and end-only edit            | Move the original booking with `nd/01-01-2000`, then run `editappt c/1 d/01-01-2000 t/14:00 ne/16:00`.                 | Both succeed with the past-appointment guidance. The end first stays 15:30, then becomes 16:00. Pet links, history and the filter are preserved. |
+| Invalid end                            | Use the original target with `ne/14:00`.                                                                            | Rejects the invalid end without changing data.                                                                                                                        |
+| Past start and end-only edit           | Move the original booking with `nd/01-01-2000`, then run `editappt c/1 d/01-01-2000 t/14:00 ne/16:00`.              | Both succeed with the past-appointment guidance. The end first stays 15:30, then becomes 16:00. Pet links, history and the filter are preserved.                      |
 | Displayed index                        | Use `c/2` while only Alice is displayed.                                                                            | Invalid displayed-index message; Bob is not edited.                                                                                                                   |
 | Correct failed input                   | After a rejection, change the input to a valid edit and press Enter.                                                | Error styling clears on editing; success feedback appears and the command box clears.                                                                                 |
 | Save/reload and preservation           | Make a valid move, exit, relaunch from the same folder and inspect the booking and saved file.                      | Only the edited slot changes. Linked pets, their order, details, other bookings, pet notes and history remain intact. Use the new date/start for subsequent commands. |
@@ -1540,16 +1585,16 @@ appt c/2 d/FUTURE_DATE t/18:00 et/19:00 pn/Luna
 For every rejected command below, verify that the client cards, current filter and contents of
 `data/pawpals.json` remain unchanged. Cancelling a booking must not add a history record.
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Cancel successfully | `cancel c/1 d/FUTURE_DATE t/14:00` | `Cancelled appointment: Alice Test d/FUTURE_DATE t/14:00`. Only Alice's 14:00 booking disappears. Her 16:00 booking, Milo and his note, both clients' contact details and Bob's booking remain. |
-| Unknown slot | `cancel c/1 d/FUTURE_DATE t/13:00` | `Alice Test has no appointment at FUTURE_DATE 13:00.` No data changes. |
-| Wrong index | `cancel c/3 d/FUTURE_DATE t/14:00`, then repeat with `c/0`. | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes. |
-| Repeated prefix | `cancel c/1 d/FUTURE_DATE t/14:00 t/14:00` | `Multiple values specified for the following single-valued field(s): t/`. The booking remains. |
-| Unsupported end time | `cancel c/1 d/FUTURE_DATE t/14:00 et/15:00`, then repeat with an empty `et/` or `et/25:00`. | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. The booking remains. Remove `et/` and its value to cancel successfully. |
-| Filtered index | `find Bob`, then `cancel c/1 d/FUTURE_DATE t/18:00`, then `list`. | Feedback identifies Bob Test's 18:00 booking. The filter remains active until `list`; Alice's bookings are unchanged. |
-| Rebook the cancelled slot | `cancel c/1 d/FUTURE_DATE t/14:00`, then `appt c/2 d/FUTURE_DATE t/14:00 et/15:00 pn/Luna`. | Both succeed. The released 14:00–15:00 interval now belongs to Bob; Alice's other booking remains. |
-| Cancellation survives restart | `cancel c/1 d/FUTURE_DATE t/14:00`, then `exit`, relaunch from the same folder and run `list`. | Alice's 14:00 booking is still absent from her card and saved `appointments` array. Her other booking, pets and notes and Bob's data remain; cancellation has not added history. |
+| Scenario                      | Commands or action                                                                             | Expected result                                                                                                                                                                                  |
+|-------------------------------|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Cancel successfully           | `cancel c/1 d/FUTURE_DATE t/14:00`                                                             | `Cancelled appointment: Alice Test d/FUTURE_DATE t/14:00`. Only Alice's 14:00 booking disappears. Her 16:00 booking, Milo and his note, both clients' contact details and Bob's booking remain.  |
+| Unknown slot                  | `cancel c/1 d/FUTURE_DATE t/13:00`                                                             | `Alice Test has no appointment at FUTURE_DATE 13:00.` No data changes.                                                                                                                           |
+| Wrong index                   | `cancel c/3 d/FUTURE_DATE t/14:00`, then repeat with `c/0`.                                    | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes.                                                                   |
+| Repeated prefix               | `cancel c/1 d/FUTURE_DATE t/14:00 t/14:00`                                                     | `Multiple values specified for the following single-valued field(s): t/`. The booking remains.                                                                                                   |
+| Unsupported end time          | `cancel c/1 d/FUTURE_DATE t/14:00 et/15:00`, then repeat with an empty `et/` or `et/25:00`.    | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. The booking remains. Remove `et/` and its value to cancel successfully. |
+| Filtered index                | `find Bob`, then `cancel c/1 d/FUTURE_DATE t/18:00`, then `list`.                              | Feedback identifies Bob Test's 18:00 booking. The filter remains active until `list`; Alice's bookings are unchanged.                                                                            |
+| Rebook the cancelled slot     | `cancel c/1 d/FUTURE_DATE t/14:00`, then `appt c/2 d/FUTURE_DATE t/14:00 et/15:00 pn/Luna`.    | Both succeed. The released 14:00–15:00 interval now belongs to Bob; Alice's other booking remains.                                                                                               |
+| Cancellation survives restart | `cancel c/1 d/FUTURE_DATE t/14:00`, then `exit`, relaunch from the same folder and run `list`. | Alice's 14:00 booking is still absent from her card and saved `appointments` array. Her other booking, pets and notes and Bob's data remain; cancellation has not added history.                 |
 
 **Completion setup:** create a future appointment to exercise both the pre-start rejection and completion boundary.
 Past appointments can also be added with `appt` and completed immediately using their recorded date and start time.
