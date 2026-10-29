@@ -148,7 +148,7 @@ public class DeleteClientCommandIntegrationTest {
         logic.execute("find Benson");
         assertEquals(List.of(BENSON), model.getFilteredClientList());
 
-        logic.execute("delc 1");
+        logic.execute("delc c/1");
 
         assertEquals(List.of(ALICE), model.getPawPals().getClientList());
         assertTrue(model.getFilteredClientList().isEmpty());
@@ -162,7 +162,7 @@ public class DeleteClientCommandIntegrationTest {
         model = new ModelManager(pawPals, new UserPrefs());
         LogicManager logic = new LogicManager(model, createStorage());
 
-        logic.execute("delc 1");
+        logic.execute("delc c/1");
         assertEquals(List.of(BENSON), model.getPawPals().getClientList());
 
         StorageManager restartedStorage = createStorage();
@@ -185,7 +185,7 @@ public class DeleteClientCommandIntegrationTest {
         model = new ModelManager(pawPals, new UserPrefs());
         LogicManager logic = new LogicManager(model, createStorage());
 
-        logic.execute("delc 1");
+        logic.execute("delc c/1");
 
         StorageManager restartedStorage = createStorage();
         Model restartedModel = new ModelManager(restartedStorage.readPawPals().orElseThrow(), new UserPrefs());

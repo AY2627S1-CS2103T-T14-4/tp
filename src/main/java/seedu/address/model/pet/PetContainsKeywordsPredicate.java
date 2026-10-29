@@ -3,6 +3,7 @@ package seedu.address.model.pet;
 import java.util.List;
 import java.util.function.Predicate;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.model.client.Client;
 
 /**
@@ -21,7 +22,7 @@ public class PetContainsKeywordsPredicate implements Predicate<Client> {
     }
 
     /**
-     * Returns the number of pets owned by {@code client} whose names match a keyword.
+     * Returns the number of pets owned by {@code client} whose names contain a matching word.
      *
      * @param client the client whose pets are checked
      * @return the number of matching pets
@@ -29,7 +30,7 @@ public class PetContainsKeywordsPredicate implements Predicate<Client> {
     public long getMatchingPetCount(Client client) {
         return client.getPets().stream()
                 .filter(pet -> keywords.stream()
-                        .anyMatch(keyword -> pet.getName().fullName.equalsIgnoreCase(keyword)))
+                        .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(pet.getName().fullName, keyword)))
                 .count();
     }
 

@@ -66,24 +66,15 @@ class JsonAdaptedPet {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     PetName.class.getSimpleName()));
         }
-        if (!PetName.isValidName(name)) {
-            throw new IllegalValueException(PetName.MESSAGE_CONSTRAINTS);
-        }
 
         if (species == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     Species.class.getSimpleName()));
         }
-        if (!Species.isValidSpecies(species)) {
-            throw new IllegalValueException(Species.MESSAGE_CONSTRAINTS);
-        }
 
         if (breed == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     Breed.class.getSimpleName()));
-        }
-        if (!Breed.isValidBreed(breed)) {
-            throw new IllegalValueException(Breed.MESSAGE_CONSTRAINTS);
         }
 
         Map<NoteType, PetNote> modelNotes = new EnumMap<>(NoteType.class);
@@ -102,6 +93,7 @@ class JsonAdaptedPet {
             modelNotes.put(noteType, new PetNote(noteEntry.getValue()));
         }
 
+        // The constructors trim and collapse spaces before checking, as typed commands do.
         try {
             return new Pet(new PetName(name), new Species(species), new Breed(breed), modelNotes);
         } catch (IllegalArgumentException e) {
