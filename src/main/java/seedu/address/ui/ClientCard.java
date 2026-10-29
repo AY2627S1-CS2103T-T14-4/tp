@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.appointment.Appointment;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.Pet;
@@ -63,8 +64,16 @@ public class ClientCard extends UiPart<Region> {
      * @throws NullPointerException if {@code client} is null.
      */
     public ClientCard(Client client, int displayedIndex) {
+        this(client, displayedIndex, ClientDisplayMode.NORMAL);
+    }
+
+    /**
+     * Creates a client card using the requested appointment presentation mode.
+     */
+    public ClientCard(Client client, int displayedIndex, ClientDisplayMode displayMode) {
         super(FXML);
         this.client = requireNonNull(client);
+        requireNonNull(displayMode);
         id.setText(displayedIndex + ". ");
         name.setText(client.getName().fullName);
         phone.setText(client.getPhone().value);
@@ -85,11 +94,15 @@ public class ClientCard extends UiPart<Region> {
             pets.getChildren().add(petDetails);
         });
         client.getAppointments().stream()
+                .filter(appointment -> displayMode.getDate()
+                        .map(date -> appointment.getDate().equals(date)).orElse(true))
                 .sorted(Comparator.comparing((Appointment appointment) -> appointment.getDate().getValue())
                         .thenComparing(appointment -> appointment.getTime().getValue()))
                 .forEach(appointment -> appointments.getChildren().add(
                         createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
-        client.getHistory().stream().limit(HISTORY_DISPLAY_LIMIT).forEach(session -> {
+        long historyLimit = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_CLIENT
+                ? Long.MAX_VALUE : HISTORY_DISPLAY_LIMIT;
+        client.getHistory().stream().limit(historyLimit).forEach(session -> {
             VBox sessionDetails = new VBox();
             sessionDetails.setMinWidth(0);
             sessionDetails.getChildren().add(createWrappingLabel(
@@ -97,8 +110,10 @@ public class ClientCard extends UiPart<Region> {
             sessionDetails.getChildren().add(createWrappingLabel("Notes: " + session.getNotes(), "cell_small_label"));
             history.getChildren().add(sessionDetails);
         });
-        if (client.getAppointments().isEmpty()) {
-            appointments.getChildren().add(createEmptyLabel("No appointments scheduled"));
+        if (appointments.getChildren().isEmpty()) {
+            String emptyText = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_DATE
+                    ? "No appointments scheduled on this date" : "No appointments scheduled";
+            appointments.getChildren().add(createEmptyLabel(emptyText));
         }
         emptyHistory.setVisible(client.getHistory().isEmpty());
         emptyHistory.setManaged(emptyHistory.isVisible());

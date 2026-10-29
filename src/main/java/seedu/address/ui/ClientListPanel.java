@@ -5,6 +5,8 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -13,6 +15,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.client.Client;
+import seedu.address.model.ClientDisplayMode;
 
 /**
  * Panel containing the list of clients.
@@ -27,13 +30,15 @@ public class ClientListPanel extends UiPart<Region> {
     @FXML
     private Label emptyListLabel;
 
+    private ClientDisplayMode displayMode = ClientDisplayMode.NORMAL;
+
     /**
      * Creates a panel for a stored client list that is also the displayed list.
      *
      * @throws NullPointerException if {@code clientList} is null.
      */
     public ClientListPanel(ObservableList<Client> clientList) {
-        this(clientList, clientList);
+        this(clientList, clientList, new SimpleObjectProperty<>(ClientDisplayMode.NORMAL));
     }
 
     /**
@@ -43,8 +48,21 @@ public class ClientListPanel extends UiPart<Region> {
      * @throws NullPointerException if either list is null.
      */
     public ClientListPanel(ObservableList<Client> filteredClients, ObservableList<Client> allClients) {
+        this(filteredClients, allClients, new SimpleObjectProperty<>(ClientDisplayMode.NORMAL));
+    }
+
+    /**
+     * Creates a panel whose cards react to changes in appointment presentation mode.
+     */
+    public ClientListPanel(ObservableList<Client> filteredClients, ObservableList<Client> allClients,
+            ObservableValue<ClientDisplayMode> displayModeProperty) {
         super(FXML);
-        requireAllNonNull(filteredClients, allClients);
+        requireAllNonNull(filteredClients, allClients, displayModeProperty);
+        displayMode = displayModeProperty.getValue();
+        displayModeProperty.addListener((unused, oldMode, newMode) -> {
+            displayMode = newMode;
+            clientListView.refresh();
+        });
         clientListView.setItems(filteredClients);
         emptyListLabel.textProperty().bind(Bindings.when(Bindings.isEmpty(allClients))
                 .then("No clients yet. Use addc to create a client.")
@@ -69,7 +87,7 @@ public class ClientListPanel extends UiPart<Region> {
             if (empty || client == null) {
                 setGraphic(null);
             } else {
-                Region card = new ClientCard(client, getIndex() + 1).getRoot();
+                Region card = new ClientCard(client, getIndex() + 1, displayMode).getRoot();
                 card.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
                         getWidth() - getInsets().getLeft() - getInsets().getRight()),
                         widthProperty(), insetsProperty()));

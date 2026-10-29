@@ -154,6 +154,17 @@ public class AddCommandTest {
         public void updateFilteredClientList(Predicate<Client> predicate) {
             throw new AssertionError("This method should not be called.");
         }
+
+        @Override
+        public javafx.beans.value.ObservableValue<seedu.address.model.ClientDisplayMode>
+                clientDisplayModeProperty() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setClientDisplayMode(seedu.address.model.ClientDisplayMode mode) {
+            throw new AssertionError("This method should not be called.");
+        }
     }
 
     /**
