@@ -15,11 +15,14 @@ import static seedu.address.testutil.TypicalClients.getTypicalPawPals;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand.EditClientDescriptor;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.PawPals;
@@ -122,6 +125,41 @@ public class EditCommandTest {
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_successFromScheduleModes_resetsView() throws Exception {
+        for (ClientDisplayMode mode : List.of(ClientDisplayMode.SCHEDULE_CLIENT,
+                ClientDisplayMode.scheduleDate(new AppointmentDate("29-10-2026")))) {
+            Model currentModel = new ModelManager(getTypicalPawPals(), new UserPrefs());
+            currentModel.setClientDisplayMode(mode);
+            showClientAtIndex(currentModel, INDEX_FIRST_CLIENT);
+            EditCommand command = new EditCommand(INDEX_FIRST_CLIENT,
+                    new EditClientDescriptorBuilder().withAddress("Updated address").build());
+
+            command.execute(currentModel);
+
+            assertEquals(ClientDisplayMode.NORMAL, currentModel.clientDisplayModeProperty().getValue());
+            assertEquals(currentModel.getPawPals().getClientList(), currentModel.getFilteredClientList());
+        }
+    }
+
+    @Test
+    public void execute_failureFromScheduleModes_preservesView() {
+        for (ClientDisplayMode mode : List.of(ClientDisplayMode.SCHEDULE_CLIENT,
+                ClientDisplayMode.scheduleDate(new AppointmentDate("29-10-2026")))) {
+            Model currentModel = new ModelManager(getTypicalPawPals(), new UserPrefs());
+            currentModel.setClientDisplayMode(mode);
+            showClientAtIndex(currentModel, INDEX_FIRST_CLIENT);
+            Client duplicate = currentModel.getPawPals().getClientList().get(INDEX_SECOND_CLIENT.getZeroBased());
+            EditCommand command = new EditCommand(INDEX_FIRST_CLIENT,
+                    new EditClientDescriptorBuilder(duplicate).build());
+
+            assertCommandFailure(command, currentModel, EditCommand.MESSAGE_DUPLICATE_CLIENT);
+
+            assertEquals(mode, currentModel.clientDisplayModeProperty().getValue());
+            assertEquals(1, currentModel.getFilteredClientList().size());
+        }
     }
 
     @Test

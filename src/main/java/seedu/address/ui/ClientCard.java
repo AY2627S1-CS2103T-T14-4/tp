@@ -126,7 +126,7 @@ public class ClientCard extends UiPart<Region> {
             sessionDetails.getChildren().add(createWrappingLabel("Notes: " + session.getNotes(), "cell_small_label"));
             history.getChildren().add(sessionDetails);
         });
-        if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
+        if (displayMode.getType() != ClientDisplayMode.Type.SCHEDULE_CLIENT) {
             addOverflowLabel(history, client.getHistory().size() - HISTORY_DISPLAY_LIMIT, "completed session");
         }
         if (appointments.getChildren().isEmpty()) {

@@ -92,6 +92,7 @@ public class ModelManager implements Model {
     @Override
     public void addClient(Client client) {
         pawPals.addClient(client);
+        setClientDisplayMode(ClientDisplayMode.NORMAL);
         updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 

@@ -21,6 +21,7 @@ import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.Model;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Client;
@@ -85,6 +86,7 @@ public class EditCommand extends Command {
         }
 
         model.setClient(clientToEdit, editedClient);
+        model.setClientDisplayMode(ClientDisplayMode.NORMAL);
         model.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)));
     }
