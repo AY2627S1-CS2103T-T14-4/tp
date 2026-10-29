@@ -16,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.client.Client;
 import seedu.address.model.history.CompletedSession;
 import seedu.address.model.history.SessionNotes;
@@ -58,6 +59,17 @@ public class ClientHistoryPresentationTest {
                 assertEquals(before, client.getHistory());
                 assertEquals(count, client.getHistory().size());
             }
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_clientScheduleMode_displaysCompleteHistory() throws Exception {
+        runOnFxThread(() -> {
+            Client client = HistoryFixtures.clientWithHistory(4);
+            Node card = new ClientCard(client, 1, ClientDisplayMode.SCHEDULE_CLIENT).getRoot();
+            assertEquals(8, historyTexts(card).size());
+            assertTrue(historyTexts(card).contains("Notes: Oldest visit"));
             return null;
         });
     }

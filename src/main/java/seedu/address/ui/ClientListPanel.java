@@ -14,8 +14,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.model.client.Client;
 import seedu.address.model.ClientDisplayMode;
+import seedu.address.model.client.Client;
 
 /**
  * Panel containing the list of clients.

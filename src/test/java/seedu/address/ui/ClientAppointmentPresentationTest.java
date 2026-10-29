@@ -24,6 +24,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -103,6 +104,21 @@ public class ClientAppointmentPresentationTest {
             assertEquals(List.of(first, nextYear, second, previousMonth), client.getAppointments());
             assertEquals(List.of("No appointments scheduled"),
                     appointmentTexts(new ClientCard(new ClientBuilder().build(), 1).getRoot()));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_dateScheduleMode_displaysOnlyMatchingAppointments() throws Exception {
+        runOnFxThread(() -> {
+            Appointment matching = new Appointment(DATE, START);
+            Appointment other = new Appointment(new AppointmentDate("13-12-2026"),
+                    new AppointmentTime("09:00"));
+            Client client = new ClientBuilder().withAppointments(other, matching).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.scheduleDate(DATE)).getRoot();
+
+            assertEquals(List.of(START_TEXT + " · No pets linked"), appointmentTexts(card));
             return null;
         });
     }

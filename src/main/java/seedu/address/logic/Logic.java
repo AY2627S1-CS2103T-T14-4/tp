@@ -1,13 +1,13 @@
 package seedu.address.logic;
 
-import javafx.collections.ObservableList;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.client.Client;
 import seedu.address.model.ClientDisplayMode;
+import seedu.address.model.client.Client;
 
 /**
  * API of the Logic component

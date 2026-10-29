@@ -30,6 +30,8 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
    Some example commands you can try:
 
    * `list` : Lists all clients, their pets, and their appointments.
+   * `schedule d/29-10-2026` : Shows clients with active appointments on the specified date.
+   * `schedule c/1` : Shows one displayed client's active appointments and complete session history.
 
    * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe`.
 

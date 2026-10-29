@@ -3,8 +3,8 @@ package seedu.address.model;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import javafx.collections.ObservableList;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentConflictChecker.Conflict;

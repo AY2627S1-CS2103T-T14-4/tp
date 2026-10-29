@@ -26,11 +26,13 @@ public class ScheduleCommand extends Command {
     private final AppointmentDate date;
     private final Index clientIndex;
 
+    /** Creates a command that displays active appointments on {@code date}. */
     public ScheduleCommand(AppointmentDate date) {
         this.date = requireNonNull(date);
         clientIndex = null;
     }
 
+    /** Creates a command that displays the complete appointment history of a displayed client. */
     public ScheduleCommand(Index clientIndex) {
         this.clientIndex = requireNonNull(clientIndex);
         date = null;

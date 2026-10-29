@@ -34,6 +34,7 @@ import seedu.address.logic.commands.FindPetCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.ScheduleCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -182,6 +183,13 @@ public class PawPalsParserTest {
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_schedule() throws Exception {
+        assertEquals(new ScheduleCommand(new AppointmentDate("29-10-2026")),
+                parser.parseCommand("schedule d/29-10-2026"));
+        assertEquals(new ScheduleCommand(INDEX_FIRST_CLIENT), parser.parseCommand("schedule c/1"));
     }
 
     @Test

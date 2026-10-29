@@ -3,8 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
-import seedu.address.model.Model;
 import seedu.address.model.ClientDisplayMode;
+import seedu.address.model.Model;
 
 /**
  * Lists all clients in the PawPals data to the user.
