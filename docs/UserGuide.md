@@ -87,8 +87,8 @@ Adding a pet replaces `No pets recorded` with that pet's details and `No notes r
 Adding a note removes the pet's empty-note message; deleting its last note restores it.
 
 Cancelling the last active appointment restores `No appointments scheduled`. Completing it with `done`
-also removes `No completed sessions`. Completed-session records are saved, but their details are not
-currently shown on client cards. Empty messages update immediately after commands; no restart is needed.
+also replaces `No completed sessions` with a preview of up to three recent sessions, including their
+recorded times, pet names and session notes. Empty messages update immediately after commands; no restart is needed.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -111,6 +111,10 @@ currently shown on client cards. Empty messages update immediately after command
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+
+* Command words and prefixes are case-sensitive: use `addc` and `n/`, not `ADDC` or `N/`.
+  Separate each prefix from the preceding value with a space. Except for explicitly repeatable fields,
+  supply each prefix once. An index without a prefix, such as in `edit 1 n/Alice`, stays before the fields.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -135,7 +139,7 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/regular t/vip`
 
-* `NAME` must contain 1 to 60 characters, including at least one letter. Only letters, spaces, apostrophes, and hyphens are allowed. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `NAME` must contain 1 to 60 characters and must start and end with a letter. Only letters, spaces, apostrophes, and hyphens are allowed between those letters. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 * `PHONE` must contain 3 to 15 digits without spaces.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
@@ -157,9 +161,10 @@ Example: `addp c/1 n/Milo s/Dog b/Poodle`
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the displayed client list.
 **Note:** `CLIENT_INDEX` refers to the index shown in the currently displayed client list. After using `find`, the index refers to the filtered search results, not the original full list.
 For example, after running `find Alice`, if Alice appears at index 1, `addp c/1 n/Milo s/Dog b/Poodle` adds Milo to Alice.
-* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, or hyphens. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+
+* `NAME` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `SPECIES` must contain 1 to 40 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
+* `BREED` must contain 1 to 60 letters, numbers, spaces, apostrophes, hyphens or full stops, including at least one letter or number. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
 
 Successful output: `New pet added: Milo`
 
@@ -220,8 +225,10 @@ Example: `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`
 * `PET_NAME` must match one of that client's pets, ignoring capitalisation and repeated spaces.
 * `TYPE` is `pref`, `sens` or `temp`, ignoring capitalisation.
 * `NOTE` must contain 1 to 200 characters after leading and trailing spaces are removed.
-* If nt/ comes last, everything after it is the note, including prefix-like text such as c/o.
+* If `nt/` comes last, everything after it is the note, including prefix-like text such as `c/o`.
 * If the pet already has a note of that type, the new note replaces it. Other notes are kept.
+* All four prefixes are required, may appear in any order, and must each appear only once.
+  Extra text before the first prefix is rejected.
 
 Successful output: `Updated temperament note for Milo: Anxious around loud dryers`
 
@@ -310,7 +317,7 @@ Rules:
 * `c/`, `d/`, and `t/` are required; `et/` and `pn/` are optional. Fields may appear in any order. Each prefix except `pn/` may appear at most once, even if repeated values are identical. Repeat `pn/` for additional pets. Do not put extra text before the first prefix.
 * `CLIENT_INDEX` must be a positive integer corresponding to an existing client in the **currently displayed** list. After `find`, index `1` refers to the first matching client, rather than the first client in the full list. Adding an appointment keeps the current filter.
 * Each `pn/` must name a pet belonging to the selected client. Names are matched ignoring case, leading/trailing spaces and repeated spaces. For example, `pn/sir   FLUFFY` matches the recorded name `Sir Fluffy`. Unknown pets and pets belonging only to another client are rejected; add them to the selected client with `addp` first if appropriate.
-* Repeated references to the same pet are ignored, including references with different casing or spacing. Linked pets are stored and reported using their recorded names, in first-reference order. An empty or invalid `pn/` is an error, even after a valid name. Pet names must be 1–40 characters after space normalization and contain only letters, numbers, spaces, apostrophes and hyphens.
+* Repeated references to the same pet are ignored, including references with different casing or spacing. Linked pets are stored and reported using their recorded names, in first-reference order. An empty or invalid `pn/` is an error, even after a valid name. Pet names follow the same rules as in `addp`.
 * Omitting `pn/` creates an appointment without links to individual pets. It does not automatically select every pet belonging to the client.
 * `DD-MM-YYYY` must be a valid calendar date with a year from `0001` to `9999`. Use two digits for the day and month, for example `09-01-2027`. Impossible dates such as `31-04-2027` and non-leap-year dates such as `29-02-2027` are rejected.
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
@@ -330,8 +337,9 @@ When pets are linked: `Added appointment: Ben Lim d/12-12-2026 t/12:34 et/13:34 
 
 Linked pet names and optional end times are retained after restarting PawPals. Creating an appointment preserves the client's existing appointments, contact details, pets, pet notes and completed history.
 
-Appointments appear under the selected client's pets in the client list. Each row shows the date,
-start time, optional end time, and linked pet names in their recorded order. For example:
+Appointments appear under the selected client's pets in the client list, sorted by date and then start
+time, earliest first. The order updates when appointments are added or rescheduled. Each row shows the
+date, start time, optional end time, and linked pet names in their recorded order. For example:
 
 * `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna`
 * `Appointment: 12-12-2026 16:00 · Milo`
@@ -358,7 +366,7 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
 | Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
-| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long and contain only letters, numbers, spaces, apostrophes and hyphens.`                                                              |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.` |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
@@ -451,16 +459,16 @@ cancellation is saved so the appointment remains absent after restarting PawPals
 
 If validation fails, no data changes. Feedback includes:
 
-| Problem                                                       | Feedback                                                                                               |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                |
-| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                               |
-| End-time prefix `et/`, including an empty or invalid value   | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. |
-| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                    |
-| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                |
-| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`  |
-| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                  |
-| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot) |
+| Problem                                                       | Feedback                                                                                                                 |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `cancel` usage instructions.                                                  |
+| Repeated prefix, for example two `t/` values                  | `Multiple values specified for the following single-valued field(s): t/`                                                 |
+| End-time prefix `et/`, including an empty or invalid value    | `cancel does not accept et/. Remove et/ and use the appointment's date and start time.`, followed by usage instructions. |
+| Empty, zero, negative, non-integer, or too-large index        | `Index must be a positive integer.`                                                                                      |
+| Positive index outside the displayed list                     | `The client index provided is invalid.`                                                                                  |
+| Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                    |
+| Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                    |
+| No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot)                   |
 
 If saving fails, the appointment may be removed in the current session but remain in the saved file.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
@@ -558,9 +566,10 @@ Example: `list`
 
 Each client entry displays the client's phone number, address, email, pets, and appointments. Each pet is shown
 under its client with its name, species, and breed, followed by any pet notes. Sensitivity and temperament notes
-are marked with ⚠. Clients without pets continue to display without a pet entry.
+are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
+Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`
 
@@ -573,6 +582,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the client's existing tags are removed; adding tags is not cumulative.
 * To remove all of a client's tags, enter `t/` without a tag after it.
+* Names, phone numbers, emails, addresses and tags follow the same validation rules as `addc`.
+  An edit that would duplicate another client's name and phone number is rejected.
+* Pets, pet notes, appointments and completed history are preserved. After a successful edit,
+  all clients are shown again, clearing any `find` or `findp` filter.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -606,7 +619,11 @@ Finds all clients who own pets whose names match any of the given keywords.
 Format: `findp KEYWORD [MORE_KEYWORDS]`
 
 Pet-name matching is case-insensitive and requires a full-name match. Multiple keywords use OR search.
-The displayed client cards remain unchanged, so client indexes can be used with other commands.
+Keywords are split at whitespace, so this command currently cannot match pet names containing spaces:
+`findp Sir Fluffy` searches for pets named `Sir` or `Fluffy`, not `Sir Fluffy`. Find the owner with `find` or `list` instead.
+At least one keyword is required. Feedback counts matching pets, which can exceed the number of matching clients.
+Each matching client card shows all of that client's pets and appointments. Client indexes are renumbered
+within the filtered results and can be used with other commands. Use `list` to show all clients again.
 
 Examples:
 * `findp Milo` returns the owners of pets named `Milo`
@@ -626,13 +643,20 @@ Format: `exit`
 
 ### Saving the data
 
-PawPals automatically saves all data after every command, including clients, pets, pet notes, appointments, and
+PawPals automatically saves all data after every command that executes successfully, including commands such as
+`list` that do not change records. Commands rejected during parsing or execution do not save. Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
 
+If saving fails, Error feedback appears. Changes may already be visible in the current session, but the
+saved file may be unchanged or incomplete. Resolve the reported file or folder access problem before
+relying on those changes being available after a restart.
+
 ### Editing the data file
 
-PawPals data is saved automatically as a JSON file `[JAR file location]/data/pawpals.json`. Advanced users are welcome to update data directly by editing that data file.
+By default, PawPals data is saved as `data/pawpals.json` relative to the folder from which you launch the app.
+Following Quick start makes this the JAR's folder. Advanced users may edit this file while PawPals is closed;
+back it up first.
 
 <box type="warning" seamless>
 
@@ -642,6 +666,7 @@ and shows a recovery warning at the next run. You must choose **Continue** befor
 choosing **Exit** leaves the rejected file unchanged. Closing the warning with the window’s X counts as **Exit**, because showAndWait returns empty.
 If you continue, PawPals starts with an empty client list
 and later commands may replace the rejected file through the normal auto-save process.<br>
+
 Furthermore, certain edits can cause PawPals to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
