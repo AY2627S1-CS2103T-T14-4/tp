@@ -142,11 +142,11 @@ stored list stays observable across changes and cannot be modified through the L
 #### Appointment presentation and refresh
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
-`ClientCard` sorts `Client#getAppointments()` by calendar date and then start time, earliest first,
-when rendering. In the normal `list`, `find` and `findp` presentation it displays only the next three
-appointments whose starts are after the computer's current local date and time. Overdue active appointments
-remain stored but are hidden from this compact preview. If further upcoming appointments exist, the card adds
-`+N more appointment(s)`. The stored list remains in insertion order. Its private appointment formatter reads
+`ClientCard` sorts `Client#getAppointments()` when rendering. In the normal `list`, `find` and `findp`
+presentation it places active appointments whose starts have passed first and marks them `Overdue`, followed
+by upcoming appointments; each group is ordered by calendar date and start time. It displays the first three
+and adds `+N more appointment(s)` for all remaining active appointments. The stored list remains in insertion
+order. Its private appointment formatter reads
 the date, start time, optional end time, recorded linked names and booking details directly from
 `Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
 end-time range when no end time exists and omits parentheses for blank details.
@@ -162,6 +162,9 @@ appointment on the selected date, displays every active appointment on that date
 history preview and its overflow line. Client schedule mode filters to one displayed client and removes both
 limits, showing every active appointment (including overdue ones) and every completed session. The observable
 mode property causes `ClientListPanel` to refresh its cards without rebuilding the panel.
+`MainWindow` also requests a list refresh after every successful command. This recreates visible cards even
+when a command such as `list` sets the same predicate and display mode, so clock-dependent overdue ordering
+and labels cannot remain stale as time passes.
 
 `list`, `find` and `findp` select normal mode. Successful `addc` and `edit` also restore the unfiltered normal
 view, matching their existing search-filter behavior. Validation failures do not change the current predicate
@@ -1564,7 +1567,7 @@ Replace `TARGET_DATE` and `OTHER_DATE` below with those recorded dates.
 
 | Scenario | Commands or action | Expected result |
 | --- | --- | --- |
-| Normal compact preview | Run `list`. | Every client is shown. Alice's card shows only her next three future active appointments followed by `+1 more appointment`, and her three newest completed sessions followed by `+1 more completed session`. Overdue active appointments are not included in the preview. |
+| Normal compact preview | Run `list`. | Every client is shown. Alice's card shows up to three active appointments, with overdue appointments marked and placed before upcoming ones, followed by the applicable appointment overflow line. It also shows her three newest completed sessions followed by `+1 more completed session`. |
 | Schedule by date | Run `schedule d/TARGET_DATE`. | Only clients with active appointments on `TARGET_DATE` are shown. Every matching active appointment on that date appears, even when there are more than three. Alice still has a three-session history preview followed by `+1 more completed session`; no appointment overflow line appears. |
 | Empty date | Run `schedule d/OTHER_DATE` using a date with no active bookings. | The no-matches placeholder is shown and stored clients remain unchanged. |
 | Schedule by displayed client | Run `list`, then `schedule c/1`. | Only client 1 is shown. The card displays every active appointment, including overdue ones, and every completed session, with no overflow lines. |

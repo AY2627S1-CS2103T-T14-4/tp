@@ -32,12 +32,6 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
    * `list` : Lists all clients, their pets, and their appointments.
    * `schedule d/29-10-2026` : Shows clients with active appointments on the specified date.
    * `schedule c/1` : Shows one displayed client's active appointments and complete session history.
-
-The normal `list` view keeps each client card compact by showing only the next three active appointments
-and the three most recent completed sessions. `schedule d/DATE` shows every active appointment on that date
-for matching clients. `schedule c/CLIENT_INDEX` shows all active appointments and completed sessions for the
-selected client, including overdue active appointments.
-
    * `addc n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe`.
 
    * `addp c/1 n/Milo s/Dog b/Poodle` : Adds a pet named `Milo` to the 1st client shown.
@@ -62,7 +56,7 @@ The feedback area shows the result of your latest command. A text label and colo
 
 | Label       | Meaning                                                               | Example                                               |
 |-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
-| **Info**    | Guidance or the result of `find`, `findp`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`                    |
+| **Info**    | Guidance or the result of `find`, `findp`, `schedule`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`          |
 | **Success** | A command that changes records completed successfully.                | Adding Alice Tan shows `New client added: Alice Tan`. |
 | **Error**   | The command could not be parsed, completed, or saved.                 | An unrecognised command shows `Unknown command.`      |
 
@@ -86,14 +80,14 @@ Missing records are shown explicitly:
 | Client list after `find` or `findp` | `No matching clients. Try another search or use list.` | Clients exist, but none match the search. Use `list` to show all clients again.                                    |
 | Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
 | Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
-| Client card                         | `No appointments scheduled`                            | This client has no active appointments.                                                                            |
+| Client card                         | `No active appointments`                               | This client has no active appointments.                                                                            |
 | Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
 
 For example, a newly added client shows the messages for no pets, appointments, and completed sessions.
 Adding a pet replaces `No pets recorded` with that pet's details and `No notes recorded`.
 Adding a note removes the pet's empty-note message; deleting its last note restores it.
 
-Cancelling the last active appointment restores `No appointments scheduled`. Completing it with `done`
+Cancelling the last active appointment restores `No active appointments`. Completing it with `done`
 also replaces `No completed sessions` with a preview of up to three recent sessions, including their
 recorded times, pet names and session notes. Empty messages update immediately after commands; no restart is needed.
 
@@ -153,6 +147,9 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/r
 * `TAG` is optional, may be added more than once, and must contain only letters and numbers.
 
 Successful output: `New client added: Alice Tan`
+
+After a successful addition, all clients are shown in the normal compact view, replacing any active
+`find`, `findp`, or `schedule` filter. A failed addition leaves the current view unchanged.
 
 Clients with the same name and phone number, ignoring name capitalisation and repeated spaces, are treated as duplicates.
 If the command fails because of invalid input or a duplicate client, no client is added.
@@ -581,6 +578,9 @@ under its client with its name, species, and breed, followed by any pet notes. S
 are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
+Each card shows up to three active appointments. Appointments whose start time has passed are marked `Overdue`
+and shown first, followed by upcoming appointments; both kinds remain active until completed or cancelled.
+If more than three active appointments exist, `+N more appointment(s)` reports how many are hidden.
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
 ### Editing a client: `edit`
@@ -597,7 +597,8 @@ Format: `edit c/INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Names, phone numbers, emails, addresses and tags follow the same validation rules as `addc`.
   An edit that would duplicate another client's name and phone number is rejected.
 * Pets, pet notes, appointments and completed history are preserved. After a successful edit,
-  all clients are shown again, clearing any `find` or `findp` filter.
+  all clients are shown again, clearing any `find`, `findp`, or `schedule` filter. A failed edit leaves the
+  current view unchanged.
 
 Examples:
 *  `edit c/1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -639,6 +640,44 @@ within the filtered results and can be used with other commands. Use `list` to s
 Examples:
 * `findp Milo` returns the owners of pets named `Milo`
 * `findp Milo Luna` returns the owners of pets named `Milo` or `Luna`
+
+### Viewing a schedule: `schedule`
+
+Shows active appointments for one date or the full appointment and completed-session record for one client.
+
+Formats:
+
+* `schedule d/DD-MM-YYYY`
+* `schedule c/CLIENT_INDEX`
+
+Examples:
+
+* `schedule d/29-10-2026`
+* `schedule c/1`
+
+Rules:
+
+* Supply exactly one of `d/` or `c/`. Repeating either prefix, supplying both, or supplying neither is invalid.
+* `DD-MM-YYYY` follows the appointment date rules. In date view, only clients with an active appointment on
+  that date are shown, and every matching appointment is displayed. Each card still shows up to three recent
+  completed sessions and a `+N more completed session(s)` line when further history exists.
+* `CLIENT_INDEX` must be a positive index in the currently displayed list. Client view shows that client's
+  complete active appointment list, including overdue appointments, and complete completed-session history.
+* The schedule filter remains active while appointment, pet, and note commands update the displayed clients.
+  Use `list`, `find`, or `findp` to replace it. A successful `addc` or `edit` also restores the full normal view;
+  a failed command leaves the current schedule view unchanged.
+* The normal view shows up to three active appointments per client: overdue appointments first, then upcoming
+  appointments. It also shows up to three most recent completed sessions. Overflow lines report hidden records.
+
+Possible errors:
+
+| Problem | Feedback |
+|---------|----------|
+| Neither `d/` nor `c/`, both prefixes, or extra text before a prefix | `Invalid command format!`, followed by the `schedule` usage instructions. |
+| Repeated `d/` or `c/` | `Multiple values specified for the following single-valued field(s): ...` |
+| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
+| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
+| Positive index outside the displayed list | `The client index provided is invalid.` |
 
 ### Clearing all entries: `clear`
 
@@ -742,5 +781,6 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Exit**                   | `exit`                                                                                                                                                                                      |
 | **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                                                                 |
 | **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                                                                 |
+| **View schedule**          | `schedule d/DD-MM-YYYY` or `schedule c/CLIENT_INDEX`<br> e.g., `schedule d/29-10-2026`, `schedule c/1`                                                                                     |
 | **List**                   | `list`                                                                                                                                                                                      |
 | **Help**                   | `help`                                                                                                                                                                                      |
