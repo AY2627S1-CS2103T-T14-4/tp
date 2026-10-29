@@ -158,7 +158,10 @@ public class CompletedHistoryStorageTest {
 
         StorageManager restartedStorage = createStorage();
         Model restored = new ModelManager(restartedStorage.readPawPals().orElseThrow(), new UserPrefs());
-        new LogicManager(restored, restartedStorage).execute("clear");
+        // Confirmed clear removes the remaining client's persisted history after reload.
+        LogicManager restartedLogic = new LogicManager(restored, restartedStorage);
+        restartedLogic.execute("clear");
+        restartedLogic.execute("y");
         assertTrue(createStorage().readPawPals().orElseThrow().getClientList().isEmpty());
     }
 
