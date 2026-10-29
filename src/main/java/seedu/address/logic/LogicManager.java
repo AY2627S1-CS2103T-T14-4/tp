@@ -7,8 +7,10 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FeedbackType;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.PawPalsParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -30,6 +32,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final PawPalsParser pawPalsParser;
+    private boolean awaitingClearConfirmation;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -44,9 +47,40 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
+        if (awaitingClearConfirmation) {
+            return handleClearConfirmation(commandText);
+        }
+
         Command command = pawPalsParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        if (command instanceof ClearCommand) {
+            awaitingClearConfirmation = true;
+            return new CommandResult(ClearCommand.MESSAGE_CONFIRMATION, FeedbackType.NEUTRAL);
+        }
+        return executeAndSave(command);
+    }
+
+    /**
+     * Handles a response to the pending clear request without parsing it as another command.
+     */
+    private CommandResult handleClearConfirmation(String commandText) throws CommandException, ParseException {
+        String response = commandText.trim();
+        if (response.equalsIgnoreCase("n")) {
+            awaitingClearConfirmation = false;
+            return new CommandResult(ClearCommand.MESSAGE_CANCELLED, FeedbackType.NEUTRAL);
+        }
+        if (!response.equalsIgnoreCase("y")) {
+            throw new ParseException(ClearCommand.MESSAGE_INVALID_CONFIRMATION);
+        }
+
+        awaitingClearConfirmation = false;
+        return executeAndSave(new ClearCommand());
+    }
+
+    /**
+     * Executes a command and saves its result through the normal storage error handling.
+     */
+    private CommandResult executeAndSave(Command command) throws CommandException {
+        CommandResult commandResult = command.execute(model);
 
         try {
             storage.savePawPals(model.getPawPals());
