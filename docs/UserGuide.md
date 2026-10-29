@@ -694,13 +694,13 @@ Rules:
 
 Possible errors:
 
-| Problem | Feedback |
-|---------|----------|
-| Neither `d/` nor `c/`, both prefixes, or extra text before a prefix | `Invalid command format!`, followed by the `schedule` usage instructions. |
-| Repeated `d/` or `c/` | `Multiple values specified for the following single-valued field(s): ...` |
-| Invalid or empty date | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
-| Empty, zero, negative, non-integer, or too-large index | `Index must be a positive integer.` |
-| Positive index outside the displayed list | `The client index provided is invalid.` |
+| Problem                                                             | Feedback                                                                                              |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| Neither `d/` nor `c/`, both prefixes, or extra text before a prefix | `Invalid command format!`, followed by the `schedule` usage instructions.                             |
+| Repeated `d/` or `c/`                                               | `Multiple values specified for the following single-valued field(s): ...`                             |
+| Invalid or empty date                                               | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.` |
+| Empty, zero, negative, non-integer, or too-large index              | `Index must be a positive integer.`                                                                   |
+| Positive index outside the displayed list                           | `The client index provided is invalid.`                                                               |
 
 ### Clearing all entries: `clear`
 
