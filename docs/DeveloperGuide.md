@@ -616,7 +616,7 @@ MSS:
 
 1. User requests to add a client.
 2. User provides the client's name, phone number, email address, and home address.
-3. PawPals validates the details and adds the new client.
+3. PawPals validates the details, including the client-name character and quoting rules, and adds the new client.
 4. PawPals displays a success message and the new client in the client list.
 
 Use case ends.

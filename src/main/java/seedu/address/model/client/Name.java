@@ -12,8 +12,9 @@ import java.util.Locale;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should contain only letters, spaces, apostrophes, slashes and hyphens, and should be between 1 and "
-            + "60 characters long. Names containing slashes must be enclosed in quotation marks.";
+            "Names should start and end with a letter, contain only letters, spaces, apostrophes, slashes and hyphens, "
+            + "and should be between 1 and 60 characters long. "
+            + "Names containing slashes must be enclosed in quotation marks.";
 
     /*
      * The first character of the name must be a letter,
