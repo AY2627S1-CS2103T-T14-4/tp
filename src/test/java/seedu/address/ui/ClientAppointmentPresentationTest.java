@@ -102,7 +102,8 @@ public class ClientAppointmentPresentationTest {
                     .withAppointments(first, nextYear, second, previousMonth).build();
             assertEquals(List.of("Appointment: 30-11-2026 16:00 · No pets linked",
                     "Appointment: 12-12-2026 09:00 · No pets linked",
-                    START_TEXT + "–15:30 · Missing (Legacy booking)"),
+                    START_TEXT + "–15:30 · Missing (Legacy booking)",
+                    "+1 more appointment"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
             assertEquals(List.of(first, nextYear, second, previousMonth), client.getAppointments());
             assertEquals(List.of("No appointments scheduled"),
@@ -148,7 +149,27 @@ public class ClientAppointmentPresentationTest {
             assertEquals(List.of(
                     "Appointment: 29-10-2026 12:01 · No pets linked",
                     "Appointment: 30-10-2026 09:00 · No pets linked",
-                    "Appointment: 31-10-2026 09:00 · No pets linked"), appointmentTexts(card));
+                    "Appointment: 31-10-2026 09:00 · No pets linked",
+                    "+1 more appointment"), appointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
+    public void constructor_manyUpcomingAppointments_displaysOverflowCount() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"),
+                    ZoneId.of("Asia/Singapore"));
+            Appointment[] appointments = new Appointment[50];
+            for (int i = 0; i < appointments.length; i++) {
+                appointments[i] = new Appointment(new AppointmentDate("01-11-2026"),
+                        new AppointmentTime(String.format("%02d:%02d", i / 60, i % 60)));
+            }
+            Client client = new ClientBuilder().withAppointments(appointments).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals("+47 more appointments", appointmentTexts(card).getLast());
             return null;
         });
     }

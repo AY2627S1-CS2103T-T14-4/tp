@@ -6,6 +6,7 @@ import static seedu.address.testutil.JavaFxTestUtil.initializeToolkit;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ public class ClientHistoryPresentationTest {
                             "17-10-2026 09:00 · No pets linked", "Notes: Oldest visit"),
                     List.of("20-10-2026 14:00–15:30 · Milo, Luna", "Notes: Teddy cut, short ears",
                             "19-10-2026 11:00 · Luna", "Notes: Short trim",
-                            "18-10-2026 10:00 · Milo", "Notes: Gentle shampoo"));
+                            "18-10-2026 10:00 · Milo", "Notes: Gentle shampoo",
+                            "+1 more completed session"));
             for (int count = 0; count <= 4; count++) {
                 Client client = HistoryFixtures.clientWithHistory(count);
                 List<CompletedSession> before = List.copyOf(client.getHistory());
@@ -151,8 +153,9 @@ public class ClientHistoryPresentationTest {
 
     private static List<Label> historyLabels(Node card) {
         VBox history = (VBox) card.lookup("#history");
-        return history.getChildren().stream().map(node -> (VBox) node)
-                .flatMap(row -> row.getChildren().stream()).map(node -> (Label) node).toList();
+        return history.getChildren().stream()
+                .flatMap(node -> node instanceof VBox row ? row.getChildren().stream() : Stream.of(node))
+                .map(node -> (Label) node).toList();
     }
 
     private static List<String> historyTexts(Node card) {

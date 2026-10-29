@@ -110,6 +110,12 @@ public class ClientCard extends UiPart<Region> {
                         ? APPOINTMENT_DISPLAY_LIMIT : Long.MAX_VALUE)
                 .forEach(appointment -> appointments.getChildren().add(
                         createWrappingLabel(formatAppointment(appointment), "cell_small_label")));
+        if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
+            long upcomingCount = client.getAppointments().stream()
+                    .filter(appointment -> shouldDisplayAppointment(appointment, displayMode, clock))
+                    .count();
+            addOverflowLabel(appointments, upcomingCount - APPOINTMENT_DISPLAY_LIMIT, "appointment");
+        }
         long historyLimit = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_CLIENT
                 ? Long.MAX_VALUE : HISTORY_DISPLAY_LIMIT;
         client.getHistory().stream().limit(historyLimit).forEach(session -> {
@@ -120,6 +126,9 @@ public class ClientCard extends UiPart<Region> {
             sessionDetails.getChildren().add(createWrappingLabel("Notes: " + session.getNotes(), "cell_small_label"));
             history.getChildren().add(sessionDetails);
         });
+        if (displayMode.getType() == ClientDisplayMode.Type.NORMAL) {
+            addOverflowLabel(history, client.getHistory().size() - HISTORY_DISPLAY_LIMIT, "completed session");
+        }
         if (appointments.getChildren().isEmpty()) {
             String emptyText = displayMode.getType() == ClientDisplayMode.Type.SCHEDULE_DATE
                     ? "No appointments scheduled on this date" : "No appointments scheduled";
@@ -137,6 +146,15 @@ public class ClientCard extends UiPart<Region> {
             case SCHEDULE_DATE -> appointment.getDate().equals(displayMode.getDate().orElseThrow());
             case SCHEDULE_CLIENT -> true;
         };
+    }
+
+    private static void addOverflowLabel(VBox container, long hiddenCount, String itemName) {
+        if (hiddenCount <= 0) {
+            return;
+        }
+        String pluralSuffix = hiddenCount == 1 ? "" : "s";
+        container.getChildren().add(createWrappingLabel(
+                "+" + hiddenCount + " more " + itemName + pluralSuffix, "cell_small_label"));
     }
 
     /**
