@@ -618,8 +618,9 @@ Use case ends.
 
 Extensions:
 
-* 2a. User provides an invalid or missing detail.
-  * 2a1. PawPals displays the corresponding validation message.
+* 2a. User provides an invalid or missing detail, or repeats a single-valued field.
+  * 2a1. PawPals displays the standard invalid command format message for a malformed command,
+    or the corresponding field validation message for an invalid value.
   * 2a2. User provides corrected details.
   * Use case resumes from step 3.
 * 4a. PawPals detects an existing client with the same name and phone number.

@@ -39,7 +39,11 @@ public class AddCommandParser implements Parser<AddCommand> {
             throw new ParseException(AddCommand.MESSAGE_INVALID_FORMAT);
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS);
+        try {
+            argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS);
+        } catch (ParseException e) {
+            throw new ParseException(AddCommand.MESSAGE_INVALID_FORMAT, e);
+        }
         Name name = ParserUtil.parseName(removeSurroundingQuotes(argMultimap.getValue(PREFIX_NAME).get()));
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
