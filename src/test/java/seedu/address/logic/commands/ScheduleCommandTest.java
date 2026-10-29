@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -76,5 +77,29 @@ public class ScheduleCommandTest {
         assertEquals(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX, exception.getMessage());
         assertEquals(List.of(first, second), model.getFilteredClientList());
         assertEquals(ClientDisplayMode.NORMAL, model.clientDisplayModeProperty().getValue());
+    }
+
+    @Test
+    public void equalsAndHashCode_sameTarget_equal() {
+        ScheduleCommand dateCommand = new ScheduleCommand(TARGET_DATE);
+        ScheduleCommand sameDateCommand = new ScheduleCommand(new AppointmentDate("29-10-2026"));
+        ScheduleCommand clientCommand = new ScheduleCommand(Index.fromOneBased(1));
+        ScheduleCommand sameClientCommand = new ScheduleCommand(Index.fromOneBased(1));
+
+        assertEquals(dateCommand, dateCommand);
+        assertEquals(dateCommand, sameDateCommand);
+        assertEquals(dateCommand.hashCode(), sameDateCommand.hashCode());
+        assertEquals(clientCommand, sameClientCommand);
+        assertEquals(clientCommand.hashCode(), sameClientCommand.hashCode());
+    }
+
+    @Test
+    public void equals_differentTargetOrType_notEqual() {
+        ScheduleCommand dateCommand = new ScheduleCommand(TARGET_DATE);
+
+        assertNotEquals(dateCommand, new ScheduleCommand(new AppointmentDate("30-10-2026")));
+        assertNotEquals(dateCommand, new ScheduleCommand(Index.fromOneBased(1)));
+        assertNotEquals(dateCommand, null);
+        assertNotEquals(dateCommand, "schedule");
     }
 }

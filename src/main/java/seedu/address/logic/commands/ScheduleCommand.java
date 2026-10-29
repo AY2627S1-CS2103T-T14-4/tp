@@ -66,6 +66,7 @@ public class ScheduleCommand extends Command {
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, clientIndex);
+        Integer zeroBasedClientIndex = clientIndex == null ? null : clientIndex.getZeroBased();
+        return Objects.hash(date, zeroBasedClientIndex);
     }
 }
