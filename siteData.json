@@ -73,6 +73,7 @@
         "adding-appointments": "Adding appointments",
         "rescheduling-appointments": "Rescheduling appointments",
         "cancelling-and-completing-appointments": "Cancelling and completing appointments",
+        "viewing-schedules-and-compact-card-overflow": "Viewing schedules and compact card overflow",
         "viewing-completed-session-history": "Viewing completed-session history",
         "saving-data": "Saving data"
       },
@@ -140,6 +141,7 @@
         "editing-a-client-edit": "Editing a client: edit",
         "locating-clients-by-name-or-contact-find": "Locating clients by name or contact: find",
         "locating-pet-owners-by-pet-name-findp": "Locating pet owners by pet name: findp",
+        "viewing-a-schedule-schedule": "Viewing a schedule: schedule",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
