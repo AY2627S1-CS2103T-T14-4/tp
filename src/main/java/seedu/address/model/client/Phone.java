@@ -45,6 +45,24 @@ public class Phone {
     }
 
     /**
+     * Returns true if this phone number starts with the given phone search prefix.
+     * A plus sign in the search prefix requires the stored phone number to have a plus sign too.
+     */
+    public boolean startsWith(String searchPrefix) {
+        String normalizedPrefix = normalize(searchPrefix);
+        boolean requiresPlus = normalizedPrefix.startsWith("+");
+        String prefixDigits = requiresPlus ? normalizedPrefix.substring(1).replace(" ", "")
+                : normalizedPrefix.replace(" ", "");
+        if (prefixDigits.isEmpty()) {
+            return requiresPlus && value.startsWith("+");
+        }
+        if (!prefixDigits.matches("\\d+")) {
+            return false;
+        }
+        return (!requiresPlus || value.startsWith("+")) && digitsOnly(value).startsWith(prefixDigits);
+    }
+
+    /**
      * Returns the digits of a normalized phone number without its optional plus sign or spaces.
      */
     private static String digitsOnly(String normalizedPhone) {

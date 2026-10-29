@@ -733,7 +733,9 @@ MSS:
 
 1. User requests to find clients using one or more keywords.
 2. PawPals searches client names using full-word matching without regard to letter case.
-3. PawPals searches phone numbers for exact matches.
+3. PawPals searches phone numbers by matching the search keyword from the first digit. A leading `+` in the keyword
+   requires the phone number to have a leading `+`; `+` alone matches any international phone number. Phone numbers
+   use an optional leading `+`, and spaces are allowed only between groups of digits, as in `+65 9123 4567`.
 4. PawPals searches email addresses for exact matches without regard to letter case.
 5. PawPals uses OR matching when multiple keywords are provided.
 6. PawPals displays all matching clients and their information.
@@ -1232,15 +1234,17 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
 Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future appointment date where needed.
 
-| Scenario       | Commands or action                                  | Expected result                                                 |
-|----------------|-----------------------------------------------------|-----------------------------------------------------------------|
-| Find by name   | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.   |
-| Find by phone  | `find 91234567`                                     | Clients with that exact phone number are listed.                |
-| Find by email  | `find alice@example.com`                            | Clients with that exact email are listed.                       |
-| Partial phone  | `find 9123`                                         | No client is returned for the partial phone number.             |
-| Partial email  | `find alice@example`                                | No client is returned for the partial email address.            |
-| Partial name   | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.     |
-| Filtered index | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list. |
+| Scenario                    | Commands or action                                  | Expected result                                                               |
+|-----------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
+| Find by name                | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.                 |
+| Find by phone               | `find 91234567`                                     | Clients whose phone numbers start with `(+)91234567` are listed.              |
+| Find by email               | `find alice@example.com`                            | Clients with that exact email are listed.                                     |
+| Partial phone               | `find 9123`                                         | Clients whose phone numbers start with `(+)9123` are listed.                  |
+| Find international prefix   | `find +6`                                           | International numbers beginning with `+6` are listed; local numbers excluded. |
+| Find international numbers  | `find +`                                            | All clients with an international phone number are listed.                    |
+| Partial email               | `find alice@example`                                | No client is returned for the partial email address.                          |
+| Partial name                | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.                   |
+| Filtered index              | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list.               |
 
 ### Finding pets
 

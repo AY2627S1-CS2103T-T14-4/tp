@@ -61,6 +61,7 @@ public class ClientContainsKeywordsPredicateTest {
         Client client = new ClientBuilder().withName("Alice Bob").withPhone("91234567")
                 .withEmail("alice@example.com").build();
         assertTrue(new ClientContainsKeywordsPredicate(List.of("91234567")).test(client));
+        assertTrue(new ClientContainsKeywordsPredicate(List.of("9123")).test(client));
         assertTrue(new ClientContainsKeywordsPredicate(List.of("ALICE@EXAMPLE.COM")).test(client));
     }
 
@@ -77,9 +78,18 @@ public class ClientContainsKeywordsPredicateTest {
         Client client = new ClientBuilder().withName("Alice").withPhone("12345678")
                 .withEmail("alice@email.com").withAddress("Main Street").build();
 
-        // Partial phone, partial email, and address keywords do not match.
-        predicate = new ClientContainsKeywordsPredicate(List.of("12345", "example.com", "Main", "Street"));
+        // Partial email and address keywords do not match.
+        predicate = new ClientContainsKeywordsPredicate(List.of("example.com", "Main", "Street"));
         assertFalse(predicate.test(client));
+
+        Client internationalClient = new ClientBuilder().withPhone("+65 12345678").build();
+        Client localClient = new ClientBuilder().withPhone("65 12345678").build();
+        assertTrue(new ClientContainsKeywordsPredicate(List.of("+6")).test(internationalClient));
+        assertFalse(new ClientContainsKeywordsPredicate(List.of("+6")).test(localClient));
+        assertTrue(new ClientContainsKeywordsPredicate(List.of("+")).test(internationalClient));
+        assertFalse(new ClientContainsKeywordsPredicate(List.of("+")).test(localClient));
+        assertTrue(new ClientContainsKeywordsPredicate(List.of("6")).test(internationalClient));
+        assertTrue(new ClientContainsKeywordsPredicate(List.of("6")).test(localClient));
     }
 
     @Test

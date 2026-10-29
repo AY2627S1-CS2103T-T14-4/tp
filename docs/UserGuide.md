@@ -140,7 +140,7 @@ Format: `addc n/NAME p/PHONE e/EMAIL a/ADDRESS [t/TAG]...`
 Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/regular t/vip`
 
 * `NAME` must contain 1 to 60 characters and must start and end with a letter. Only letters, spaces, apostrophes, and hyphens are allowed between those letters. Leading and trailing spaces are removed, and repeated spaces are treated as one space.
-* `PHONE` must contain 3 to 15 digits. A leading `+` and spaces are allowed. Repeated spaces are reduced to one space, while the `+` and single spaces are preserved when the phone number is stored.
+* `PHONE` must contain 3 to 15 digits. The format is `+65 9123 4567`, where the leading `+` is optional and spaces are allowed only between groups of digits. Repeated spaces are reduced to one space, while the leading `+` and single spaces are preserved when the phone number is stored.
 * `EMAIL` must contain 3 to 254 characters, exactly one `@` symbol with text before it, and a valid domain with at least one period. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
 * `TAG` is optional, may be added more than once, and must contain only letters and numbers.
@@ -601,13 +601,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * A keyword matches a client if it matches their name, phone number, or email:
   * **Name:** only full words match; for example, `Han` does not match `Hans`.
-  * **Phone number:** the whole number must match exactly; for example, `9123` does not match `91234567`.
+  * **Phone number:** a keyword matches from the first digit; for example, `9123` matches `91234567`. A leading `+` in the keyword requires an international number.
   * **Email:** the whole email must match, ignoring case; for example, `ALICE@example.com` matches `alice@example.com`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
-* `find 91234567` returns all clients with that exact phone number
+* `find 9123` returns clients whose phone numbers start with `9123`
+* `find +6` returns international numbers such as `+65 12345678`, but not `65 12345678`
+* `find +` returns all clients with an international phone number
 * `find alice@example.com` returns all clients with that exact email
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
