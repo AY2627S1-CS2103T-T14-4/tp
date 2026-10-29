@@ -24,6 +24,7 @@ import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
+import seedu.address.logic.commands.ConfirmationRequest;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.PawPals;
@@ -98,6 +99,34 @@ public class FeedbackUiIntegrationTest {
                 assertFeedback(window, "Info", ListCommand.MESSAGE_SUCCESS);
                 enter(window, "unknown");
                 assertFeedback(window, "Error", Messages.MESSAGE_UNKNOWN_COMMAND);
+            } finally {
+                window.getPrimaryStage().close();
+            }
+            return null;
+        });
+    }
+
+    @Test
+    public void enter_deleteClient_displaysConfirmationCancellationAndSuccess() throws Exception {
+        // Confirm that cancellation, invalid replies and confirmation must show the specified feedback.
+        runOnFxThread(() -> {
+            MainWindow window = createWindow(testFolder.resolve("pawPals.json"));
+            String prompt = "Deleting client: " + Messages.format(ALICE) + "\nConfirm (Y/n)?";
+            try {
+                enter(window, "delc c/1");
+                assertFeedback(window, "Info", prompt);
+                assertEquals("", input(window).getText());
+                enter(window, "n");
+                assertFeedback(window, "Info", ConfirmationRequest.MESSAGE_CANCELLED);
+                enter(window, "delc c/1");
+                enter(window, "yes");
+                assertFeedback(window, "Error", "Invalid input.\n" + prompt);
+                assertEquals("yes", input(window).getText());
+                assertTrue(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                enter(window, "y");
+                assertFeedback(window, "Success", "Deleted client: " + Messages.format(ALICE));
+                assertEquals("", input(window).getText());
+                assertFalse(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             } finally {
                 window.getPrimaryStage().close();
             }
