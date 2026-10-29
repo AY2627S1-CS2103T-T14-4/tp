@@ -618,9 +618,8 @@ Finds all clients who own pets whose names match any of the given keywords.
 
 Format: `findp KEYWORD [MORE_KEYWORDS]`
 
-Pet-name matching is case-insensitive and requires a full-name match. Multiple keywords use OR search.
-Keywords are split at whitespace, so this command currently cannot match pet names containing spaces:
-`findp Sir Fluffy` searches for pets named `Sir` or `Fluffy`, not `Sir Fluffy`. Find the owner with `find` or `list` instead.
+Pet-name matching is case-insensitive and matches complete words in a pet's name. Multiple keywords use OR search.
+For example, `findp Sir` and `findp Fluffy` both find a pet named `Sir Fluffy`, while partial words do not match.
 At least one keyword is required. Feedback counts matching pets, which can exceed the number of matching clients.
 Each matching client card shows all of that client's pets and appointments. Client indexes are renumbered
 within the filtered results and can be used with other commands. Use `list` to show all clients again.
