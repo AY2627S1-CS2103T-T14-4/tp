@@ -9,6 +9,9 @@ import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.appointment.Appointment;
@@ -25,6 +28,8 @@ public class ModelManager implements Model {
     private final PawPals pawPals;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
+    private final ObjectProperty<ClientDisplayMode> clientDisplayMode =
+            new SimpleObjectProperty<>(ClientDisplayMode.NORMAL);
 
     /**
      * Initializes a ModelManager with the given pawPals and userPrefs.
@@ -125,6 +130,16 @@ public class ModelManager implements Model {
     public void updateFilteredClientList(Predicate<Client> predicate) {
         requireNonNull(predicate);
         filteredClients.setPredicate(predicate);
+    }
+
+    @Override
+    public ObservableValue<ClientDisplayMode> clientDisplayModeProperty() {
+        return clientDisplayMode;
+    }
+
+    @Override
+    public void setClientDisplayMode(ClientDisplayMode mode) {
+        clientDisplayMode.set(requireNonNull(mode));
     }
 
     @Override

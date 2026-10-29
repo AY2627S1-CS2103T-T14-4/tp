@@ -5,6 +5,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
+import javafx.beans.value.ObservableValue;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
@@ -13,6 +14,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.PawPalsParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.ClientDisplayMode;
 import seedu.address.model.client.Client;
 import seedu.address.storage.Storage;
 
@@ -67,6 +69,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Client> getClientList() {
         return model.getPawPals().getClientList();
+    }
+
+    @Override
+    public ObservableValue<ClientDisplayMode> clientDisplayModeProperty() {
+        return model.clientDisplayModeProperty();
     }
 
     @Override

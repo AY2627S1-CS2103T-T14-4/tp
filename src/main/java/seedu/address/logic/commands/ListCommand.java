@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import seedu.address.model.Model;
+import seedu.address.model.ClientDisplayMode;
 
 /**
  * Lists all clients in the PawPals data to the user.
@@ -18,6 +19,7 @@ public class ListCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        model.setClientDisplayMode(ClientDisplayMode.NORMAL);
         model.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
         return new CommandResult(MESSAGE_SUCCESS, FeedbackType.NEUTRAL);
     }

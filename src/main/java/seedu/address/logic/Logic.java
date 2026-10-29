@@ -1,11 +1,13 @@
 package seedu.address.logic;
 
 import javafx.collections.ObservableList;
+import javafx.beans.value.ObservableValue;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.client.Client;
+import seedu.address.model.ClientDisplayMode;
 
 /**
  * API of the Logic component
@@ -25,6 +27,9 @@ public interface Logic {
 
     /** Returns an unmodifiable observable view of all stored clients, regardless of filtering. */
     ObservableList<Client> getClientList();
+
+    /** Returns the observable client-card presentation mode. */
+    ObservableValue<ClientDisplayMode> clientDisplayModeProperty();
 
     /**
      * Returns the user prefs' GUI settings.
