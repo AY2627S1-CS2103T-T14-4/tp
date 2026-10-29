@@ -1113,7 +1113,8 @@ MSS:
 3. PawPals validates the supplied values and checks that the resulting name and phone number do not duplicate another client.
 4. PawPals replaces the supplied fields, preserving pets, pet notes, appointments and completed history.
    Supplied tags replace the whole tag set; an empty `t/` clears it.
-5. PawPals displays success and all clients, clearing any search filter.
+5. PawPals displays success and retains the current search criteria. If the edited client no longer
+   matches, they disappear from the displayed results. The user can run `list` to show all clients again.
 
 Use case ends.
 
