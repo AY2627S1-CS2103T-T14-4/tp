@@ -401,8 +401,10 @@ Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
   For example, `editappt c/1 d/12-12-2026 t/14:00 ns/16:00 ne/` moves the appointment to `16:00` with no end.
   To remove only the end, use `editappt c/1 d/12-12-2026 t/14:00 ne/`. Clearing an already absent end succeeds.
   Take care when submitting an unfinished `ne/`: an empty value removes the end rather than reporting an error.
-* The resulting date and start must be strictly in the future when the command executes, using the
-  computer's local time zone. This also applies to end-only edits and edits supplying unchanged values.
+* Past, current and future resulting starts are accepted, including for end-only edits and unchanged
+  starts. When the resulting start is earlier than the computer's current local date and time, success
+  feedback adds: `This appointment is in the past. Use done to record it as a completed session.`
+  This is informational; the edit succeeds and the appointment remains active until completed or cancelled.
 * The resulting slot must not overlap any other active booking, including those belonging to clients
   hidden by filtering. The original booking is excluded from this check. Adjacent slots are allowed,
   start-only bookings occupy their starting minute, and completed history does not block slots, as in `appt`.
@@ -427,14 +429,14 @@ Feedback includes:
 | Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
 | Invalid index, date or time, including empty values except `ne/` | The corresponding index, date or time validation message used by `appt`.                   |
 | No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
-| Resulting start is in the past or current minute              | `Appointment date and time must be strictly in the future.`                                  |
 | New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
 | Preserving the duration would end after 23:59                 | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
 | Overlap with another active booking                           | The same conflict message as `appt`, identifying the conflicting client and slot.            |
 
-The example requires a matching active booking and a resulting start in the future. Replace the example
-date and time as needed. If saving fails, the current session may show the edited booking while the saved
-file retains the original. Resolve the reported file or folder access problem before relying on the change.
+The example requires a matching active booking. The resulting start may be in the past, present or future;
+replace the example date and time as needed. If saving fails, the current session may show the edited
+booking while the saved file retains the original. Resolve the reported file or folder access problem
+before relying on the change.
 
 ### Cancelling an appointment: `cancel`
 

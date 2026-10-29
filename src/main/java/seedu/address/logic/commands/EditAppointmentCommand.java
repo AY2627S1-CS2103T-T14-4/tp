@@ -32,7 +32,7 @@ public class EditAppointmentCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Reschedules an appointment for the client identified by their displayed index.\n"
             + "Parameters: c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]\n"
-            + "Provide at least one new value. The resulting start must be strictly in the future.\n"
+            + "Provide at least one new value. Past, current and future starts are accepted.\n"
             + "Without ne/, an existing duration is preserved; appointments must end on the same day.\n"
             + "Use ne/ with no value to remove the end time, or ne/HH:mm to set it.\n"
             + "Linked pets and booking details are kept. Overlaps with other active bookings are rejected.\n"
@@ -66,7 +66,7 @@ public class EditAppointmentCommand extends Command {
     }
 
     /**
-     * Creates a rescheduling command using the supplied clock for execution-time validation.
+     * Creates a rescheduling command using the supplied clock to identify past starts in success feedback.
      * All arguments must be non-null.
      */
     EditAppointmentCommand(Index targetIndex, AppointmentDate date, AppointmentTime time,
@@ -93,15 +93,19 @@ public class EditAppointmentCommand extends Command {
         Appointment original = client.getAppointment(date, time).orElseThrow(() -> new CommandException(
                 String.format(Messages.MESSAGE_APPOINTMENT_NOT_FOUND, client.getName(), date, time)));
         Appointment replacement = createReplacement(original);
-        validateFutureStart(replacement);
         Optional<Conflict> conflict = model.findAppointmentConflict(replacement, client, original);
         if (conflict.isPresent()) {
             throw new CommandException(Messages.formatAppointmentConflict(conflict.get()));
         }
         model.setClient(client, client.withAppointmentReplaced(date, time, replacement));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, client.getName(), date, time,
+        String feedback = String.format(MESSAGE_SUCCESS, client.getName(), date, time,
                 replacement.getDate(), replacement.getTime())
-                + replacement.getEndTime().map(end -> " et/" + end).orElse(""));
+                + replacement.getEndTime().map(end -> " et/" + end).orElse("");
+        LocalDateTime start = LocalDateTime.of(replacement.getDate().getValue(), replacement.getTime().getValue());
+        if (start.isBefore(LocalDateTime.now(clock))) {
+            feedback += "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT;
+        }
+        return new CommandResult(feedback);
     }
 
     /**
@@ -151,16 +155,6 @@ public class EditAppointmentCommand extends Command {
         }
         String end = LocalTime.MIDNIGHT.plusMinutes(endMinute).format(TIME_FORMATTER);
         return Optional.of(new AppointmentTime(end));
-    }
-
-    /**
-     * Requires the resulting start to be strictly after the current local date and time.
-     */
-    private void validateFutureStart(Appointment replacement) throws CommandException {
-        LocalDateTime start = LocalDateTime.of(replacement.getDate().getValue(), replacement.getTime().getValue());
-        if (!start.isAfter(LocalDateTime.now(clock))) {
-            throw new CommandException(Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
-        }
     }
 
     @Override
