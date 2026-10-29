@@ -1120,18 +1120,18 @@ addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Add a preference note | `note c/1 pn/Milo ty/pref nt/Likes quiet grooming` | `Updated preference note for Milo: Likes quiet grooming`. The note appears without `⚠`. |
-| Add a sensitivity note | `note c/1 pn/Milo ty/sens nt/Sensitive paws` | `Updated sensitivity note for Milo: Sensitive paws`. The note appears with `⚠ Sens`. |
-| Add a temperament note | `note c/1 pn/Milo ty/temp nt/Anxious around dryers` | `Updated temperament note for Milo: Anxious around dryers`. The note appears with `⚠ Temp`. |
-| Replace an existing note | `note c/1 pn/Milo ty/pref nt/Prefers a teddy cut` | The preference note is replaced; the old preference text is no longer shown. Existing sensitivity and temperament notes remain. |
-| Unknown pet | `note c/1 pn/Rex ty/pref nt/Likes treats` | `This client has no pet named Rex.` No data changes. |
-| Invalid note type | `note c/1 pn/Milo ty/mood nt/Likes treats` | `Note type must be pref, sens or temp.` |
-| Empty note | `note c/1 pn/Milo ty/pref nt/` | The note-length validation message is shown. No data changes. |
-| Note over 200 characters | `note c/1 pn/Milo ty/pref nt/<201-character note>` | The note-length validation message is shown. No data changes. |
-| Repeated prefix | `note c/1 pn/Milo ty/pref ty/temp nt/Note` | `Multiple values specified for the following single-valued field(s): ty/` |
-| Restart | Add or replace a note, then run `exit`, relaunch and run `list`. | The latest note remains visible after restart. |
+| Scenario | Commands or action | Expected result                                                                                                                                            |
+| --- | --- |------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Add a preference note | `note c/1 pn/Milo ty/pref nt/Likes quiet grooming` | `Updated preference note for Milo: Likes quiet grooming`. The note appears without `⚠`.                                                                    |
+| Add a sensitivity note | `note c/1 pn/Milo ty/sens nt/Sensitive paws` | `Updated sensitivity note for Milo: Sensitive paws`. The note appears with `⚠ Sens`.                                                                       |
+| Add a temperament note | `note c/1 pn/Milo ty/temp nt/Anxious around dryers` | `Updated temperament note for Milo: Anxious around dryers`. The note appears with `⚠ Temp`.                                                                |
+| Replace an existing note | `note c/1 pn/Milo ty/pref nt/Prefers a teddy cut` | The preference note is replaced; the old preference text is no longer shown. Existing sensitivity and temperament notes remain.                            |
+| Unknown pet | `note c/1 pn/Rex ty/pref nt/Likes treats` | `This client has no pet named Rex.` No data changes.                                                                                                       |
+| Invalid note type | `note c/1 pn/Milo ty/mood nt/Likes treats` | `Note type must be pref, sens or temp.`                                                                                                                    |
+| Empty note | `note c/1 pn/Milo ty/pref nt/` | The note-length validation message is shown. No data changes.                                                                                              |
+| Note over 200 characters | `note c/1 pn/Milo ty/pref nt/<201-character note>` | The note-length validation message is shown. No data changes.                                                                                              |
+| Repeated prefix | `note c/1 pn/Milo ty/pref ty/temp nt/Note` | Invalid command format message is shown. No data changes. |
+| Restart | Add or replace a note, then run `exit`, relaunch and run `list`. | The latest note remains visible after restart.                                                                                                             |
 
 ### Deleting a pet note
 
