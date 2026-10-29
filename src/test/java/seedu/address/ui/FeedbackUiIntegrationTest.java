@@ -79,7 +79,18 @@ public class FeedbackUiIntegrationTest {
                 assertFeedback(window, "Error", AddCommand.MESSAGE_DUPLICATE_CLIENT);
                 assertEquals(duplicate, input(window).getText());
 
+                // Cancellation ends confirmation; an invalid reply retains it and shows an error.
                 enter(window, "clear");
+                assertFeedback(window, "Info", ClearCommand.MESSAGE_CONFIRMATION);
+                assertEquals("", input(window).getText());
+                enter(window, "n");
+                assertFeedback(window, "Info", ClearCommand.MESSAGE_CANCELLED);
+                enter(window, "clear");
+                enter(window, "yes");
+                assertFeedback(window, "Error", ClearCommand.MESSAGE_INVALID_CONFIRMATION);
+                assertEquals("yes", input(window).getText());
+                assertTrue(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                enter(window, "Y");
                 assertFeedback(window, "Success", ClearCommand.MESSAGE_SUCCESS);
                 assertEquals("", input(window).getText());
                 assertFalse(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));

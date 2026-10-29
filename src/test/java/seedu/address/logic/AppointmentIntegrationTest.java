@@ -215,6 +215,9 @@ public class AppointmentIntegrationTest {
                 afterDelete.getClientList().getFirst().getAppointments());
 
         logic.execute("clear");
+        // Requesting clear preserves saved appointments until confirmation.
+        assertEquals(afterDelete, readSavedPawPals());
+        logic.execute("y");
         assertTrue(readSavedPawPals().getClientList().isEmpty());
         assertTrue(model.getPawPals().getClientList().isEmpty());
     }

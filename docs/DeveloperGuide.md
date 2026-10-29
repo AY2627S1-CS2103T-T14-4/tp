@@ -99,7 +99,7 @@ explicit type. Equality, hashing, and the string representation include the type
 `MainWindow#executeCommand(...)` passes the result's message and type to
 `ResultDisplay#setFeedbackToUser(String, FeedbackType)`. It catches `ParseException` and
 `CommandException`, displays `ERROR`, and rethrows the exception so `CommandBox` retains failed input.
-Storage failures follow the same error path: `LogicManager` saves before returning the command result,
+Storage failures follow the same error path: for executed commands, `LogicManager` saves before returning the result,
 so a failed save never displays that result as a success. The existing storage behavior still applies:
 a save failure may occur after the in-memory model has changed; feedback does not roll it back.
 
@@ -444,7 +444,12 @@ The `Storage` component,
 * treats every field added after v1.3 (pet notes, an appointment's end time and linked pets, and session history) as optional, so data files saved by older versions still load.
 
 `LogicManager#execute(...)` saves after a command returns successfully, including read-only commands such
-as `list`, `find` and `help`. Parsing and command-execution failures bypass saving. A save failure becomes
+as `list`, `find` and `help`. A `clear` request only sets a private, session-local confirmation flag and returns
+neutral feedback. While pending, Logic handles the next input as a confirmation response before normal parsing.
+Only `y`/`Y` (after trimming whitespace) executes `ClearCommand` through the shared execution-and-save path;
+`n`/`N` cancels without saving. Invalid responses throw `ParseException` and retain the flag. The flag resets
+before confirmed execution, including when saving fails. The UI and model do not own confirmation state.
+Parsing and command-execution failures bypass saving. A save failure becomes
 a `CommandException`; model changes have already happened and are not rolled back. `FileUtil#writeToFile(...)`
 uses `Files.write(...)` directly, so writes are not atomic and an I/O failure does not guarantee an unchanged file.
 `MainApp` fixes the data path at `data/pawpals.json` relative to the process working directory.
@@ -786,8 +791,10 @@ Preconditions: PawPals is running.
 MSS:
 
 1. User requests to clear the application data.
-2. PawPals removes all clients, pets, pet notes, appointments and completed history.
-3. PawPals displays a confirmation message and an empty list.
+2. PawPals asks `Clearing all client data:` followed by `Confirm (Y/n)?` without changing or saving records.
+3. User enters `y` or `Y`.
+4. PawPals removes all clients, pets, pet notes, appointments and completed history, and saves the empty database.
+5. PawPals displays `PawPals has been cleared!` and an empty list.
 
 Use case ends.
 
@@ -796,6 +803,16 @@ Extensions:
 * 1a. User adds extra text after `clear`.
   * 1a1. PawPals ignores the extra text.
   * Use case resumes from step 2.
+
+* 3a. User enters `n` or `N`.
+  * 3a1. PawPals displays `Deletion cancelled.` without changing or saving records.
+  * Use case ends.
+* 3b. User submits any other response, including another command.
+  * 3b1. PawPals displays `Invalid input.` and repeats the confirmation prompt without changing or saving records.
+  * Use case resumes from step 3.
+
+Surrounding whitespace in responses is ignored. Empty Enter is ignored by the command box.
+Confirmation is required for an empty database too; pending confirmation does not survive closing the app.
 
 #### UC09 - Exit PawPals
 
@@ -1186,7 +1203,7 @@ Resize to the minimum window width and check that text remains readable.
 | Scenario                   | Commands or action                                                                                                             | Expected result                                                                                                                                                                 |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Initial feedback           | Launch PawPals.                                                                                                                | `Info` shows the initial command guidance.                                                                                                                                      |
-| Empty database             | Run `clear`, then `find Nobody`.                                                                                               | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`.                                                              |
+| Empty database             | Run `clear`, confirm with `y`, then `find Nobody`.                                                                                               | The list shows `No clients yet. Use addc to create a client.`; `clear` gives `Success`, while `find` gives `Info`.                                                              |
 | Empty card                 | Run `addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road`.                                                        | `Success` identifies Alice. Her card shows no pets, appointments, or completed sessions.                                                                                        |
 | Search without matches     | Run `find Nobody`, then `findp Nobody`, then `list`.                                                                           | Each search shows the no-matches placeholder with `Info`; `list` restores Alice's card.                                                                                         |
 | Empty notes                | Run `addp c/1 n/Milo s/Dog b/Poodle`, then `note c/1 pn/Milo ty/sens nt/Sensitive paws`.                                       | The pet replaces the empty-pets message. Its empty-note message is replaced by `⚠ Sens: Sensitive paws`.                                                                       |
@@ -1196,7 +1213,7 @@ Resize to the minimum window width and check that text remains readable.
 | Error and correction       | Submit `unknown` twice. Edit it to `list`, then press Enter.                                                                   | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input.                 |
 | Error to success           | Submit `unknown`, then a valid `addc` for another client.                                                                      | `Success` replaces `Error` without stale error styling.                                                                                                                         |
 | Long feedback              | Submit `appt` without arguments and scroll within its feedback. Then submit `list`.                                            | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling.                                                           |
-| Last client removed        | Run `clear`, add Alice again, then run `delc c/1`.                                                                               | The empty-database message returns after the last client is deleted.                                                                                                            |
+| Last client removed        | Run `clear`, confirm with `y`, add Alice again, then run `delc c/1`.                                                           | The empty-database message returns after the last client is deleted.                                                                                                            |
 
 ### Adding and persisting pets
 
@@ -1207,6 +1224,7 @@ Set up two clients using `addc`:
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
@@ -1301,6 +1319,7 @@ Set up one client with two pets, a note and a linked appointment (replace `FUTUR
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
 addp c/1 n/Luna s/Cat b/Persian
@@ -1325,6 +1344,7 @@ Set up one client with two pets, a note and a linked appointment (replace `FUTUR
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
 addp c/1 n/Luna s/Cat b/Persian
@@ -1352,6 +1372,7 @@ Set up two clients using the implemented `addc` command:
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 ```
@@ -1374,7 +1395,8 @@ The separate client-add section of the User Guide also uses `addc`.
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`.             | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.                                  |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                                       | Each appointment is still displayed under its original client.                                                                                |
 | Edit preservation                       | `edit c/2 p/93456789`, then restart.                                                                             | Bob's phone changes, and all his appointments remain.                                                                                         |
-| Delete and clear                        | `delc c/1`, restart; then `clear` and restart.                                                                     | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
+| Delete and clear                        | `delc c/1`, restart; then `clear`, confirm with `y`, and restart.                                                | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
+
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 
@@ -1418,6 +1440,7 @@ Replace `FUTURE_DATE` with a future date and `OTHER_FUTURE_DATE` with a differen
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
@@ -1459,6 +1482,7 @@ Reset to this setup before each independent table row; perform commands within a
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
@@ -1492,6 +1516,7 @@ the same date and start are used after waiting. Reset to this setup with fresh t
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle
@@ -1527,6 +1552,7 @@ so no data-file edits or waiting are needed. Each past booking succeeds with an 
 
 ```text
 clear
+y
 addc n/Alice Test p/91234567 e/alice@example.com a/10 Dover Road
 addc n/Bob Test p/92345678 e/bob@example.com a/20 Dover Road
 addp c/1 n/Milo s/Dog b/Poodle

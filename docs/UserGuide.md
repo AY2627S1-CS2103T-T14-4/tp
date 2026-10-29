@@ -39,7 +39,7 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
    * `delc c/3` : Deletes the 3rd client shown in the current list.
 
-   * `clear` : Deletes all clients, pets, and appointments.
+   * `clear` : Requests confirmation before deleting all clients, pets, and appointments.
 
    * `exit` : Exits the app.
 
@@ -647,9 +647,23 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all clients, pets, and appointments from PawPals.
+Clears all clients, pets, pet notes, appointments, and completed sessions from PawPals after confirmation.
 
 Format: `clear`
+
+PawPals displays:
+
+```text
+Clearing all client data:
+Confirm (Y/n)?
+```
+
+Enter `y` or `Y` to delete all records and receive `PawPals has been cleared!`.
+Enter `n` or `N` to keep your records and receive `Deletion cancelled.`.
+Surrounding whitespace is ignored. Any other submitted response displays `Invalid input.` and repeats the prompt.
+While confirmation is pending, other commands are treated as invalid responses; enter `n` first to resume
+normal commands. Pressing Enter with an empty command box does nothing. Confirmation is required even when
+there are no records, and a pending request is forgotten when PawPals closes.
 
 ### Exiting the program: `exit`
 
@@ -660,7 +674,9 @@ Format: `exit`
 ### Saving the data
 
 PawPals automatically saves all data after every command that executes successfully, including commands such as
-`list` that do not change records. Commands rejected during parsing or execution do not save. Saved data includes clients, pets, pet notes, appointments, and
+`list` that do not change records. Requesting or cancelling `clear` does not save; confirming with `y` or `Y`
+saves the empty database. Commands rejected during parsing or execution do not save.
+Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
 
@@ -736,7 +752,7 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Edit pet**               | `editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]`<br> e.g., `editp c/1 pn/Milo b/Toy Poodle`                                                                                |
 | **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                                                                        |
 | **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                                                                        |
-| **Clear**                  | `clear`                                                                                                                                                                                     |
+| **Clear**                  | `clear`, then `y` to confirm or `n` to cancel                                                                                                                                               |
 | **Delete client**          | `delc c/CLIENT_INDEX`<br> e.g., `delc c/3`                                                                                                                                                  |
 | **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                                                                              |
 | **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`                                                  |
