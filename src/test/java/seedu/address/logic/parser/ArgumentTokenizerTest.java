@@ -97,7 +97,7 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
-    public void tokenize_quoteDetection_shortCircuitCases_areHandled() throws Exception {
+    public void tokenize_quoteDetection_shortCircuit() throws Exception {
         ArgumentTokenizer.validateSlashQuoting(" n/", new Prefix("n/"));
         ArgumentTokenizer.validateSlashQuoting(" n/A", new Prefix("n/"));
         ArgumentTokenizer.validateSlashQuoting(" n/\"A", new Prefix("n/"));

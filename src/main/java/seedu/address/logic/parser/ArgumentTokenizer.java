@@ -67,18 +67,33 @@ public class ArgumentTokenizer {
         positions.sort((prefix1, prefix2) -> prefix1.getStartPosition() - prefix2.getStartPosition());
         for (int i = 0; i < positions.size(); i++) {
             PrefixPosition current = positions.get(i);
-            int nextPosition = i + 1 < positions.size() ? positions.get(i + 1).getStartPosition()
-                    : argsString.length();
             if (!current.getPrefix().equals(valuePrefix)) {
                 continue;
             }
-            String value = argsString.substring(current.getStartPosition() + current.getPrefix().getPrefix().length(),
-                    nextPosition).trim();
-            boolean quoted = value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"");
-            if (value.contains("/") && !quoted) {
+            String value = extractValue(argsString, positions, i);
+            if (containsUnquotedSlash(value)) {
                 throw new ParseException(Name.MESSAGE_CONSTRAINTS);
             }
         }
+    }
+
+    /**
+     * Extracts the value belonging to the prefix at the given position.
+     */
+    private static String extractValue(String argsString, List<PrefixPosition> positions, int position) {
+        PrefixPosition current = positions.get(position);
+        int valueStart = current.getStartPosition() + current.getPrefix().getPrefix().length();
+        int valueEnd = position + 1 < positions.size()
+                ? positions.get(position + 1).getStartPosition() : argsString.length();
+        return argsString.substring(valueStart, valueEnd).trim();
+    }
+
+    /**
+     * Returns true if the value contains a slash without being enclosed in matching quotes.
+     */
+    private static boolean containsUnquotedSlash(String value) {
+        boolean isQuoted = value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"");
+        return value.contains("/") && !isQuoted;
     }
 
     /**
