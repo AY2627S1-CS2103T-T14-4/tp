@@ -58,24 +58,25 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_slashInQuotedName_success() {
-        Client expectedClient = RAVI;
+        Client expectedClient = new ClientBuilder().withName("Ravi s/o Kumar").withPhone("12345678")
+                .withEmail("ravi@example.com").withAddress("123 Avenue").build();
 
         assertParseSuccess(parser,
-                NAME_DESC_RAVI + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
+                " n/\"Ravi s/o Kumar\" p/12345678 e/ravi@example.com a/123 Avenue",
                 new AddCommand(expectedClient));
     }
 
     @Test
     public void parse_slashInUnquotedName_failure() {
         assertParseFailure(parser,
-                " n/Ravi s/o Kumar" + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
+                " n/Ravi s/o Kumar p/12345678 e/ravi@example.com a/123 Avenue",
                 Name.MESSAGE_CONSTRAINTS);
     }
 
     @Test
     public void parse_unmatchedQuoteInName_failure() {
         assertParseFailure(parser,
-                " n/\"Alice \" Tan" + PHONE_DESC_RAVI + EMAIL_DESC_RAVI + ADDRESS_DESC_RAVI,
+                " n/\"Alice \" Tan p/91234567 e/alice@example.com a/10 Dover Road",
                 Name.MESSAGE_CONSTRAINTS);
     }
 
