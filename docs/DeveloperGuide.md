@@ -57,7 +57,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delc 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delc c/1`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
@@ -175,9 +175,9 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delc 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delc c/1")` API call as an example.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delc 1` Command" />
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delc c/1` Command" />
 
 <box type="info" seamless>
 
@@ -1001,6 +1001,14 @@ Use case ends.
 
 Extensions:
 
+* 1a. User provides no keywords.
+  * 1a1. PawPals displays an error message explaining that at least one keyword is required.
+  * Use case ends.
+
+* 1b. No pets match the given keywords.
+  * 1b1. PawPals displays an empty client list and reports that no pets were found.
+  * Use case ends.
+
 * 2a. User provides a missing, repeated or invalid index, date or start time, or an index outside the displayed list.
   * 2a1. PawPals displays the corresponding validation message and leaves the data unchanged.
   * 2a2. User provides corrected details.
@@ -1187,7 +1195,7 @@ Resize to the minimum window width and check that text remains readable.
 | Error and correction       | Submit `unknown` twice. Edit it to `list`, then press Enter.                                                                   | `Error` and retained input on each failure; editing resets input colour while feedback remains `Error`; submission changes feedback to `Info` and clears input.                 |
 | Error to success           | Submit `unknown`, then a valid `addc` for another client.                                                                      | `Success` replaces `Error` without stale error styling.                                                                                                                         |
 | Long feedback              | Submit `appt` without arguments and scroll within its feedback. Then submit `list`.                                            | Usage text wraps, can be selected, and scrolls to its last line. `list` replaces it with `Info` and resets scrolling.                                                           |
-| Last client removed        | Run `clear`, add Alice again, then run `delc 1`.                                                                               | The empty-database message returns after the last client is deleted.                                                                                                            |
+| Last client removed        | Run `clear`, add Alice again, then run `delc c/1`.                                                                               | The empty-database message returns after the last client is deleted.                                                                                                            |
 
 ### Adding and persisting pets
 
@@ -1264,16 +1272,25 @@ Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future a
 
    1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
-   1. Test case: `delc 1`<br>
+   1. Test case: `delc c/1`<br>
       Expected: The first client is deleted from the list. The status message shows the deleted client's details.
 
-   1. Test case: `delc 0`<br>
-      Expected: No client is deleted. The status message shows error details.
+   1. Test case: `delc c/0`<br>
+      Expected: No client is deleted. The status message shows `Index must be a positive integer.`
+      Also try `delc c/` and `delc c/abc` for empty and non-integer indices.
 
-   1. Other incorrect delete commands to try: `delc`, `delc x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+   1. Test case: `delc c/1` (missing prefix)<br>
+      Expected: No client is deleted. The status message shows `Invalid command format!` and the prefixed usage.
+      Also try `delc` and `delc text c/1` for missing arguments and a nonempty preamble.
 
-1. Run `find Bob` with an existing Bob client, then `delc 1`.<br>
+   1. Test case: `delc c/1 c/1` (duplicate prefix)<br>
+      Expected: No client is deleted. The status message shows
+      `Multiple values specified for the following single-valued field(s): c/`.
+
+   1. Test case: `delc c/X` (replace X with a positive integer larger than the displayed list size)<br>
+      Expected: No client is deleted. The status message shows `The client index provided is invalid.`
+
+1. Run `find Bob` with an existing Bob client, then `delc c/1`.<br>
    Expected: Bob and his pets, notes, appointments and history are removed. Other clients are unchanged
    when shown again with `list`. Restarting does not restore Bob.
 
@@ -1356,8 +1373,7 @@ The separate client-add section of the User Guide also uses `addc`.
 | Filtered indices                        | `find Bob`, then `appt c/1 d/FUTURE_DATE t/13:45`. Try the same command with `c/2`, then run `list`.             | The first command updates Bob and keeps the filter. `c/2` is rejected. Alice remains unchanged after `list`.                                  |
 | Restart                                 | Run `exit`, relaunch from the same folder, and run `list`.                                                       | Each appointment is still displayed under its original client.                                                                                |
 | Edit preservation                       | `edit c/2 p/93456789`, then restart.                                                                             | Bob's phone changes, and all his appointments remain.                                                                                         |
-| Delete and clear                        | `delc 1`, restart; then `clear` and restart.                                                                     | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
-
+| Delete and clear                        | `delc c/1`, restart; then `clear` and restart.                                                                     | Alice and her appointments disappear on deletion; Bob retains his. Clearing leaves no clients or appointments.                                |
 
 For linked-pet checks, reset the disposable data with the two-client setup above, then run:
 
@@ -1491,16 +1507,16 @@ snapshot (including end time and `pets: ["Milo"]`), `notes: "Teddy cut"` and an 
 The matching entry must be absent from her active `appointments` array. Milo and his care note remain.
 For rejection rows, compare the saved file before and after and verify that no history is added or changed.
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Reject completion before the start | Immediately after setup, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut` before the start time. | `An appointment cannot be completed before its scheduled start time.` The booking remains active and no history is added. If the start has already passed, reset with fresh times and retry. |
-| Complete successfully | Wait until the start, then run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`. | `Completed session: Alice Test d/FUTURE_DATE t/FUTURE_START_TIME et/FUTURE_END_TIME pn/Milo nt/Teddy cut`. Alice's active row disappears and the saved history contains the snapshot and notes described above. Bob's data is unchanged. |
-| Unknown slot | `done c/2 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut` | `Bob Test has no active appointment at FUTURE_DATE FUTURE_START_TIME.` Alice's booking remains and no history is added. |
-| Wrong index | `done c/3 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat with `c/0`. | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes. |
-| Repeated prefix | `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut nt/Short ears` | `Multiple values specified for the following single-valued field(s): nt/`. No booking or history changes. |
-| Complete twice | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat it. | The first succeeds; the second gives `Alice Test already has a completed session at FUTURE_DATE FUTURE_START_TIME.` Only one history record exists; its notes and logging time are unchanged by the second attempt. |
+| Scenario                                 | Commands or action                                                                                                                                                                                                                                                                                                                        | Expected result                                                                                                                                                                                                                                                                      |
+|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Reject completion before the start       | Immediately after setup, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut` before the start time.                                                                                                                                                                                                                             | `An appointment cannot be completed before its scheduled start time.` The booking remains active and no history is added. If the start has already passed, reset with fresh times and retry.                                                                                         |
+| Complete successfully                    | Wait until the start, then run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`.                                                                                                                                                                                                                                                 | `Completed session: Alice Test d/FUTURE_DATE t/FUTURE_START_TIME et/FUTURE_END_TIME pn/Milo nt/Teddy cut`. Alice's active row disappears and the saved history contains the snapshot and notes described above. Bob's data is unchanged.                                             |
+| Unknown slot                             | `done c/2 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`                                                                                                                                                                                                                                                                                 | `Bob Test has no active appointment at FUTURE_DATE FUTURE_START_TIME.` Alice's booking remains and no history is added.                                                                                                                                                              |
+| Wrong index                              | `done c/3 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat with `c/0`.                                                                                                                                                                                                                                                        | The first gives `The client index provided is invalid.`; the second gives `Index must be a positive integer.` No data changes.                                                                                                                                                       |
+| Repeated prefix                          | `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut nt/Short ears`                                                                                                                                                                                                                                                                   | `Multiple values specified for the following single-valued field(s): nt/`. No booking or history changes.                                                                                                                                                                            |
+| Complete twice                           | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then repeat it.                                                                                                                                                                                                                                      | The first succeeds; the second gives `Alice Test already has a completed session at FUTURE_DATE FUTURE_START_TIME.` Only one history record exists; its notes and logging time are unchanged by the second attempt.                                                                  |
 | Rebook time released by early completion | Before completing, choose `REBOOK_TIME` about ten minutes after `FUTURE_START_TIME`, strictly before `FUTURE_END_TIME`. Run `appt c/2 d/FUTURE_DATE t/REBOOK_TIME et/FUTURE_END_TIME pn/Luna`. Wait until Alice's start, complete her booking with `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, then retry the same `appt`. | The first booking attempt identifies an overlap with Alice. After completion the booking succeeds for Bob, despite overlapping Alice's historical interval. Alice's completed record remains. If `REBOOK_TIME` has passed, the booking is still accepted with an informational note. |
-| Completion survives restart | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`. | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session. |
+| Completion survives restart              | Wait until the start, run `done c/1 d/FUTURE_DATE t/FUTURE_START_TIME nt/Teddy cut`, inspect the saved record, then `exit`, relaunch from the same folder and run `list`.                                                                                                                                                                 | The active booking stays absent. Alice's saved history retains exactly the same snapshot, notes and logging time; Milo, his care note and Bob's data remain. Repeating `done` at that slot still reports an already-completed session.                                               |
 
 ### Viewing completed-session history
 
@@ -1520,11 +1536,11 @@ appt c/1 d/04-01-2000 t/14:00 et/15:00 pn/Milo
 find Alice
 ```
 
-| Scenario | Commands or action | Expected result |
-| --- | --- | --- |
-| Preview limit and order | Run `done c/1 d/03-01-2000 t/14:00 nt/Trim completed`, then repeat with dates `01-01-2000`, `04-01-2000` and `02-01-2000` in that order. | Alice has no active bookings. History shows exactly three sessions, dated 04, 03 and 02 January 2000 in that order, each with 14:00–15:00, Milo and `Notes: Trim completed`. All four sessions remain in her saved `history` array. Bob remains hidden. |
-| Historical names | Run `editp c/1 pn/Milo n/Max`, then `delp c/1 pn/Max`. | Alice has no current pets, but all displayed and stored historical pet names remain Milo. The preview still shows three sessions. |
-| Reload showing three of four | Run `exit`, relaunch from the same folder and run `list`. | Alice still has four stored sessions, with only the newest three displayed in the same order and with Milo recorded. Bob's records are unchanged. |
+| Scenario                     | Commands or action                                                                                                                       | Expected result                                                                                                                                                                                                                                         |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Preview limit and order      | Run `done c/1 d/03-01-2000 t/14:00 nt/Trim completed`, then repeat with dates `01-01-2000`, `04-01-2000` and `02-01-2000` in that order. | Alice has no active bookings. History shows exactly three sessions, dated 04, 03 and 02 January 2000 in that order, each with 14:00–15:00, Milo and `Notes: Trim completed`. All four sessions remain in her saved `history` array. Bob remains hidden. |
+| Historical names             | Run `editp c/1 pn/Milo n/Max`, then `delp c/1 pn/Max`.                                                                                   | Alice has no current pets, but all displayed and stored historical pet names remain Milo. The preview still shows three sessions.                                                                                                                       |
+| Reload showing three of four | Run `exit`, relaunch from the same folder and run `list`.                                                                                | Alice still has four stored sessions, with only the newest three displayed in the same order and with Milo recorded. Bob's records are unchanged.                                                                                                       |
 
 History is ordered by appointment date, then start time, then logging instant, all newest first.
 Use the existing fixed-clock history tests for timestamp tie-breaking. Command validation, repeated completion

@@ -67,7 +67,7 @@ public class EmptyStateUiIntegrationTest {
                     assertEquals(1, listView(window).getItems().size());
                 }
 
-                enter(window, "delc 1");
+                enter(window, "delc c/1");
                 assertPlaceholder(window, "No clients yet. Use addc to create a client.");
                 enter(window, ClientUtil.getAddCommand(EMPTY_CLIENT));
                 enter(window, "find Nobody");
