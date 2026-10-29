@@ -70,9 +70,7 @@ public class ClientCard extends UiPart<Region> {
         phone.setText(client.getPhone().value);
         address.setText(client.getAddress().value);
         email.setText(client.getEmail().value);
-        client.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        populateTags();
         if (client.getPets().isEmpty()) {
             pets.getChildren().add(createEmptyLabel("No pets recorded"));
         }
@@ -105,6 +103,25 @@ public class ClientCard extends UiPart<Region> {
     }
 
     /**
+     * Populates the tag container in alphabetical order.
+     */
+    private void populateTags() {
+        client.getTags().stream()
+                .sorted(Comparator.comparing(tag -> tag.tagName))
+                .map(tag -> createTagLabel(tag.tagName))
+                .forEach(label -> tags.getChildren().add(label));
+    }
+
+    /**
+     * Creates a tag that wraps when its natural width exceeds the tag container's width.
+     */
+    private Label createTagLabel(String text) {
+        Label label = createWrappingLabel(text);
+        label.maxWidthProperty().bind(tags.widthProperty());
+        return label;
+    }
+
+    /**
      * Returns the booking's times, recorded pet names in order and any nonblank details.
      * Empty pet links are explicit and never inferred from the client's pets.
      */
@@ -126,13 +143,13 @@ public class ClientCard extends UiPart<Region> {
     /**
      * Creates a label that wraps within its parent and grows vertically to display all its text.
      */
-    private static Label createWrappingLabel(String text, String styleClass) {
+    private static Label createWrappingLabel(String text, String... styleClasses) {
         Label label = new Label(text);
         label.setWrapText(true);
         label.setMinWidth(0);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMinHeight(Region.USE_PREF_SIZE);
-        label.getStyleClass().add(styleClass);
+        label.getStyleClass().addAll(styleClasses);
         return label;
     }
 
@@ -160,12 +177,6 @@ public class ClientCard extends UiPart<Region> {
      * Creates a subdued empty-state label that can wrap without truncating its text vertically.
      */
     private static Label createEmptyLabel(String text) {
-        Label label = new Label(text);
-        label.setWrapText(true);
-        label.setMinWidth(0);
-        label.setMaxWidth(Double.MAX_VALUE);
-        label.setMinHeight(Region.USE_PREF_SIZE);
-        label.getStyleClass().add("empty-state");
-        return label;
+        return createWrappingLabel(text, "empty-state");
     }
 }

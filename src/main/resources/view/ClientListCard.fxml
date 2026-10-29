@@ -18,19 +18,22 @@
       <padding>
         <Insets top="5" right="5" bottom="5" left="15" />
       </padding>
-      <HBox spacing="0.5" alignment="CENTER_LEFT">
+      <HBox spacing="0.5" alignment="CENTER_LEFT" minWidth="0">
         <Label fx:id="id" styleClass="cell_big_label">
           <minWidth>
             <!-- Ensures that the label text is never truncated -->
             <Region fx:constant="USE_PREF_SIZE" />
           </minWidth>
         </Label>
-        <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
+        <Label fx:id="name" text="\$first" styleClass="cell_big_label" HBox.hgrow="ALWAYS"
+               wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
       </HBox>
-      <FlowPane fx:id="tags" />
+      <FlowPane fx:id="tags" minWidth="0" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
-      <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
-      <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
+      <Label fx:id="address" styleClass="cell_small_label" text="\$address"
+             wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
+      <Label fx:id="email" styleClass="cell_small_label" text="\$email"
+             wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
       <VBox fx:id="pets" minWidth="0" />
       <VBox fx:id="appointments" minWidth="0" />
       <Label text="History" styleClass="cell_small_label" />

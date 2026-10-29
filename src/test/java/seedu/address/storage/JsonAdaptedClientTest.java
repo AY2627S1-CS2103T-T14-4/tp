@@ -1,12 +1,14 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.storage.JsonAdaptedClient.MESSAGE_UNKNOWN_LINKED_PET;
 import static seedu.address.storage.JsonAdaptedClient.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -93,6 +95,26 @@ public class JsonAdaptedClientTest {
         JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_ADDRESS, VALID_TAGS, pets, List.of());
         assertThrows(IllegalValueException.class, "Pets list contains duplicate pet names.", client::toModelType);
+    }
+
+    @Test
+    public void toModelType_appointmentLinkedToUnknownPet_throwsIllegalValueException() {
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, List.of(new JsonAdaptedPet("Milo", "Dog", "Poodle")),
+                List.of(new JsonAdaptedAppointment("01-01-2025", "09:05", "", List.of("Ghost"))));
+        assertThrows(IllegalValueException.class, String.format(MESSAGE_UNKNOWN_LINKED_PET, "Ghost"),
+                client::toModelType);
+    }
+
+    @Test
+    public void toModelType_appointmentLinksInOtherCase_useRecordedPetNamesOnce() throws Exception {
+        JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, List.of(new JsonAdaptedPet("Sir Fluffy", "Cat", "Persian")),
+                List.of(new JsonAdaptedAppointment("01-01-2025", "09:05", "",
+                        List.of("sir fluffy", "SIR   FLUFFY"))));
+        Appointment appointment = client.toModelType().getAppointments().get(0);
+        assertEquals(Set.of(new PetName("Sir Fluffy")), appointment.getPetNames());
+        assertEquals("Sir Fluffy", appointment.getPetNames().iterator().next().fullName);
     }
 
     @Test

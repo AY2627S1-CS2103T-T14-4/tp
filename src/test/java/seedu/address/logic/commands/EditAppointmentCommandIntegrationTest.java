@@ -154,6 +154,62 @@ public class EditAppointmentCommandIntegrationTest {
                 model.getFilteredClientList().getFirst());
     }
 
+    @Test
+    public void execute_clearEnd_checksOnlyResultingMinuteAgainstHiddenBooking() throws Exception {
+        Client hidden = new ClientBuilder(BENSON).withAppointments(slot("13-12-2026", "16:00", "17:00")).build();
+        Model model = modelWith(owner(ORIGINAL), hidden);
+        model.updateFilteredClientList(client -> client.isSameClient(ALICE));
+
+        EditAppointmentDescriptor clear = new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("15:59")), Optional.empty(), true);
+        command(ORIGINAL, clear).execute(model);
+
+        Appointment expected = slot("13-12-2026", "15:59", null);
+        Client expectedOwner = owner(expected);
+        assertEquals(List.of(expectedOwner), model.getFilteredClientList());
+        assertEquals(List.of(expectedOwner, hidden), model.getPawPals().getClientList());
+    }
+
+    @Test
+    public void execute_pastMove_checksHiddenConflictsAndExcludesOriginalWhilePreservingHistory() throws Exception {
+        Appointment past = slot("11-12-2026", "09:00", "10:30");
+        Appointment destination = slot("11-12-2026", "10:30", "12:00");
+        CompletedSession history = new CompletedSession(destination, new SessionNotes("Previous visit"),
+                CLOCK.instant());
+        Client selected = new ClientBuilder(ALICE).withAppointments(past).withHistory(history).build();
+        Client hidden = new ClientBuilder(BENSON)
+                .withAppointments(slot("11-12-2026", "12:00", "13:00")).build();
+        Model model = modelWith(selected, hidden);
+        model.updateFilteredClientList(client -> client.isSameClient(ALICE));
+
+        assertCommandFailure(command(past, edits(null, "11:00", null)), model,
+                "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/11-12-2026 t/12:00 et/13:00.");
+
+        CommandResult result = command(past, edits(null, "10:30", null)).execute(model);
+        Client expected = new ClientBuilder(selected).withAppointments(destination).build();
+        assertEquals(List.of(expected), model.getFilteredClientList());
+        assertEquals(List.of(expected, hidden), model.getPawPals().getClientList());
+        assertEquals("Rescheduled appointment: " + ALICE.getName()
+                + " 11-12-2026 09:00 → 11-12-2026 10:30 et/12:00\n"
+                + AppointmentCommand.MESSAGE_PAST_APPOINTMENT, result.getFeedbackToUser());
+
+        command(destination, edits(null, "10:30", null)).execute(model);
+        assertEquals(List.of(expected), model.getFilteredClientList());
+        assertEquals(List.of(expected, hidden), model.getPawPals().getClientList());
+    }
+
+    @Test
+    public void execute_clearEndAtHiddenBooking_rejectsWithoutChangingDataOrFilter() {
+        Client hidden = new ClientBuilder(BENSON).withAppointments(slot("13-12-2026", "16:00", "17:00")).build();
+        Model model = modelWith(owner(ORIGINAL), hidden);
+        model.updateFilteredClientList(client -> client.isSameClient(ALICE));
+        EditAppointmentDescriptor clear = new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("16:00")), Optional.empty(), true);
+
+        assertCommandFailure(command(ORIGINAL, clear), model,
+                "Appointment overlaps with " + BENSON.getName() + "'s appointment: d/13-12-2026 t/16:00 et/17:00.");
+    }
+
     private static void assertReplacement(Appointment original, EditAppointmentDescriptor edits, Appointment expected)
             throws Exception {
         Model model = modelWith(owner(original));

@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
@@ -139,7 +140,7 @@ public class EditAppointmentPersistenceIntegrationTest {
     public void execute_invalidTargetSlotOrHiddenConflict_leavesMemoryFilterAndSavedFileUnchanged() throws Exception {
         String saved = Files.readString(dataFile());
         for (String input : new String[] {"editappt c/2 d/" + originalDate + " t/14:00 ns/18:00",
-            "editappt c/1 d/" + originalDate + " t/13:00 ns/18:00", target() + " nd/01-01-2000",
+            "editappt c/1 d/" + originalDate + " t/13:00 ns/18:00",
             target() + " ns/23:00", target() + " ne/14:00", target() + " ne/13:59",
             target() + " ns/16:00", target() + " ne/16:30"}) {
             assertThrows(CommandException.class, () -> logic.execute(input));
@@ -161,6 +162,79 @@ public class EditAppointmentPersistenceIntegrationTest {
                 createStorage().readPawPals().orElseThrow().getClientList().getFirst());
         assertEquals(new ClientBuilder(selectedClient).withAppointments(otherAppointment,
                 booking(originalDate, "18:00", "19:30")).build(), reloadSelected());
+    }
+
+    @Test
+    public void execute_clearEndAndReload_preservesAllUneditedData() throws Exception {
+        CommandResult result = logic.execute(target() + " ne/");
+
+        Appointment expected = booking(originalDate, "14:00", null);
+        assertPersistedReplacement(expected);
+        assertEquals("Rescheduled appointment: " + selectedClient.getName() + " " + originalDate
+                + " 14:00 → " + originalDate + " 14:00", result.getFeedbackToUser());
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(expected);
+    }
+
+    @Test
+    public void execute_clearEndWithMove_checksHiddenConflictAndPersistsStartOnlyBooking() throws Exception {
+        String saved = Files.readString(dataFile());
+        assertThrows(CommandException.class, () -> logic.execute(target() + " ns/16:00 ne/"));
+        assertUnchanged(saved);
+
+        logic.execute(target() + " ns/15:59 ne/");
+
+        Appointment expected = booking(originalDate, "15:59", null);
+        assertPersistedReplacement(expected);
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(expected);
+    }
+
+    @Test
+    public void execute_pastMoveAndEndOnlyEdits_preserveAllDataAfterReload() throws Exception {
+        String pastDate = "01-01-2000";
+        CommandResult result = logic.execute(target() + " nd/" + pastDate + " ns/10:00");
+
+        assertPersistedReplacement(booking(pastDate, "10:00", "11:30"));
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(booking(pastDate, "10:00", "11:30"));
+
+        String pastTarget = "editappt c/1 d/" + pastDate + " t/10:00";
+        result = logic.execute(pastTarget + " ne/12:00");
+        assertPersistedReplacement(booking(pastDate, "10:00", "12:00"));
+        assertTrue(result.getFeedbackToUser().endsWith("et/12:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(booking(pastDate, "10:00", "12:00"));
+
+        result = logic.execute(pastTarget + " ne/");
+        assertPersistedReplacement(booking(pastDate, "10:00", null));
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+        restart();
+        logic.execute("find " + selectedClient.getName());
+        assertPersistedReplacement(booking(pastDate, "10:00", null));
+    }
+
+    @Test
+    public void execute_pastMoveIntoHiddenConflict_preservesMemoryFilterAndSavedFile() throws Exception {
+        String pastDate = "01-01-2000";
+        Client updatedHidden = hiddenClient.copyWithAppointment(booking(pastDate, "12:00", "13:00"));
+        model.setClient(hiddenClient, updatedHidden);
+        hiddenClient = updatedHidden;
+        logic.execute("list");
+        logic.execute("find " + selectedClient.getName());
+        String saved = Files.readString(dataFile());
+
+        String conflictingEdit = target() + " nd/" + pastDate + " ns/11:00";
+        CommandException error = assertThrows(CommandException.class, () -> logic.execute(conflictingEdit));
+
+        assertEquals("Appointment overlaps with " + hiddenClient.getName()
+                + "'s appointment: d/01-01-2000 t/12:00 et/13:00.", error.getMessage());
+        assertUnchanged(saved);
     }
 
     private void assertPersistedReplacement(Appointment expected) throws Exception {

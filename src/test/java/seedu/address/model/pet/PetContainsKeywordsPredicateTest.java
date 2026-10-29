@@ -29,10 +29,13 @@ public class PetContainsKeywordsPredicateTest {
     public void test_matchingPetNames_returnsTrue() {
         ClientBuilder clientBuilder = new ClientBuilder().withPets(
                 new Pet(new PetName("Milo"), new Species("Dog"), new Breed("Poodle")),
+                new Pet(new PetName("Sir Fluffy"), new Species("Cat"), new Breed("Persian")),
                 new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian")));
 
         assertTrue(new PetContainsKeywordsPredicate(List.of("Milo")).test(clientBuilder.build()));
         assertTrue(new PetContainsKeywordsPredicate(List.of("mIlO")).test(clientBuilder.build()));
+        assertTrue(new PetContainsKeywordsPredicate(List.of("Sir")).test(clientBuilder.build()));
+        assertTrue(new PetContainsKeywordsPredicate(List.of("Fluffy")).test(clientBuilder.build()));
         assertTrue(new PetContainsKeywordsPredicate(List.of("Coco", "Luna")).test(clientBuilder.build()));
     }
 
@@ -43,6 +46,7 @@ public class PetContainsKeywordsPredicateTest {
 
         assertFalse(new PetContainsKeywordsPredicate(List.of()).test(clientBuilder.build()));
         assertFalse(new PetContainsKeywordsPredicate(List.of("Mil")).test(clientBuilder.build()));
+        assertFalse(new PetContainsKeywordsPredicate(List.of("Fluf")).test(clientBuilder.build()));
         assertFalse(new PetContainsKeywordsPredicate(List.of("Coco")).test(clientBuilder.build()));
     }
 
@@ -54,7 +58,7 @@ public class PetContainsKeywordsPredicateTest {
                 new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian")));
         PetContainsKeywordsPredicate predicate = new PetContainsKeywordsPredicate(List.of("Milo", "Luna"));
 
-        assertEquals(2, predicate.getMatchingPetCount(clientBuilder.build()));
+        assertEquals(3, predicate.getMatchingPetCount(clientBuilder.build()));
     }
 
     @Test

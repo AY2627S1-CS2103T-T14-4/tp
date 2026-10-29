@@ -76,6 +76,59 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void descriptor_clearEnd_rejectsExplicitEnd() {
+        assertThrows(IllegalArgumentException.class, () -> new EditAppointmentDescriptor(
+                Optional.empty(), Optional.empty(), Optional.of(new AppointmentTime("15:00")), true));
+    }
+
+    @Test
+    public void descriptor_clearEnd_distinguishesPreservingAndClearing() {
+        EditAppointmentDescriptor clear = clearEnd(null, "16:00");
+        assertEquals(clear, clearEnd(null, "16:00"));
+        assertEquals(clear.hashCode(), clearEnd(null, "16:00").hashCode());
+        assertNotEquals(MOVE_START, clear);
+        assertNotEquals(command(ORIGINAL, MOVE_START), command(ORIGINAL, clear));
+        assertEquals(MOVE_START, new EditAppointmentDescriptor(Optional.empty(),
+                Optional.of(new AppointmentTime("16:00")), Optional.empty(), false));
+    }
+
+    @Test
+    public void execute_clearEnd_preservesDateAndStartAndOmitsEndInFeedback() throws Exception {
+        ModelStub model = modelWith(owner(ORIGINAL));
+        CommandResult result = command(ORIGINAL, clearEnd(null, null)).execute(model);
+        Appointment expected = slot("13-12-2026", "14:00", null);
+        assertEquals(List.of(expected), model.editedClient.getAppointments());
+        assertEquals(expected, model.checkedAppointment);
+        assertEquals(1, model.updateCount);
+        assertEquals("Rescheduled appointment: " + ALICE.getName()
+                + " 13-12-2026 14:00 → 13-12-2026 14:00", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_clearEndWithReschedule_skipsDurationPreservationAndOverflow() throws Exception {
+        assertReplacement(ORIGINAL, clearEnd(null, "16:00"), slot("13-12-2026", "16:00", null));
+        assertReplacement(ORIGINAL, clearEnd("14-12-2026", null), slot("14-12-2026", "14:00", null));
+        assertReplacement(ORIGINAL, clearEnd("14-12-2026", "23:59"), slot("14-12-2026", "23:59", null));
+    }
+
+    @Test
+    public void execute_clearAbsentEnd_succeeds() throws Exception {
+        Appointment original = slot("13-12-2026", "14:00", null);
+        assertReplacement(original, clearEnd(null, null), original);
+    }
+
+    @Test
+    public void execute_clearEndWithPastStart_succeedsWithPastGuidance() throws Exception {
+        Appointment past = slot("11-12-2026", "14:00", "15:30");
+        ModelStub model = modelWith(owner(past));
+
+        CommandResult result = command(past, clearEnd(null, null)).execute(model);
+
+        assertEquals(List.of(slot("11-12-2026", "14:00", null)), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+    }
+
+    @Test
     public void execute_emptyListOrInvalidDisplayedIndex_leavesDataUnchanged() {
         assertCommandFailure(command(ORIGINAL, MOVE_START), modelWith(),
                 Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
@@ -139,13 +192,22 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_resultingStartBeforeOrAtNow_leavesDataUnchanged() {
-        for (String start : new String[] {"11:59", "12:00"}) {
-            assertCommandFailure(command(ORIGINAL, edits("12-12-2026", start, null)), modelWith(owner(ORIGINAL)),
-                    Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+    public void execute_resultingStartBeforeAtOrAfterNow_succeedsWithAppropriateGuidance() throws Exception {
+        List<String> starts = List.of("11:59", "12:00", "12:01");
+        List<String> ends = List.of("13:29", "13:30", "13:31");
+        for (int i = 0; i < starts.size(); i++) {
+            ModelStub model = modelWith(owner(ORIGINAL));
+            CommandResult result = command(ORIGINAL, edits("12-12-2026", starts.get(i), null)).execute(model);
+            assertEquals(List.of(slot("12-12-2026", starts.get(i), ends.get(i))),
+                    model.editedClient.getAppointments());
+            String expected = "Rescheduled appointment: " + ALICE.getName()
+                    + " 13-12-2026 14:00 → 12-12-2026 " + starts.get(i) + " et/" + ends.get(i)
+                    + (i == 0 ? "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT : "");
+            assertEquals(expected, result.getFeedbackToUser());
+            assertEquals(1, model.conflictCheckCount);
+            assertEquals(1, model.updateCount);
         }
-        assertCommandFailure(command(ORIGINAL, edits("11-12-2026", null, null)), modelWith(owner(ORIGINAL)),
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        assertReplacement(ORIGINAL, edits("11-12-2026", null, null), slot("11-12-2026", "14:00", "15:30"));
     }
 
     @Test
@@ -155,18 +217,42 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_unchangedPastStartWithNewEnd_rejectsPastResult() {
+    public void execute_unchangedPastStartWithNewEnd_succeedsWithPastGuidance() throws Exception {
         Appointment past = slot("11-12-2026", "09:00", null);
-        assertCommandFailure(command(past, edits(null, null, "10:00")), modelWith(owner(past)),
-                Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        ModelStub model = modelWith(owner(past));
+
+        CommandResult result = command(past, edits(null, null, "10:00")).execute(model);
+
+        assertEquals(List.of(slot("11-12-2026", "09:00", "10:00")), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith("et/10:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
     }
 
     @Test
-    public void execute_clockHasSeconds_requiresStartAfterFullInstant() {
+    public void execute_clockHasSeconds_marksCurrentMinuteAsPast() throws Exception {
         Clock clock = Clock.fixed(CLOCK.instant().plusSeconds(30), CLOCK.getZone());
         EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
                 ORIGINAL.getTime(), edits("12-12-2026", "12:00", null), clock);
-        assertCommandFailure(command, modelWith(owner(ORIGINAL)), Messages.MESSAGE_APPOINTMENT_NOT_FUTURE);
+        ModelStub model = modelWith(owner(ORIGINAL));
+
+        CommandResult result = command.execute(model);
+
+        assertEquals(List.of(slot("12-12-2026", "12:00", "13:30")), model.editedClient.getAppointments());
+        assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+    }
+
+    @Test
+    public void execute_clockZone_determinesPastGuidance() throws Exception {
+        for (Clock clock : List.of(CLOCK, CLOCK.withZone(ZoneId.of("UTC")))) {
+            ModelStub model = modelWith(owner(ORIGINAL));
+            EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
+                    ORIGINAL.getTime(), edits("12-12-2026", "08:00", null), clock);
+
+            CommandResult result = command.execute(model);
+
+            assertEquals(List.of(slot("12-12-2026", "08:00", "09:30")), model.editedClient.getAppointments());
+            assertEquals(clock.getZone().equals(CLOCK.getZone()),
+                    result.getFeedbackToUser().contains(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
+        }
     }
 
     @Test
@@ -254,6 +340,11 @@ public class EditAppointmentCommandTest {
     private static Appointment slot(String date, String start, String end) {
         return new Appointment(new AppointmentDate(date), new AppointmentTime(start),
                 Optional.ofNullable(end).map(AppointmentTime::new), "", Set.of());
+    }
+
+    private static EditAppointmentDescriptor clearEnd(String date, String start) {
+        return new EditAppointmentDescriptor(Optional.ofNullable(date).map(AppointmentDate::new),
+                Optional.ofNullable(start).map(AppointmentTime::new), Optional.empty(), true);
     }
 
     private static Client owner(Appointment... appointments) {
