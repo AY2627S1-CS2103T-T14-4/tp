@@ -675,6 +675,8 @@ For example, `findp Sir` and `findp Fluffy` both find a pet named `Sir Fluffy`, 
 At least one keyword is required. Feedback counts matching pets, which can exceed the number of matching clients.
 Each matching client card shows all of that client's pets and appointments. Client indexes are renumbered
 within the filtered results and can be used with other commands. Use `list` to show all clients again.
+For example, after `findp Milo`, `c/1` refers to the first owner shown by that search; an index beyond the
+filtered list is rejected.
 
 Examples:
 * `findp Milo` returns the owners of pets named `Milo`
