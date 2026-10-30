@@ -617,6 +617,17 @@ own three-row limit followed by `+N more appointment(s)`. Both kinds remain stor
 
 Each card also shows up to three recent completed sessions in its History section, as described under `done`.
 
+The card below shows each part of a client entry:
+
+<img src="images/clientCard.png" alt="An annotated client card" width="600" />
+
+* **Name, tags and contact details**: set with `addc` and `edit`.
+* **Pet with species and breed**: set with `addp` and `editp`.
+* **Pet notes**: set with `note` and removed with `delnote`. ⚠ marks sensitivity and temperament notes, which are safety information.
+* **Started Appointments**: bookings whose start time has passed, waiting to be completed with `done` or removed with `cancel`. Past starts are marked `Overdue`.
+* **Upcoming Appointments**: future bookings, added with `appt` and moved with `editappt`.
+* **History**: the most recent completed sessions and their notes, recorded with `done`.
+
 ### Editing a client: `edit`
 
 Edits an existing client in PawPals.
