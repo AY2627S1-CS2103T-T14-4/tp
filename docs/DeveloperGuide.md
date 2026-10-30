@@ -572,6 +572,49 @@ All checks happen before the `Model` is changed, so a failed command never leave
   * Pros: one command covers adding, replacing and removing.
   * Cons: a typo such as a forgotten `nt/` silently deletes a note, and "a note with no text" is confusing.
 
+### Editing and deleting a pet: `editp` and `delp`
+
+`editp c/CLIENT_INDEX pn/PET_NAME [n/NAME] [s/SPECIES] [b/BREED]` changes a pet's name, species or breed, and
+`delp c/CLIENT_INDEX pn/PET_NAME` removes a pet. Both must keep the client's appointments consistent, because
+an `Appointment` refers to the pets attending it by name (see [Pets and appointments](#pets-and-appointments)):
+
+* Renaming a pet renames it in every **active** appointment of that client, past or future.
+* Deleting a pet removes it from those appointments, but keeps the appointments themselves.
+* **Completed sessions are not changed.** A `CompletedSession` is a record of what happened, so it keeps the
+  name the pet had at the time.
+
+The sequence diagram below shows how `editp c/1 pn/Milo n/Max` is executed when client 1 has appointments linked to Milo.
+
+<puml src="diagrams/EditPetSequenceDiagram.puml" alt="Interactions when executing editp" width="750" />
+
+1. `EditPetCommandParser` parses the client index, the current pet name and at least one new field into
+   `e:EditPetCommand`. Fields that are not given stay as empty `Optional`s.
+1. `e` finds client `c` in the displayed list and its pet `p` named Milo, ignoring case, using the
+   `Command#getDisplayedClient(...)` and `Command#getPet(...)` helpers that all pet commands share.
+1. `e` creates `editedPet` with the new name and `p`'s species, breed and notes, so notes survive the edit.
+1. `e` calls `c.withPetReplaced(Milo, editedPet)`. `Client` is immutable, so this returns a new client. Inside it,
+   `relinkAppointments(...)` goes through the client's appointments and replaces every link to Milo with Max, keeping
+   the order of the other linked pets. Links are matched with `PetName#identityKey()`, which ignores case.
+1. If the new name belongs to another of the client's pets, the new `Client` constructor throws a
+   `DuplicatePetException`, which `e` turns into an error message. Nothing has been saved yet, so the data is unchanged.
+1. Otherwise `e` calls `Model#setClient(...)` once to swap in the updated client, and returns a `CommandResult`.
+
+`delp` follows the same path, but calls `c.withoutPet(Milo)`, which removes the pet and calls
+`relinkAppointments(Milo, [])`. An empty list of replacement names removes the link, so an appointment that only had
+Milo stays booked with no pets linked.
+
+**Design consideration: how an appointment refers to its pets**
+
+* **Alternative 1 (current choice):** store the pet's name in the appointment, and update it on rename or delete.
+  * Pros: the data file stays human-readable and editable (`"pets" : [ "Milo" ]`). Pet names are already unique
+    within a client, so a name is enough to find the pet. Completed sessions can keep a plain name after the pet is gone.
+  * Cons: every rename or delete must also update the appointments. `Client#relinkAppointments(...)` is the one
+    place that does this, and storage checks that every saved link names one of the client's pets.
+* **Alternative 2:** store a reference to the `Pet` object, or a hidden pet ID.
+  * Pros: renaming needs no extra work.
+  * Cons: `Pet` is immutable, so an edited pet is a new object and old references would go stale. A hidden ID would
+    have to be generated, saved and kept unique, and it makes the data file harder to edit by hand.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
