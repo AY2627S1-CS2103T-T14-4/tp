@@ -603,17 +603,20 @@ The sequence diagram below shows how `editp c/1 pn/Milo n/Max` is executed when 
 `relinkAppointments(Milo, [])`. An empty list of replacement names removes the link, so an appointment that only had
 Milo stays booked with no pets linked.
 
-**Design consideration: how an appointment refers to its pets**
+Why appointments store pet names rather than `Pet` objects is covered in the design consideration under
+[Pets and appointments](#pets-and-appointments).
 
-* **Alternative 1 (current choice):** store the pet's name in the appointment, and update it on rename or delete.
-  * Pros: the data file stays human-readable and editable (`"pets" : [ "Milo" ]`). Pet names are already unique
-    within a client, so a name is enough to find the pet. Completed sessions can keep a plain name after the pet is gone.
-  * Cons: every rename or delete must also update the appointments. `Client#relinkAppointments(...)` is the one
-    place that does this, and storage checks that every saved link names one of the client's pets.
-* **Alternative 2:** store a reference to the `Pet` object, or a hidden pet ID.
-  * Pros: renaming needs no extra work.
-  * Cons: `Pet` is immutable, so an edited pet is a new object and old references would go stale. A hidden ID would
-    have to be generated, saved and kept unique, and it makes the data file harder to edit by hand.
+**Design consideration: what happens to completed sessions when a pet is renamed or deleted**
+
+* **Alternative 1 (current choice):** leave completed sessions unchanged, so they keep the old name.
+  * Pros: a completed session is a record of what happened, like a receipt. "Groomed Milo" stays true even after
+    Milo is renamed Max, or after the client stops coming with that pet. Deleting a pet never loses grooming history.
+  * Cons: after a rename, the history shows a name that no longer matches any current pet, so the user has to
+    remember that Milo and Max are the same pet.
+* **Alternative 2:** update completed sessions too, and delete them along with the pet.
+  * Pros: names on the card always match the current pets.
+  * Cons: it rewrites past records, and `delp` would silently erase grooming history and the notes recorded with
+    `done`, which the groomer may still need, for example to check what was done before.
 
 --------------------------------------------------------------------------------------------------------------------
 
