@@ -1,0 +1,78 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "e:EditPetCommand" as EditPetCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "c:Client" as Client MODEL_COLOR
+participant "editedPet:Pet" as Pet MODEL_COLOR
+participant "a:Appointment" as Appointment MODEL_COLOR
+end box
+
+[-> LogicManager : execute("editp c/1 pn/Milo n/Max")
+activate LogicManager
+
+ref over LogicManager, EditPetCommand : parse the command into e
+' Parsing works as in the delc example in the Logic component.
+
+LogicManager -> EditPetCommand : execute(m)
+activate EditPetCommand
+
+EditPetCommand -> Model : getFilteredClientList()
+activate Model
+Model --> EditPetCommand : clients
+deactivate Model
+
+EditPetCommand -> Client : getPet(Milo)
+activate Client
+Client --> EditPetCommand : p
+deactivate Client
+
+create Pet
+EditPetCommand -> Pet : Pet(Max, p's species, breed, notes)
+activate Pet
+Pet --> EditPetCommand
+deactivate Pet
+
+EditPetCommand -> Client : withPetReplaced(Milo, editedPet)
+activate Client
+
+Client -> Client : relinkAppointments(Milo, [Max])
+activate Client
+
+loop each appointment a of c
+    Client -> Appointment : withPetNames(names with Milo replaced by Max)
+    activate Appointment
+    Appointment --> Client : updated a
+    deactivate Appointment
+end
+
+Client --> Client : updated appointments
+deactivate Client
+
+Client --> EditPetCommand : updatedClient
+deactivate Client
+
+EditPetCommand -> Model : setClient(c, updatedClient)
+activate Model
+Model --> EditPetCommand
+deactivate Model
+
+create CommandResult
+EditPetCommand -> CommandResult
+activate CommandResult
+CommandResult --> EditPetCommand
+deactivate CommandResult
+
+EditPetCommand --> LogicManager : r
+deactivate EditPetCommand
+
+[<-- LogicManager
+deactivate LogicManager
+@enduml
