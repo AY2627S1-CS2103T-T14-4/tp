@@ -41,6 +41,11 @@ public interface Model {
     ReadOnlyPawPals getPawPals();
 
     /**
+     * Returns an action restoring the current records, filter and display mode.
+     */
+    Runnable createRollbackAction();
+
+    /**
      * Returns true if a client with the same identity as {@code client} exists in the PawPals data.
      */
     boolean hasClient(Client client);
