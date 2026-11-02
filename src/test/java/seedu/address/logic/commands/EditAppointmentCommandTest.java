@@ -377,6 +377,11 @@ public class EditAppointmentCommandTest {
         }
 
         @Override
+        public Runnable createRollbackAction() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ObservableList<Client> getFilteredClientList() {
             return clients;
         }

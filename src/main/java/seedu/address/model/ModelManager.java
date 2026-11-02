@@ -78,6 +78,22 @@ public class ModelManager implements Model {
         return pawPals;
     }
 
+    /**
+     * Returns an action restoring the current records, filter and display mode.
+     */
+    @Override
+    public Runnable createRollbackAction() {
+        PawPals previousData = new PawPals(pawPals);
+        Predicate<? super Client> previousFilter = filteredClients.getPredicate();
+        ClientDisplayMode previousMode = clientDisplayMode.get();
+
+        return () -> {
+            pawPals.resetData(previousData);
+            filteredClients.setPredicate(previousFilter);
+            setClientDisplayMode(previousMode);
+        };
+    }
+
     @Override
     public boolean hasClient(Client client) {
         requireNonNull(client);

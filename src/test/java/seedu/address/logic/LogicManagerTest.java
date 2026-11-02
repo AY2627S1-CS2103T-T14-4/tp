@@ -255,7 +255,7 @@ public class LogicManagerTest {
                         ? LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT : LogicManager.FILE_OPS_ERROR_FORMAT;
                 String expectedMessage = String.format(errorFormat, failure.getMessage());
                 assertThrows(CommandException.class, expectedMessage, () -> logic.execute("y"));
-                assertEquals(new PawPals(), model.getPawPals());
+                assertEquals(List.of(AMY), model.getPawPals().getClientList());
                 assertEquals(List.of(AMY), pawPalsStorage.readPawPals().orElseThrow().getClientList());
                 assertParseException("y", MESSAGE_UNKNOWN_COMMAND);
                 pawPalsStorage.saveFailure = null;
@@ -405,9 +405,7 @@ public class LogicManagerTest {
         // Triggers the savePawPals method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Client expectedClient = new ClientBuilder(AMY).withTags().build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addClient(expectedClient);
+        ModelManager expectedModel = new ModelManager(model.getPawPals(), model.getUserPrefs());
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 }

@@ -206,7 +206,7 @@ public class DoneCommandIntegrationTest {
     }
 
     @Test
-    public void execute_saveFailure_keepsCoherentInMemoryCompletionAndReportsError() throws Exception {
+    public void execute_saveFailure_restoresActiveAppointmentAndReportsError() throws Exception {
         logic.execute("find Benson");
         String saved = Files.readString(dataFile());
         JsonPawPalsStorage failing = new JsonPawPalsStorage(dataFile()) {
@@ -221,8 +221,7 @@ public class DoneCommandIntegrationTest {
                 "done c/1 d/29-02-2024 t/14:00 nt/Notes"));
         assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
                 exception.getMessage());
-        assertEquals(List.of(OTHER, FUTURE), model.getFilteredClientList().getFirst().getAppointments());
-        assertEquals(TARGET, model.getFilteredClientList().getFirst().getHistory().getFirst().getAppointment());
+        assertEquals(List.of(SELECTED), model.getFilteredClientList());
         assertEquals(saved, Files.readString(dataFile()));
         assertEquals(SELECTED, createStorage().readPawPals().orElseThrow().getClientList().get(1));
     }

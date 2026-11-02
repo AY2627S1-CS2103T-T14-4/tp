@@ -84,13 +84,16 @@ public class LogicManager implements Logic {
      * Executes a command and saves its result through the normal storage error handling.
      */
     private CommandResult executeAndSave(Command command) throws CommandException {
+        Runnable rollback = model.createRollbackAction();
         CommandResult commandResult = command.execute(model);
 
         try {
             storage.savePawPals(model.getPawPals());
         } catch (AccessDeniedException e) {
+            rollback.run();
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
+            rollback.run();
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 

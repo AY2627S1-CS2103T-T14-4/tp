@@ -269,7 +269,7 @@ public class AppointmentIntegrationTest {
     }
 
     @Test
-    public void execute_saveFailure_reportsErrorAndRetainsAppointmentInMemory() throws Exception {
+    public void execute_saveFailure_reportsErrorAndRestoresAppointments() throws Exception {
         String savedJson = Files.readString(dataFile);
         JsonPawPalsStorage failingStorage = new JsonPawPalsStorage(dataFile) {
             @Override
@@ -285,7 +285,7 @@ public class AppointmentIntegrationTest {
 
         assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
                 exception.getMessage());
-        assertEquals(List.of(appointment), model.getPawPals().getClientList().getFirst().getAppointments());
+        assertEquals(List.of(), model.getPawPals().getClientList().getFirst().getAppointments());
         assertEquals(savedJson, Files.readString(dataFile));
     }
 
