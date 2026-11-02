@@ -283,7 +283,8 @@ public class AppointmentIntegrationTest {
         CommandException exception = assertThrows(
                 CommandException.class, () -> failingLogic.execute(appointmentCommand(1)));
 
-        assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
+        assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure")
+                + LogicManager.MESSAGE_SAVE_ROLLBACK,
                 exception.getMessage());
         assertEquals(List.of(), model.getPawPals().getClientList().getFirst().getAppointments());
         assertEquals(savedJson, Files.readString(dataFile));

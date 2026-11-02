@@ -253,7 +253,8 @@ public class LogicManagerTest {
                 logic.execute(command);
                 String errorFormat = failure instanceof AccessDeniedException
                         ? LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT : LogicManager.FILE_OPS_ERROR_FORMAT;
-                String expectedMessage = String.format(errorFormat, failure.getMessage());
+                String expectedMessage = String.format(errorFormat, failure.getMessage())
+                        + LogicManager.MESSAGE_SAVE_ROLLBACK;
                 assertThrows(CommandException.class, expectedMessage, () -> logic.execute("y"));
                 assertEquals(List.of(AMY), model.getPawPals().getClientList());
                 assertEquals(List.of(AMY), pawPalsStorage.readPawPals().orElseThrow().getClientList());
@@ -286,13 +287,15 @@ public class LogicManagerTest {
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage())
+                + LogicManager.MESSAGE_SAVE_ROLLBACK);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage())
+                + LogicManager.MESSAGE_SAVE_ROLLBACK);
     }
 
     @Test

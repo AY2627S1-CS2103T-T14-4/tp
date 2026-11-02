@@ -30,6 +30,8 @@ public class LogicManager implements Logic {
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
 
+    public static final String MESSAGE_SAVE_ROLLBACK = "\nThe command's changes were undone.";
+
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
     private final Model model;
@@ -91,10 +93,12 @@ public class LogicManager implements Logic {
             storage.savePawPals(model.getPawPals());
         } catch (AccessDeniedException e) {
             rollback.run();
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage())
+                    + MESSAGE_SAVE_ROLLBACK, e);
         } catch (IOException ioe) {
             rollback.run();
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage())
+                    + MESSAGE_SAVE_ROLLBACK, ioe);
         }
 
         return commandResult;

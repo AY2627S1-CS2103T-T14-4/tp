@@ -219,7 +219,8 @@ public class DoneCommandIntegrationTest {
                 new StorageManager(failing, new JsonUserPrefsStorage(testFolder.resolve("userPrefs.json"))));
         CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute(
                 "done c/1 d/29-02-2024 t/14:00 nt/Notes"));
-        assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure"),
+        assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "Simulated save failure")
+                + LogicManager.MESSAGE_SAVE_ROLLBACK,
                 exception.getMessage());
         assertEquals(List.of(SELECTED), model.getFilteredClientList());
         assertEquals(saved, Files.readString(dataFile()));
