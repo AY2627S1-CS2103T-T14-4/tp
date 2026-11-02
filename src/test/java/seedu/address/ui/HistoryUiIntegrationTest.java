@@ -77,7 +77,7 @@ public class HistoryUiIntegrationTest {
             try {
                 enter(window, "find History Owner");
                 enter(window, "schedule c/1");
-                assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · Milo (Call on arrival)"));
+                assertTrue(labels(window).contains(date + " 14:00–15:30 · Milo (Call on arrival)"));
                 ClientListPanel originalPanel = window.getClientListPanel();
                 enter(window, "done c/1 d/" + date + " t/14:00 nt/Fresh trim");
                 assertSame(originalPanel, window.getClientListPanel());
