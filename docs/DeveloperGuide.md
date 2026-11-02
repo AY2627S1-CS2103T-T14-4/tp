@@ -1244,7 +1244,8 @@ MSS:
 2. User provides the client's displayed index and at least one name, phone, email, address or tag field using `edit`.
 3. PawPals validates the supplied values and checks that the resulting name and phone number do not duplicate another client.
 4. PawPals replaces the supplied fields, preserving pets, pet notes, appointments and completed history.
-   Supplied tags replace the whole tag set; an empty `t/` clears it.
+   Supplied tags replace the whole tag set; tags are normalized to lowercase and duplicate tags differing only in case
+   collapse to one tag. An empty `t/` clears the tag set.
 5. PawPals displays success and all clients, clearing any search or schedule filter and restoring the normal
    compact card view.
 

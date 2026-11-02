@@ -146,7 +146,9 @@ Example: `addc n/Alice Tan p/91234567 e/alicetan@example.com a/10 Dover Road t/r
 * `PHONE` must contain 3 to 15 digits. The format is `+65 9123 4567`, where the leading `+` is optional and spaces are allowed only between groups of digits. Repeated spaces are reduced to one space, while the leading `+` and single spaces are preserved when the phone number is stored.
 * `EMAIL` must contain 3 to 254 characters and exactly one `@` symbol. The part before `@` must start and end with a letter or number, and may contain apostrophes, plus signs, underscores, periods, and hyphens between them. Punctuation characters cannot appear next to each other. The domain must contain at least one period, and each part must start and end with a letter or number. Leading and trailing spaces are removed; spaces within the email are not allowed.
 * `ADDRESS` must contain between 1 and 200 characters. Leading and trailing spaces are removed.
-* `TAG` is optional, may be added more than once, and must contain only letters and numbers.
+* `TAG` is optional, may be added more than once, and must contain only letters and numbers. Tags are case-insensitive
+  and are stored and displayed in lowercase. Repeated tags that differ only in case are kept as one tag; for example,
+  `t/vip t/VIp` produces `[vip]`.
 
 Each single-valued prefix (`n/`, `p/`, `e/` and `a/`) may appear only once. Repeating one of them,
 or omitting a required field, displays the standard invalid command format message and no client is added.
