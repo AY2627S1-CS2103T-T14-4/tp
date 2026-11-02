@@ -95,6 +95,9 @@ public class AppointmentCommandParserTest {
         assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo nt/notes", unexpectedNotes);
         assertParseFailure(parser, " c/1 x/2 d/12-12-2026 t/14:00",
                 String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "x/"));
+        // An unsupported prefix before the first accepted one is read as the preamble.
+        assertParseFailure(parser, " nt/Bring towels c/1 d/12-12-2026 t/14:00", unexpectedNotes);
+        assertParseFailure(parser, " extra nt/Bring towels c/1 d/12-12-2026 t/14:00", unexpectedNotes);
         // Slashes inside a value are not a prefix, so the value's own error is kept.
         assertParseFailure(parser, " c/1 d/12/12/2026 t/14:00", AppointmentDate.MESSAGE_CONSTRAINTS);
     }

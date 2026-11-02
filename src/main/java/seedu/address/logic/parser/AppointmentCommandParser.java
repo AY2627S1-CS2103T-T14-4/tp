@@ -39,6 +39,7 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
                 PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_END_TIME, PREFIX_PET_NAME);
+        ParserUtil.requireNoUnexpectedPrefix(arguments);
         if (!arguments.getPreamble().isEmpty() || Stream.of(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME)
                 .anyMatch(prefix -> arguments.getValue(prefix).isEmpty())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AppointmentCommand.MESSAGE_USAGE));

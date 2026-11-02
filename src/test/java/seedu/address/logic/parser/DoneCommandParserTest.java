@@ -112,5 +112,7 @@ public class DoneCommandParserTest {
                 String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "et/"));
         assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo nt/Notes",
                 String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "pn/"));
+        assertParseFailure(parser, " et/15:00 c/1 d/12-12-2026 t/14:00 nt/Notes",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "et/"));
     }
 }

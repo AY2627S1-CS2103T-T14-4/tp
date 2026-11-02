@@ -162,6 +162,7 @@ public class EditAppointmentCommandParserTest {
             assertParseFailure(parser, TARGET_ARGUMENTS + " ns/16:00 " + prefix + "17:00", unexpected);
             assertParseFailure(parser, TARGET_ARGUMENTS + " " + prefix + "17:00 ns/16:00", unexpected);
             assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + prefix + "17:00", unexpected);
+            assertParseFailure(parser, " " + prefix + "17:00" + TARGET_ARGUMENTS + " ns/16:00", unexpected);
         }
         assertParseFailure(parser, TARGET_ARGUMENTS + " ns/16:00 extra", AppointmentTime.MESSAGE_CONSTRAINTS);
     }

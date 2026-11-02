@@ -30,6 +30,7 @@ public class DoneCommandParser implements Parser<DoneCommand> {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithTrailingText(args,
                 PREFIX_NOTE, PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
+        ParserUtil.requireNoUnexpectedPrefix(arguments);
         if (!arguments.getPreamble().isEmpty() || Stream.of(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_NOTE)
                 .anyMatch(prefix -> arguments.getValue(prefix).isEmpty())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, DoneCommand.MESSAGE_USAGE));

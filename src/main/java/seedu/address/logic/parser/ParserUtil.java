@@ -5,8 +5,10 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -75,20 +77,23 @@ public class ParserUtil {
     }
 
     /**
-     * Ensures that the values of {@code prefixes} contain no other prefix, such as {@code nt/} in
+     * Ensures that the preamble and the values of {@code prefixes} contain no other prefix, such as {@code nt/} in
      * {@code t/14:00 nt/Bring towels}. Such text is a prefix the command does not accept, which the tokenizer
-     * reads as part of the preceding value. None of these values may contain a word followed by "/".
+     * reads as part of the preceding value, or as the preamble if it comes first. None of these may contain a word
+     * followed by "/".
      *
      * @throws ParseException naming the first unexpected prefix found.
      */
     public static void requireNoUnexpectedPrefix(ArgumentMultimap arguments, Prefix... prefixes)
             throws ParseException {
+        List<String> values = new ArrayList<>(List.of(arguments.getPreamble()));
         for (Prefix prefix : prefixes) {
-            for (String value : arguments.getAllValues(prefix)) {
-                Matcher matcher = UNEXPECTED_PREFIX.matcher(value);
-                if (matcher.find()) {
-                    throw new ParseException(String.format(MESSAGE_UNEXPECTED_PREFIX, matcher.group(1)));
-                }
+            values.addAll(arguments.getAllValues(prefix));
+        }
+        for (String value : values) {
+            Matcher matcher = UNEXPECTED_PREFIX.matcher(value);
+            if (matcher.find()) {
+                throw new ParseException(String.format(MESSAGE_UNEXPECTED_PREFIX, matcher.group(1)));
             }
         }
     }
