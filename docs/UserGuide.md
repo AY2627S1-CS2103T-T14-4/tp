@@ -378,13 +378,13 @@ Appointments appear under the selected client's pets in the client list, sorted 
 time, earliest first. The order updates when appointments are added or rescheduled. Each row shows the
 date, start time, optional end time, and linked pet names in their recorded order. For example:
 
-* `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna`
-* `Appointment: 12-12-2026 16:00 · Milo`
-* `Appointment: 13-12-2026 09:00 · No pets linked`
+* `12-12-2026 14:00–15:30 · Milo, Luna`
+* `12-12-2026 16:00 · Milo`
+* `13-12-2026 09:00 · No pets linked`
 
 `No pets linked` means no individual pets were selected for that appointment, even if the client has
 pets. Stored nonblank booking details appear in parentheses after the pet names, for example
-`Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)`. The `appt` command does not accept
+`12-12-2026 14:00–15:30 · Milo, Luna (Full groom)`. The `appt` command does not accept
 booking details, but existing stored details remain visible. Long appointment rows and pet names wrap
 to keep their full text visible; scroll down to see additional appointments.
 
