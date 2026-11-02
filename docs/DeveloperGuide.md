@@ -143,7 +143,8 @@ stored list stays observable across changes and cannot be modified through the L
 
 `ClientListPanel` displays each client through a `ClientCard` in the existing `ListView`.
 `ClientCard` partitions `Client#getAppointments()` when rendering. **Started Appointments** contains bookings
-whose starts have arrived, with past starts marked `Overdue`; **Upcoming Appointments** contains future bookings.
+whose starts have arrived, with those that have ended marked `Overdue` (see `Appointment#hasEnded(...)`);
+**Upcoming Appointments** contains future bookings.
 Each section is ordered by calendar date and start time. In the normal `list`, `find` and `findp` presentation,
 each section independently displays its first three rows. Active overflow uses
 `+N more started appointment(s)` and upcoming overflow uses `+N more appointment(s)`. The stored list remains in
@@ -291,7 +292,9 @@ Missing pets reject the command before any model update. The resolved appointmen
 Model conflict check as client-only bookings; omitting `pn/` does not infer participating pets.
 
 `appt` accepts past, current and future starts. Its injected clock is used only to add an informational
-note to success feedback for past starts. Past appointments use the same pet validation and active-booking
+note to success feedback for appointments that have already ended. `Appointment#hasEnded(now)` compares the
+end time, or the start time when there is no end time, with the clock, so an appointment in progress gets no
+note. The client card uses the same check for its `Overdue` marker. Past appointments use the same pet validation and active-booking
 conflict checks as future appointments, and remain active until cancelled or recorded with `done`.
 
 **Design consideration: how an appointment refers to its pets**
@@ -357,7 +360,7 @@ End-time ordering and duration checks belong to execution because omitted values
    before mutation. `LogicManager` saves the updated model through the existing storage path.
 
 Success feedback identifies the owner, original and resulting starts, and the resulting end when present.
-If the resulting start is earlier than `LocalDateTime.now(clock)`, it appends the same past-appointment
+If the resulting appointment has ended according to `Appointment#hasEnded(LocalDateTime.now(clock))`, it appends the same past-appointment
 guidance as `appt`. The clock uses the system's local zone by default; tests inject fixed clocks to cover
 past/current/future boundaries and time zones. The appointment remains active until completed or cancelled.
 The observable list replacement updates the card immediately. The current card format displays the date,
@@ -817,7 +820,7 @@ Extensions:
 * 4a. The appointment overlaps an active booking for any client.
   * 4a1. PawPals identifies the conflicting client and booking slot, leaving all data unchanged.
   * Use case ends.
-* 5a. The appointment starts in the past.
+* 5a. The appointment has already ended.
   * 5a1. PawPals adds an informational note to the success feedback suggesting `done` to record the completed visit.
   * Use case ends successfully.
 
@@ -1229,7 +1232,7 @@ Extensions:
   * Use case ends.
 
 Past, current and future resulting starts are accepted, including for end-only edits. If the resulting
-start is in the past, success feedback advises using `done` to record the appointment as a completed session.
+appointment has already ended, success feedback advises using `done` to record it as a completed session.
 
 #### UC19 - Edit client
 

@@ -3,6 +3,7 @@ package seedu.address.model.appointment;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -184,6 +185,15 @@ public final class Appointment {
         return date.equals(otherAppointment.date)
                 && startMinute() < otherAppointment.endMinute()
                 && otherAppointment.startMinute() < endMinute();
+    }
+
+    /**
+     * Returns true if this appointment ended before {@code now}, so it is past rather than in progress.
+     * An appointment without an end time ends at its start time.
+     */
+    public boolean hasEnded(LocalDateTime now) {
+        requireNonNull(now);
+        return LocalDateTime.of(date.getValue(), getEndTime().orElse(time).getValue()).isBefore(now);
     }
 
     /**

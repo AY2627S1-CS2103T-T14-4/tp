@@ -158,6 +158,26 @@ public class ClientAppointmentPresentationTest {
     }
 
     @Test
+    public void constructor_inProgressAppointment_isStartedButNotOverdue() throws Exception {
+        runOnFxThread(() -> {
+            Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"),
+                    ZoneId.of("Asia/Singapore"));
+            Appointment inProgress = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("11:50")).withEndTime(new AppointmentTime("12:40"));
+            Appointment ended = new Appointment(new AppointmentDate("29-10-2026"),
+                    new AppointmentTime("10:00")).withEndTime(new AppointmentTime("11:00"));
+            Client client = new ClientBuilder().withAppointments(inProgress, ended).build();
+
+            Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
+
+            assertEquals(List.of(
+                    "Overdue · 29-10-2026 10:00–11:00 · No pets linked",
+                    "29-10-2026 11:50–12:40 · No pets linked"), activeAppointmentTexts(card));
+            return null;
+        });
+    }
+
+    @Test
     public void constructor_manyActiveAppointments_displaysSeparateOverflowCount() throws Exception {
         runOnFxThread(() -> {
             Clock clock = Clock.fixed(Instant.parse("2026-10-29T04:00:00Z"), ZoneOffset.UTC);

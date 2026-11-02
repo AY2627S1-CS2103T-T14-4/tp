@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -289,6 +290,26 @@ public class AppointmentTest {
     @Test
     public void overlaps_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> appointment.overlaps(null));
+    }
+
+    @Test
+    public void hasEnded_withEndTime_endsAfterEndTimeNotStart() {
+        Appointment withEnd = slot("14:00", "15:00");
+
+        assertFalse(withEnd.hasEnded(LocalDateTime.of(2026, 10, 8, 13, 59)));
+        assertFalse(withEnd.hasEnded(LocalDateTime.of(2026, 10, 8, 14, 30)));
+        assertFalse(withEnd.hasEnded(LocalDateTime.of(2026, 10, 8, 15, 0)));
+        assertTrue(withEnd.hasEnded(LocalDateTime.of(2026, 10, 8, 15, 0, 1)));
+        assertTrue(withEnd.hasEnded(LocalDateTime.of(2026, 10, 9, 0, 0)));
+    }
+
+    @Test
+    public void hasEnded_withoutEndTime_endsAfterStart() {
+        Appointment startOnly = slot("14:00", null);
+
+        assertFalse(startOnly.hasEnded(LocalDateTime.of(2026, 10, 8, 14, 0)));
+        assertTrue(startOnly.hasEnded(LocalDateTime.of(2026, 10, 8, 14, 0, 30)));
+        assertThrows(NullPointerException.class, () -> startOnly.hasEnded(null));
     }
 
     @Test

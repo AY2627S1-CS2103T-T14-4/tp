@@ -200,9 +200,9 @@ public class EditAppointmentCommandTest {
             CommandResult result = command(ORIGINAL, edits("12-12-2026", starts.get(i), null)).execute(model);
             assertEquals(List.of(slot("12-12-2026", starts.get(i), ends.get(i))),
                     model.editedClient.getAppointments());
+            // None of these bookings has ended, so none gets the past-appointment guidance.
             String expected = "Rescheduled appointment: " + ALICE.getName()
-                    + " 13-12-2026 14:00 → 12-12-2026 " + starts.get(i) + " et/" + ends.get(i)
-                    + (i == 0 ? "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT : "");
+                    + " 13-12-2026 14:00 → 12-12-2026 " + starts.get(i) + " et/" + ends.get(i);
             assertEquals(expected, result.getFeedbackToUser());
             assertEquals(1, model.conflictCheckCount);
             assertEquals(1, model.updateCount);
@@ -231,12 +231,12 @@ public class EditAppointmentCommandTest {
     public void execute_clockHasSeconds_marksCurrentMinuteAsPast() throws Exception {
         Clock clock = Clock.fixed(CLOCK.instant().plusSeconds(30), CLOCK.getZone());
         EditAppointmentCommand command = new EditAppointmentCommand(INDEX_FIRST_CLIENT, ORIGINAL.getDate(),
-                ORIGINAL.getTime(), edits("12-12-2026", "12:00", null), clock);
+                ORIGINAL.getTime(), clearEnd("12-12-2026", "12:00"), clock);
         ModelStub model = modelWith(owner(ORIGINAL));
 
         CommandResult result = command.execute(model);
 
-        assertEquals(List.of(slot("12-12-2026", "12:00", "13:30")), model.editedClient.getAppointments());
+        assertEquals(List.of(slot("12-12-2026", "12:00", null)), model.editedClient.getAppointments());
         assertTrue(result.getFeedbackToUser().endsWith(AppointmentCommand.MESSAGE_PAST_APPOINTMENT));
     }
 
