@@ -1363,8 +1363,9 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with six sample clients. Most have pets and appointments, and some pets have notes,
-      with ⚠ on sensitivity and temperament notes. The window size may not be optimal.
+      Expected: The GUI opens with six sample clients. Most have pets and appointments shown under Started Appointments
+      or Upcoming Appointments, and some pets have notes with ⚠ on sensitivity and temperament notes. The window size
+      may not be optimal.
 
 1. Saving window preferences
 
