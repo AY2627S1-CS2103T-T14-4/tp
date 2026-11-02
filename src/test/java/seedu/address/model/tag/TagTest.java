@@ -1,5 +1,6 @@
 package seedu.address.model.tag;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,16 @@ public class TagTest {
     public void isValidTagName() {
         // null tag name
         assertThrows(NullPointerException.class, () -> Tag.isValidTagName(null));
+    }
+
+    @Test
+    public void constructor_mixedCase_normalizesToLowerCase() {
+        assertEquals("vip", new Tag("ViP").tagName);
+    }
+
+    @Test
+    public void equals_caseInsensitive_returnsTrue() {
+        assertEquals(new Tag("vip"), new Tag("ViP"));
     }
 
 }
