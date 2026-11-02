@@ -89,8 +89,8 @@ public class UiManager implements Ui {
         alert.setResizable(true);
         alert.getDialogPane().setPrefWidth(700);
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
-        ((Button) alert.getDialogPane().lookupButton(exitButton))
-                .setDefaultButton(true);
+        Button exitControl = (Button) alert.getDialogPane().lookupButton(exitButton);
+        exitControl.setDefaultButton(true);
         return alert.showAndWait().filter(continueButton::equals).isPresent();
     }
 
