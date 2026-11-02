@@ -35,11 +35,23 @@
       <Label fx:id="email" styleClass="cell_small_label" text="\$email"
              wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
       <VBox fx:id="pets" minWidth="0" />
-      <Label text="Started Appointments" styleClass="cell_small_label" />
+      <Label text="Started Appointments" styleClass="cell_small_label">
+        <VBox.margin>
+          <Insets top="6" />
+        </VBox.margin>
+      </Label>
       <VBox fx:id="appointments" minWidth="0" />
-      <Label text="Upcoming Appointments" styleClass="cell_small_label" />
+      <Label text="Upcoming Appointments" styleClass="cell_small_label">
+        <VBox.margin>
+          <Insets top="6" />
+        </VBox.margin>
+      </Label>
       <VBox fx:id="upcomingAppointments" minWidth="0" />
-      <Label text="History" styleClass="cell_small_label" />
+      <Label text="History" styleClass="cell_small_label">
+        <VBox.margin>
+          <Insets top="6" />
+        </VBox.margin>
+      </Label>
       <Label fx:id="emptyHistory" text="No completed sessions" styleClass="empty-state"
              wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
       <VBox fx:id="history" minWidth="0" spacing="5" />

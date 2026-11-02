@@ -198,7 +198,7 @@ public class ClientCard extends UiPart<Region> {
         String details = appointment.getDetails().isBlank() ? "" : " (" + appointment.getDetails() + ")";
         String overdue = displayMode.getType() == ClientDisplayMode.Type.NORMAL && hasStarted(appointment, now)
                 ? "Overdue · " : "";
-        return overdue + "Appointment: " + formatAppointmentSummary(appointment) + details;
+        return overdue + formatAppointmentSummary(appointment) + details;
     }
 
     /**
