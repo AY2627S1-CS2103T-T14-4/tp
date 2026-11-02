@@ -377,13 +377,13 @@
 }
 
 .cell_note_label {
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
     -fx-padding: 1px 0 1px 12px;
     -fx-text-fill: #bdbdbd;
 }
 
 .cell_safety_note_label {
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-text-fill: #ffb74d;
 }
