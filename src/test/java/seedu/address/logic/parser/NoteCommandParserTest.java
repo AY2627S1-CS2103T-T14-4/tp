@@ -6,6 +6,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.model.pet.NoteType;
 import seedu.address.model.pet.PetName;
@@ -53,10 +54,11 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_missingRequiredPrefix_throwsParseException() {
-        assertParseFailure(parser, " pn/Milo ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 pn/Milo nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 pn/Milo ty/pref", NoteCommand.MESSAGE_INVALID_FORMAT);
+        String expectedMessage = String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " pn/Milo ty/pref nt/Note", expectedMessage);
+        assertParseFailure(parser, " c/1 ty/pref nt/Note", expectedMessage);
+        assertParseFailure(parser, " c/1 pn/Milo nt/Note", expectedMessage);
+        assertParseFailure(parser, " c/1 pn/Milo ty/pref", expectedMessage);
     }
 
     @Test
@@ -84,11 +86,16 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_duplicatePrefixOrPreamble_throwsParseException() {
-        assertParseFailure(parser, " c/1 c/2 pn/Milo ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 pn/Milo pn/Luna ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 pn/Milo ty/pref ty/temp nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " c/1 pn/Milo ty/pref nt/One nt/Two", NoteCommand.MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " extra c/1 pn/Milo ty/pref nt/Note", NoteCommand.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, " c/1 c/2 pn/Milo ty/pref nt/Note",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_CLIENT));
+        assertParseFailure(parser, " c/1 pn/Milo pn/Luna ty/pref nt/Note",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_PET_NAME));
+        assertParseFailure(parser, " c/1 pn/Milo ty/pref ty/temp nt/Note",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_NOTE_TYPE));
+        assertParseFailure(parser, " c/1 pn/Milo ty/pref nt/One nt/Two",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_NOTE));
+        assertParseFailure(parser, " extra c/1 pn/Milo ty/pref nt/Note",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
     }
 
     @Test
