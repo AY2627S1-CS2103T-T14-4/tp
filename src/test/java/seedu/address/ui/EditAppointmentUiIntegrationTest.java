@@ -63,15 +63,15 @@ public class EditAppointmentUiIntegrationTest {
             MainWindow window = createWindow(date);
             try {
                 enter(window, "find " + BENSON.getName());
-                assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                assertTrue(labels(window).contains(date + " 14:00–15:30 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
 
                 enter(window, "editappt c/1 d/" + date + " t/14:00 ns/18:00");
 
                 List<String> labels = labels(window);
-                assertTrue(labels.contains("Appointment: " + date + " 18:00–19:30 · No pets linked ("
+                assertTrue(labels.contains(date + " 18:00–19:30 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
-                assertFalse(labels.contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                assertFalse(labels.contains(date + " 14:00–15:30 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
                 assertFalse(labels.contains(ALICE.getName().fullName));
                 assertTrue(labels.contains(BENSON.getName().fullName));
@@ -104,7 +104,7 @@ public class EditAppointmentUiIntegrationTest {
                     assertTrue(input(window).getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                     assertEquals(suffix.contains("24:00") ? AppointmentTime.MESSAGE_CONSTRAINTS
                             : Appointment.MESSAGE_END_NOT_AFTER_START, feedback(window).getText());
-                    assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                    assertTrue(labels(window).contains(date + " 14:00–15:30 · No pets linked ("
                             + BOOKING_DETAILS + ")"));
                     assertFalse(labels(window).contains(ALICE.getName().fullName));
                     assertEquals(saved, Files.readString(dataFile()));
@@ -130,15 +130,15 @@ public class EditAppointmentUiIntegrationTest {
             MainWindow window = createWindow(date);
             try {
                 enter(window, "find " + BENSON.getName());
-                assertTrue(labels(window).contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                assertTrue(labels(window).contains(date + " 14:00–15:30 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
 
                 enter(window, "editappt c/1 d/" + date + " t/14:00 ns/16:00 ne/");
 
                 List<String> labels = labels(window);
-                assertTrue(labels.contains("Appointment: " + date + " 16:00 · No pets linked ("
+                assertTrue(labels.contains(date + " 16:00 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
-                assertFalse(labels.contains("Appointment: " + date + " 14:00–15:30 · No pets linked ("
+                assertFalse(labels.contains(date + " 14:00–15:30 · No pets linked ("
                         + BOOKING_DETAILS + ")"));
                 assertFalse(labels.contains(ALICE.getName().fullName));
                 assertTrue(labels.contains(BENSON.getName().fullName));
