@@ -54,11 +54,11 @@ PawPals is a **desktop application for managing clients, pets, and appointments,
 
 The feedback area shows the result of your latest command. A text label and colour identify the outcome:
 
-| Label       | Meaning                                                               | Example                                               |
-|-------------|-----------------------------------------------------------------------|-------------------------------------------------------|
-| **Info**    | Guidance or the result of `find`, `findp`, `schedule`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`          |
-| **Success** | A command that changes records completed successfully.                | Adding Alice Tan shows `New client added: Alice Tan`. |
-| **Error**   | The command could not be parsed, completed, or saved.                 | An unrecognised command shows `Unknown command.`      |
+| Label       | Meaning                                                                           | Example                                               |
+|-------------|-----------------------------------------------------------------------------------|-------------------------------------------------------|
+| **Info**    | Guidance or the result of `find`, `findp`, `schedule`, `list`, `help`, or `exit`. | `list` shows `Listed all clients.`                    |
+| **Success** | A command that changes records completed successfully.                            | Adding Alice Tan shows `New client added: Alice Tan`. |
+| **Error**   | The command could not be parsed, completed, or saved.                             | An unrecognised command shows `Unknown command.`      |
 
 When PawPals opens, **Info** shows `Enter a command. Use help to view available commands.`
 A search with no matches also shows **Info**; having no matches is not an error.
@@ -81,7 +81,7 @@ Missing records are shown explicitly:
 | Client card                         | `No pets recorded`                                     | This client has no pets.                                                                                           |
 | Beneath a pet                       | `No notes recorded`                                    | This pet has no preference, sensitivity, or temperament notes. If any note exists, only the recorded notes appear. |
 | Started Appointments section        | `No started appointments`                              | This client has no appointments whose start time has arrived.                                                      |
-| Upcoming Appointments section       | `No upcoming appointments`                             | This client has no future appointments.                                                                             |
+| Upcoming Appointments section       | `No upcoming appointments`                             | This client has no future appointments.                                                                            |
 | Client card                         | `No completed sessions`                                | This client has no completed-session history.                                                                      |
 
 For example, a newly added client shows the messages for no pets, appointments, and completed sessions.
@@ -325,7 +325,8 @@ The success message repeats the details of the client you confirmed.
 The deleted client disappears from the client list, and the remaining clients are renumbered.
 Invalid requests leave data unchanged. If the previewed client changes or disappears before confirmation,
 PawPals reports `Client changed or no longer exists. Run delc again.` and deletes nothing.
-If saving fails after confirmed deletion, the in-memory deletion remains; see [Saving the data](#saving-the-data).
+If saving fails after confirmed deletion, the client and the previous view are restored. Resolve the storage
+problem, then rerun `delc` and confirm again; see [Saving the data](#saving-the-data).
 
 | Problem                                                              | Feedback                                                                 |
 |----------------------------------------------------------------------|--------------------------------------------------------------------------|
@@ -400,13 +401,14 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Invalid or empty date                                         | `Appointment dates must be valid calendar dates in DD-MM-YYYY format, with a year from 0001 to 9999.`                                                                          |
 | Invalid or empty start/end time                               | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                                                                          |
 | End time equal to or before the start time                    | `End time must be after the start time.`                                                                                                                                       |
-| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.` |
+| Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.`          |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
 
 The example date may be in the past, current or future; choose a slot that does not overlap an active booking.
 
-If PawPals reports a save error, the appointment may still appear during the current session but may not survive a restart. Resolve the file or folder access problem before relying on the appointment being saved.
+If PawPals reports a save error, the appointment addition is undone. Resolve the file or folder access problem,
+then retry the command.
 
 ### Rescheduling an appointment: `editappt`
 
@@ -456,21 +458,20 @@ time to identify that booking in later commands.
 If validation fails, no data changes and the failed input stays in the command box for correction.
 Feedback includes:
 
-| Problem                                                       | Feedback                                                                                     |
-|---------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| Missing required prefix or extra text before the first prefix | `Invalid command format!`, followed by the `editappt` usage instructions.                    |
-| No replacement value supplied                                 | `At least one of nd/, ns/ or ne/ must be provided.`                                          |
-| Repeated prefix, for example two `ns/` values                 | `Multiple values specified for the following single-valued field(s): ns/`                    |
-| Invalid index, date or time, including empty values except `ne/` | The corresponding index, date or time validation message used by `appt`.                   |
-| No active appointment at the original slot                    | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
-| New end is equal to or before the resulting start             | `End time must be after the start time.`                                                     |
-| Preserving the duration would end after 23:59                 | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
-| Overlap with another active booking                           | The same conflict message as `appt`, identifying the conflicting client and slot.            |
+| Problem                                                          | Feedback                                                                                     |
+|------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| Missing required prefix or extra text before the first prefix    | `Invalid command format!`, followed by the `editappt` usage instructions.                    |
+| No replacement value supplied                                    | `At least one of nd/, ns/ or ne/ must be provided.`                                          |
+| Repeated prefix, for example two `ns/` values                    | `Multiple values specified for the following single-valued field(s): ns/`                    |
+| Invalid index, date or time, including empty values except `ne/` | The corresponding index, date or time validation message used by `appt`.                     |
+| No active appointment at the original slot                       | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and slot) |
+| New end is equal to or before the resulting start                | `End time must be after the start time.`                                                     |
+| Preserving the duration would end after 23:59                    | `The appointment would end after 23:59. Give a new end time with ne/.`                       |
+| Overlap with another active booking                              | The same conflict message as `appt`, identifying the conflicting client and slot.            |
 
 The example requires a matching active booking. The resulting start may be in the past, present or future;
-replace the example date and time as needed. If saving fails, the current session may show the edited
-booking while the saved file retains the original. Resolve the reported file or folder access problem
-before relying on the change.
+replace the example date and time as needed. If saving fails, the original booking and previous view are
+restored. Resolve the reported file or folder access problem, then retry the command.
 
 ### Cancelling an appointment: `cancel`
 
@@ -511,7 +512,7 @@ If validation fails, no data changes. Feedback includes:
 | Invalid or empty time                                         | `Appointment times must be valid times in 24-hour HH:mm format, from 00:00 to 23:59.`                                    |
 | No matching appointment, including one already cancelled      | `Ben Lim has no appointment at 12-12-2026 14:00.` (with the selected client's name and requested slot)                   |
 
-If saving fails, the appointment may be removed in the current session but remain in the saved file.
+If saving fails, the appointment and previous view are restored. Resolve the storage problem, then retry.
 Resolve the reported file or folder access problem before relying on the cancellation being saved.
 
 ### Completing an appointment: `done`
@@ -594,7 +595,7 @@ If validation fails, no data changes. Feedback includes:
 The example requires a matching active appointment that has already started. Replace the date and
 time with an existing booking when trying the command.
 
-If saving fails, completion may exist in memory while the saved file still contains the active booking.
+If saving fails, completion is undone: the active booking, previous history and view are restored.
 Resolve the reported file or folder access problem before relying on the completion being saved.
 
 ### Listing all clients: `list`
@@ -751,6 +752,9 @@ While confirmation is pending, other commands are treated as invalid responses; 
 normal commands. Pressing Enter with an empty command box does nothing. Confirmation is required even when
 there are no records, and a pending request is forgotten when PawPals closes.
 
+If saving fails after confirmation, all records and the previous view are restored. Resolve the storage
+problem, then rerun `clear` and confirm again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -766,9 +770,10 @@ Saved data includes clients, pets, pet notes, appointments, and
 completed sessions. Pets, appointments, and completed sessions are saved under their owning client and remain
 available after restarting PawPals. You do not need to save manually.
 
-If saving fails, Error feedback appears. Changes may already be visible in the current session, but the
-saved file may be unchanged or incomplete. Resolve the reported file or folder access problem before
-relying on those changes being available after a restart.
+If saving fails, Error feedback appears with `The command's changes were undone.` The records, filter and
+display mode return to their state before the command. Resolve the reported file or folder access problem,
+then retry. For `delc` and `clear`, rerun the command and confirm again; resubmitting `y` alone does not retry.
+The saved file may be unchanged or incomplete: restoring the current session does not repair a partial write.
 
 ### Editing the data file
 
@@ -839,7 +844,7 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Add/update pet note**    | `note c/CLIENT_INDEX pn/PET_NAME ty/TYPE nt/NOTE`<br> e.g., `note c/1 pn/Milo ty/temp nt/Anxious around loud dryers`                                                                        |
 | **Delete pet note**        | `delnote c/CLIENT_INDEX pn/PET_NAME ty/TYPE`<br> e.g., `delnote c/1 pn/Milo ty/temp`                                                                                                        |
 | **Clear**                  | `clear`, then `y` to confirm or `n` to cancel                                                                                                                                               |
-| **Delete client**          | `delc c/CLIENT_INDEX`, then `y` to confirm or `n` to cancel<br> e.g., `delc c/3`                                                                                                                                                  |
+| **Delete client**          | `delc c/CLIENT_INDEX`, then `y` to confirm or `n` to cancel<br> e.g., `delc c/3`                                                                                                            |
 | **Delete pet**             | `delp c/CLIENT_INDEX pn/PET_NAME`<br> e.g., `delp c/1 pn/Milo`                                                                                                                              |
 | **Add appointment**        | `appt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [et/HH:mm] [pn/PET_NAME]...` <br> e.g., `appt c/1 d/12-12-2026 t/12:34 et/13:34 pn/Milo pn/Luna`                                                  |
 | **Reschedule appointment** | `editappt c/CLIENT_INDEX d/DD-MM-YYYY t/HH:mm [nd/DD-MM-YYYY] [ns/HH:mm] [ne/[HH:mm]]` <br> e.g., `editappt c/1 d/12-12-2026 t/14:00 ns/16:00` <br> Use empty `ne/` to remove the end time. |
@@ -849,6 +854,6 @@ file with the `data/pawpals.json` file from your previous PawPals home folder.
 | **Exit**                   | `exit`                                                                                                                                                                                      |
 | **Find**                   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`, `find 91234567`                                                                                                                 |
 | **Find pet owners**        | `findp KEYWORD [MORE_KEYWORDS]`<br> e.g., `findp Milo Luna`                                                                                                                                 |
-| **View schedule**          | `schedule d/DD-MM-YYYY` or `schedule c/CLIENT_INDEX`<br> e.g., `schedule d/29-10-2026`, `schedule c/1`                                                                                     |
+| **View schedule**          | `schedule d/DD-MM-YYYY` or `schedule c/CLIENT_INDEX`<br> e.g., `schedule d/29-10-2026`, `schedule c/1`                                                                                      |
 | **List**                   | `list`                                                                                                                                                                                      |
 | **Help**                   | `help`                                                                                                                                                                                      |

@@ -100,8 +100,8 @@ explicit type. Equality, hashing, and the string representation include the type
 `ResultDisplay#setFeedbackToUser(String, FeedbackType)`. It catches `ParseException` and
 `CommandException`, displays `ERROR`, and rethrows the exception so `CommandBox` retains failed input.
 Storage failures follow the same error path: for executed commands, `LogicManager` saves before returning the result,
-so a failed save never displays that result as a success. The existing storage behavior still applies:
-a save failure may occur after the in-memory model has changed; feedback does not roll it back.
+so a failed save never displays that result as a success. Before reporting the error, `LogicManager`
+restores the records, filter and display mode and appends `The command's changes were undone.`
 
 `ResultDisplay` owns presentation. It maps the type to an `Info`, `Success`, or `Error` label and one
 of the mutually exclusive `feedback-neutral`, `feedback-success`, and `feedback-error` CSS classes.
@@ -212,11 +212,25 @@ How the `Logic` component works:
 1. `LogicManager` passes the command text to `PawPalsParser`.
 1. `PawPalsParser` creates an `AddCommandParser`, which validates the arguments, constructs a client,
    and returns an `AddCommand`. Argument-parsing details are omitted from the sequence diagram.
-1. `LogicManager` executes the returned command through the shared `executeAndSave` path.
+1. `LogicManager` captures a rollback action, then executes the returned command through the shared
+   `executeAndSave` path. Snapshot capture is omitted from this partial sequence diagram.
 1. `AddCommand` checks for a duplicate through `Model#hasClient` and adds the new client through
    `Model#addClient`. It returns a `CommandResult` containing the success feedback.
 1. `LogicManager` saves the data and returns the result. Storage interactions are omitted here;
    the [architecture sequence diagram](#architecture) shows the interaction between components.
+
+#### Save-failure rollback
+
+`Model#createRollbackAction()` returns a `Runnable` capturing the records, filter and display mode at the
+time of the call. `ModelManager` copies the `PawPals` client collection and retains the original predicate
+(including `null`, meaning no filtering) and `ClientDisplayMode`. Client values are immutable, so the
+collection copy is sufficient. Running the action restores state through the existing observable collections.
+
+`LogicManager#executeAndSave(...)` captures this action before command execution and invokes it on either
+`AccessDeniedException` or another `IOException` from saving. Model owns restoration details; Logic decides
+when to restore through the Model interface, preserving encapsulation and separation of concerns.
+The command box retains failed input for retry after the storage problem is resolved. This restores
+in-memory state only; it does not repair partial disk writes or restore selection and scroll position.
 
 #### Confirmation before destructive commands
 
@@ -230,6 +244,8 @@ While a request is pending, `LogicManager` handles trimmed, case-insensitive `y`
 parsing commands. Cancellation returns neutral feedback without saving. Invalid responses throw a
 `ParseException` with the original prompt and retain the request. Confirmation removes the pending
 request before executing its deferred `Command` through `executeAndSave`, including when saving fails.
+If saving fails, rollback restores the records and view but not the pending confirmation. Users must
+rerun `delc` or `clear` and confirm again; resubmitting `y` alone is not a retry.
 The UI and model do not own confirmation state.
 
 Deferred deletion checks that the captured client remains unchanged in the full list. A changed or
@@ -363,8 +379,8 @@ past/current/future boundaries and time zones. The appointment remains active un
 The observable list replacement updates the card immediately. The current card format displays the date,
 start, optional end time, recorded pet names and any nonblank booking details. End-only edits update the
 displayed range as well as feedback and saved data. No storage
-schema change is needed. Save errors retain the application's existing behavior: memory may already
-contain the replacement when writing the file fails.
+schema change is needed. If saving fails, the shared rollback action restores the original booking,
+filter and display mode before reporting the error.
 
 Tests are separated by responsibility: `EditAppointmentCommandTest` uses a model stub for validation,
 duration boundaries and update/delegation checks; `EditAppointmentCommandIntegrationTest` uses the real
@@ -452,8 +468,8 @@ Example entry in a client's `history` array:
 ```
 
 The single-client update guarantees that active removal and history creation happen together in memory.
-Persistence still uses the existing `LogicManager` save pipeline; this model operation does not introduce
-disk transactions or rollback on save errors.
+Persistence uses the shared `LogicManager` save pipeline. A save failure rolls back completion, restoring
+the active appointment, previous history and view. This does not introduce disk transactions.
 
 #### Completed-session rendering
 
@@ -497,7 +513,7 @@ as `list`, `find` and `help`. Requesting or cancelling `clear` or `delc` does no
 confirmation responses do not save. Confirming with `y`/`Y` executes the deferred command through the
 shared execution-and-save path. See [Confirmation before destructive commands](#confirmation-before-destructive-commands).
 Parsing and command-execution failures bypass saving. A save failure becomes
-a `CommandException`; model changes have already happened and are not rolled back. `FileUtil#writeToFile(...)`
+a `CommandException` after restoring the pre-command records, filter and display mode. `FileUtil#writeToFile(...)`
 uses `Files.write(...)` directly, so writes are not atomic and an I/O failure does not guarantee an unchanged file.
 `MainApp` fixes the data path at `data/pawpals.json` relative to the process working directory.
 
@@ -785,7 +801,8 @@ Extensions:
   * 5a1. PawPals displays `Client changed or no longer exists. Run delc again.` and ends confirmation.
   * Use case ends without deletion or saving.
 * 6a. Saving fails.
-  * 6a1. PawPals reports the save error; the in-memory deletion remains as described in UC10.
+  * 6a1. PawPals restores the deleted client and previous view, then reports the save error as described in UC10.
+  * 6a2. After resolving the storage problem, the user must rerun `delc` and confirm again.
   * Use case ends with confirmation cleared.
 
 #### UC04 - Add appointment
@@ -924,6 +941,10 @@ Extensions:
 * 3b. User submits any other response, including another command.
   * 3b1. PawPals displays `Invalid input.` and repeats the confirmation prompt without changing or saving records.
   * Use case resumes from step 3.
+* 4a. Saving fails.
+  * 4a1. PawPals restores all records and the previous view, then reports the save error as described in UC10.
+  * 4a2. After resolving the storage problem, the user must rerun `clear` and confirm again.
+  * Use case ends with confirmation cleared.
 
 Surrounding whitespace in responses is ignored. Empty Enter is ignored by the command box.
 Confirmation is required for an empty database too; pending confirmation does not survive closing the app.
@@ -971,9 +992,11 @@ Use case ends.
 Extensions:
 
 * 2a. PawPals cannot write to the data file because of insufficient permissions, concurrent access, or insufficient disk space.
-  * 2a1. PawPals displays the corresponding save failure message.
-  * 2a2. In-memory changes remain. The file may be unchanged or partially written, depending on the failure;
-    the user must resolve the error before relying on persistence.
+  * 2a1. PawPals restores the pre-command records, filter and display mode, then displays the corresponding
+    save failure message followed by `The command's changes were undone.`
+  * 2a2. The user resolves the storage problem before retrying. For `delc` or `clear`, the user reruns the
+    original command and confirms again.
+  * 2a3. The file may be unchanged or partially written; restoring in-memory state does not repair the file.
   * Use case ends.
 
 #### UC11 - Delete pet note
@@ -1438,18 +1461,18 @@ note c/1 pn/Milo ty/pref nt/Teddy cut
 Use a disposable copy of the JAR in an empty folder so these tests do not affect real client data.
 Launch it with `java -jar pawpals.jar` and use `FUTURE_DATE` as a valid future appointment date where needed.
 
-| Scenario                    | Commands or action                                  | Expected result                                                               |
-|-----------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
-| Find by name                | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.                 |
-| Find by phone               | `find 91234567`                                     | Clients whose phone numbers start with `(+)91234567` are listed.              |
-| Find by email               | `find alice@example.com`                            | Clients with that exact email are listed.                                     |
-| Partial phone               | `find 9123`                                         | Local numbers starting with `9123` are listed; `+65 9123 4567` is not matched.|
-| International phone digits  | `find 6591`                                         | A stored `+65 9123 4567` is listed because the country code is included.      |
-| Find international prefix   | `find +6`                                           | International numbers beginning with `+6` are listed; local numbers excluded. |
-| Find international numbers  | `find +`                                            | All clients with an international phone number are listed.                    |
-| Partial email               | `find alice@example`                                | No client is returned for the partial email address.                          |
-| Partial name                | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.                   |
-| Filtered index              | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list.               |
+| Scenario                   | Commands or action                                  | Expected result                                                                |
+|----------------------------|-----------------------------------------------------|--------------------------------------------------------------------------------|
+| Find by name               | `find Alice`                                        | Clients whose names contain the full word `Alice` are listed.                  |
+| Find by phone              | `find 91234567`                                     | Clients whose phone numbers start with `(+)91234567` are listed.               |
+| Find by email              | `find alice@example.com`                            | Clients with that exact email are listed.                                      |
+| Partial phone              | `find 9123`                                         | Local numbers starting with `9123` are listed; `+65 9123 4567` is not matched. |
+| International phone digits | `find 6591`                                         | A stored `+65 9123 4567` is listed because the country code is included.       |
+| Find international prefix  | `find +6`                                           | International numbers beginning with `+6` are listed; local numbers excluded.  |
+| Find international numbers | `find +`                                            | All clients with an international phone number are listed.                     |
+| Partial email              | `find alice@example`                                | No client is returned for the partial email address.                           |
+| Partial name               | `find Ali`                                          | No client is returned unless `Ali` is a complete name word.                    |
+| Filtered index             | `find Alice`, then `addp c/1 n/Coco s/Dog b/Poodle` | Client index 1 refers to the first client in the filtered list.                |
 
 ### Finding pets
 
