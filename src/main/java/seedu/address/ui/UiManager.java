@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import seedu.address.MainApp;
@@ -76,8 +78,18 @@ public class UiManager implements Ui {
         alert.initOwner(mainWindow.getPrimaryStage());
         alert.setTitle("Data recovery required");
         alert.setHeaderText("PawPals could not load " + recoveryInfo.dataFilePath());
-        alert.setContentText(getDataRecoveryWarningContent(recoveryInfo));
+        TextArea details = new TextArea(getDataRecoveryWarningContent(recoveryInfo));
+        details.setEditable(false);
+        details.setWrapText(true);
+        details.setFocusTraversable(false);
+        details.setPrefRowCount(12);
+        details.setMaxWidth(Double.MAX_VALUE);
+        details.setMaxHeight(360);
+        alert.getDialogPane().setContent(details);
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(700);
         alert.getDialogPane().setId(ALERT_DIALOG_PANE_FIELD_ID);
+        ((Button) alert.getDialogPane().lookupButton(continueButton)).setDefaultButton(true);
         return alert.showAndWait().filter(continueButton::equals).isPresent();
     }
 
