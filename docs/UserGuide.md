@@ -781,7 +781,7 @@ back it up first.
 **Caution:**
 If your changes make the data file invalid, PawPals preserves it in a uniquely named `.corrupt-*.bak` backup
 and shows a recovery warning at the next run. You must choose **Continue** before commands can be entered;
-choosing **Exit** leaves the rejected file unchanged. Closing the warning with the window’s X counts as **Exit**, because showAndWait returns empty.
+choosing **Exit** leaves the rejected file unchanged. Closing the warning with the window’s X counts as **Exit**.
 If you continue, PawPals starts with an empty client list
 and later commands may replace the rejected file through the normal auto-save process.<br>
 

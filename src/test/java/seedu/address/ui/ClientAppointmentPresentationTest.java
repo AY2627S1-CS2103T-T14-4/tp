@@ -45,7 +45,7 @@ public class ClientAppointmentPresentationTest {
     private static final Pet LUNA = new Pet(new PetName("Luna"), new Species("Cat"), new Breed("Persian"));
     private static final AppointmentDate DATE = new AppointmentDate("12-12-2026");
     private static final AppointmentTime START = new AppointmentTime("14:00");
-    private static final String START_TEXT = "Appointment: 12-12-2026 14:00";
+    private static final String START_TEXT = "12-12-2026 14:00";
 
     @BeforeAll
     public static void setUpJavaFxToolkit() throws InterruptedException {
@@ -100,8 +100,8 @@ public class ClientAppointmentPresentationTest {
                     new AppointmentTime("16:00"));
             Client client = new ClientBuilder().withPets(MILO)
                     .withAppointments(first, nextYear, second, previousMonth).build();
-            assertEquals(List.of("Appointment: 30-11-2026 16:00 · No pets linked",
-                    "Appointment: 12-12-2026 09:00 · No pets linked",
+            assertEquals(List.of("30-11-2026 16:00 · No pets linked",
+                    "12-12-2026 09:00 · No pets linked",
                     START_TEXT + "–15:30 · Missing (Legacy booking)",
                     "+1 more appointment"),
                     appointmentTexts(new ClientCard(client, 1).getRoot()));
@@ -146,12 +146,12 @@ public class ClientAppointmentPresentationTest {
 
             Node card = new ClientCard(client, 1, ClientDisplayMode.NORMAL, clock).getRoot();
 
-            assertEquals(List.of("Overdue · Appointment: 29-10-2026 11:59 · No pets linked"),
+            assertEquals(List.of("Overdue · 29-10-2026 11:59 · No pets linked"),
                     activeAppointmentTexts(card));
             assertEquals(List.of(
-                    "Appointment: 29-10-2026 12:01 · No pets linked",
-                    "Appointment: 30-10-2026 09:00 · No pets linked",
-                    "Appointment: 31-10-2026 09:00 · No pets linked",
+                    "29-10-2026 12:01 · No pets linked",
+                    "30-10-2026 09:00 · No pets linked",
+                    "31-10-2026 09:00 · No pets linked",
                     "+1 more appointment"), appointmentTexts(card));
             return null;
         });
@@ -212,7 +212,7 @@ public class ClientAppointmentPresentationTest {
             Node card = new ClientCard(client, 1, ClientDisplayMode.SCHEDULE_CLIENT, clock).getRoot();
 
             assertEquals(1, activeAppointmentTexts(card).size());
-            assertEquals("Appointment: 01-01-2020 09:00 · No pets linked", activeAppointmentTexts(card).get(0));
+            assertEquals("01-01-2020 09:00 · No pets linked", activeAppointmentTexts(card).get(0));
             assertEquals(3, appointmentTexts(card).size());
             return null;
         });
@@ -230,21 +230,21 @@ public class ClientAppointmentPresentationTest {
             ClientListPanel panel = new ClientListPanel(model.getFilteredClientList());
             StackPane root = sceneRoot(panel.getRoot());
             assertDisplayedAppointments(root, List.of(START_TEXT + " · No pets linked",
-                    "Appointment: 13-12-2026 09:00 · No pets linked"));
+                    "13-12-2026 09:00 · No pets linked"));
 
             Appointment earlierStart = new Appointment(DATE, new AppointmentTime("09:00"));
             Client added = initial.copyWithAppointment(earlierStart);
             model.setClient(initial, added);
-            assertDisplayedAppointments(root, List.of("Appointment: 12-12-2026 09:00 · No pets linked",
-                    START_TEXT + " · No pets linked", "Appointment: 13-12-2026 09:00 · No pets linked"));
+            assertDisplayedAppointments(root, List.of("12-12-2026 09:00 · No pets linked",
+                    START_TEXT + " · No pets linked", "13-12-2026 09:00 · No pets linked"));
 
             Appointment previousDay = new Appointment(new AppointmentDate("11-12-2026"),
                     new AppointmentTime("16:00"));
             Client rescheduled = added.withAppointmentReplaced(DATE, START, previousDay);
             model.setClient(added, rescheduled);
-            assertDisplayedAppointments(root, List.of("Appointment: 11-12-2026 16:00 · No pets linked",
-                    "Appointment: 12-12-2026 09:00 · No pets linked",
-                    "Appointment: 13-12-2026 09:00 · No pets linked"));
+            assertDisplayedAppointments(root, List.of("11-12-2026 16:00 · No pets linked",
+                    "12-12-2026 09:00 · No pets linked",
+                    "13-12-2026 09:00 · No pets linked"));
             assertEquals(List.of(previousDay, nextDay, earlierStart), rescheduled.getAppointments());
             return null;
         });
