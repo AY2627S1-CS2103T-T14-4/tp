@@ -119,6 +119,11 @@ recorded times, pet names and session notes. Empty messages update immediately a
   Separate each prefix from the preceding value with a space. Except for explicitly repeatable fields,
   supply each prefix once. For `edit`, identify the client using `c/INDEX`; the prefix is required.
 
+* In the appointment commands (`appt`, `editappt`, `cancel` and `done`), a prefix that the command does not
+  accept is reported by name, for example `This command does not accept nt/. Remove nt/ and its value, then try again.`
+  for `appt c/1 d/12-12-2026 t/14:00 nt/Bring towels`. Remove that prefix and its value. This does not
+  affect `done`'s notes: prefix-like text after a final `nt/` is still saved as part of the notes.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
@@ -406,6 +411,7 @@ If the command is rejected because of invalid input or an overlap, no data is ch
 | Empty or invalid pet name                                     | `Pet names should be 1 to 40 characters long, contain at least one letter or number, and contain only letters, numbers, spaces, apostrophes, hyphens and full stops.`          |
 | Pet not belonging to the selected client                      | `This client has no pet named Milo.` (with the requested pet name)                                                                                                             |
 | Overlap with any client's active booking                      | `Appointment overlaps with Ben Lim's appointment: d/12-12-2026 t/12:34 et/13:34.` (with the conflicting client's name and slot; `et/` is omitted when no end time is recorded) |
+| Prefix that `appt` does not accept, such as `nt/`             | `This command does not accept nt/. Remove nt/ and its value, then try again.` (with the prefix given)                                                                         |
 
 The example date may be in the past, current or future; choose a slot that does not overlap an active booking.
 

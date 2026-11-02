@@ -32,6 +32,7 @@ public class CancelCommandParser implements Parser<CancelCommand> {
         if (arguments.getValue(PREFIX_END_TIME).isPresent()) {
             throw new ParseException(CancelCommand.MESSAGE_END_TIME_NOT_SUPPORTED + "\n" + CancelCommand.MESSAGE_USAGE);
         }
+        ParserUtil.requireNoUnexpectedPrefix(arguments);
         if (!arguments.getPreamble().isEmpty() || Stream.of(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME)
                 .anyMatch(prefix -> arguments.getValue(prefix).isEmpty())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, CancelCommand.MESSAGE_USAGE));

@@ -108,7 +108,11 @@ public class DoneCommandParserTest {
 
     @Test
     public void parse_endTimeOrPetNameAsTarget_fails() {
-        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/15:00 nt/Notes", AppointmentTime.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo nt/Notes", AppointmentTime.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/15:00 nt/Notes",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "et/"));
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo nt/Notes",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "pn/"));
+        assertParseFailure(parser, " et/15:00 c/1 d/12-12-2026 t/14:00 nt/Notes",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "et/"));
     }
 }

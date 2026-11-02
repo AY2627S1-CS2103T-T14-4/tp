@@ -5,10 +5,14 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
@@ -31,6 +35,11 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_UNEXPECTED_PREFIX =
+            "This command does not accept %1$s. Remove %1$s and its value, then try again.";
+
+    // A word ending in "/" at the start of a value or after a space, such as "nt/" in "14:00 nt/Bring towels".
+    private static final Pattern UNEXPECTED_PREFIX = Pattern.compile("(?:^|\\s)(\\p{Alpha}+/)");
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -51,10 +60,12 @@ public class ParserUtil {
      * Other prefixes are left untouched. Eligibility against the current time belongs to the command.
      *
      * @throws NullPointerException if {@code arguments} is null.
-     * @throws ParseException if the client index, date or time is invalid, checked in that order.
+     * @throws ParseException if a value contains a prefix the command does not accept, or if the client index,
+     *     date or time is invalid, checked in that order.
      */
     public static AppointmentTarget parseAppointmentTarget(ArgumentMultimap arguments) throws ParseException {
         requireNonNull(arguments);
+        requireNoUnexpectedPrefix(arguments, PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME);
         Index index = parseIndex(arguments.getValue(PREFIX_CLIENT).get());
         try {
             AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
@@ -62,6 +73,28 @@ public class ParserUtil {
             return new AppointmentTarget(index, date, time);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Ensures that the preamble and the values of {@code prefixes} contain no other prefix, such as {@code nt/} in
+     * {@code t/14:00 nt/Bring towels}. Such text is a prefix the command does not accept, which the tokenizer
+     * reads as part of the preceding value, or as the preamble if it comes first. None of these may contain a word
+     * followed by "/".
+     *
+     * @throws ParseException naming the first unexpected prefix found.
+     */
+    public static void requireNoUnexpectedPrefix(ArgumentMultimap arguments, Prefix... prefixes)
+            throws ParseException {
+        List<String> values = new ArrayList<>(List.of(arguments.getPreamble()));
+        for (Prefix prefix : prefixes) {
+            values.addAll(arguments.getAllValues(prefix));
+        }
+        for (String value : values) {
+            Matcher matcher = UNEXPECTED_PREFIX.matcher(value);
+            if (matcher.find()) {
+                throw new ParseException(String.format(MESSAGE_UNEXPECTED_PREFIX, matcher.group(1)));
+            }
         }
     }
 
