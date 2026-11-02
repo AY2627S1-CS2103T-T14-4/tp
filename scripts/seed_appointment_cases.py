@@ -21,16 +21,30 @@ def appointment(day, time, details, pets, end_time=None):
 
 
 def session(day, time, details, pets, notes, logged_at):
+    end_time = (datetime.strptime(time, "%H:%M") + timedelta(hours=1)).strftime("%H:%M")
     return {
-        "appointment": appointment(day, time, details, pets, "15:00"),
+        "appointment": appointment(day, time, details, pets, end_time),
         "notes": notes,
         "loggedAt": logged_at.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
 
 
+def validate_appointments(data):
+    for client in data["clients"]:
+        appointments = list(client.get("appointments", []))
+        appointments.extend(item["appointment"] for item in client.get("history", []))
+        for item in appointments:
+            end_time = item.get("endTime")
+            if end_time is not None and end_time <= item["time"]:
+                raise ValueError(f"End time must be after start time: {item}")
+
+
 def build_data(now):
     today = now.date()
-    active_start = now - timedelta(hours=1)
+    if now.hour >= 10:
+        active_start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
+    else:
+        active_start = (now - timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
     yesterday = today - timedelta(days=1)
     tomorrow = today + timedelta(days=1)
     next_week = today + timedelta(days=7)
@@ -121,7 +135,11 @@ def main():
         shutil.copy2(path, backup)
         print(f"Backup written to {backup}")
 
-    path.write_text(json.dumps(build_data(datetime.now().astimezone()), indent=2) + "\n", encoding="utf-8")
+    data = build_data(datetime.now().astimezone())
+    validate_appointments(data)
+    temporary_path = path.with_suffix(path.suffix + ".tmp")
+    temporary_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    temporary_path.replace(path)
     print(f"Wrote appointment cases to {path}")
 
 
