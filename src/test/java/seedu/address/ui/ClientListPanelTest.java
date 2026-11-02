@@ -143,8 +143,9 @@ public class ClientListPanelTest {
             String longTag = "LongTag".repeat(15);
             Client client = new ClientBuilder().withName(name).withEmail(email).withAddress(address)
                     .withTags(longTag, "VIP", "Regular").build();
+            String normalizedLongTag = longTag.toLowerCase();
             Map<String, String> fields = Map.of("#name", name, "#email", email, "#address", address,
-                    "#tags .label", longTag);
+                    "#tags .label", normalizedLongTag);
             ClientListPanel panel = new ClientListPanel(FXCollections.observableArrayList(client));
             Scene scene = new Scene(panel.getRoot(), 420, 600);
             scene.getStylesheets().addAll(
@@ -162,7 +163,7 @@ public class ClientListPanelTest {
             assertEquals("1. ", index.getText());
             assertTrue(index.getWidth() >= index.prefWidth(-1));
             // Equivalence Partition: tags whose rendered width fits within the available label width.
-            for (String tag : new String[] {"VIP", "Regular"}) {
+            for (String tag : new String[] {"vip", "regular"}) {
                 Label label = assertReadableLabel(panel, "#tags .label", tag);
                 assertEquals(label.prefWidth(-1), label.getWidth(), 1);
                 assertEquals(label.prefHeight(1800), label.getHeight(), 1);

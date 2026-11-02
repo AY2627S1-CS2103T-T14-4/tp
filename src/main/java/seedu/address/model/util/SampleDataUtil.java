@@ -49,7 +49,7 @@ public class SampleDataUtil {
                 List.of(getAppointment("07-12-2026", "14:00", "15:00", "Bath and nail trim", "Luna", "Mochi"))),
             new Client(new Name("Charlotte Oliveiro"), new Phone("93210283"), new Email("charlotte@example.com"),
                 new Address("Blk 11 Ang Mo Kio Street 74, #11-04"),
-                getTagSet("newClient"),
+                getTagSet("new"),
                 List.of(getPet("Bao", "Dog", "Shiba Inu")
                         .withNote(NoteType.TEMP, new PetNote("Bites when its paws are handled"))),
                 List.of(getAppointment("08-12-2026", "09:30", null, "First visit, assess coat", "Bao"))),
@@ -66,7 +66,7 @@ public class SampleDataUtil {
                 List.of(getAppointment("12-12-2026", "16:00", "17:30", "Deshedding treatment", "Simba"))),
             new Client(new Name("Roy Balakrishnan"), new Phone("92624417"), new Email("royb@example.com"),
                 new Address("Blk 45 Aljunied Street 85, #11-31"),
-                getTagSet("newClient"))
+                getTagSet("new"))
         };
     }
 
