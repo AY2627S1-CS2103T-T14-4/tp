@@ -22,6 +22,15 @@ Libraries used include
 [Jackson](https://github.com/FasterXML/jackson), and
 [JUnit 5](https://github.com/junit-team/junit5).
 
+**Use of AI tools**
+
+Notable uses of AI in this project:
+* Claude (Anthropic) and Codex (OpenAI) were used to help write and refactor parts of the code and tests.
+* The same tools were used to find bugs through scripted testing and to give preliminary reviews of pull requests.
+* Claude was used to help draft parts of the User Guide, Developer Guide (including diagrams) and release notes.
+
+All AI output was reviewed, tested and edited by team members before being committed.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
