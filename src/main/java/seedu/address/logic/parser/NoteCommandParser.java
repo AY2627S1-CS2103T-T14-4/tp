@@ -28,10 +28,10 @@ public class NoteCommandParser implements Parser<NoteCommand> {
                 || !arguments.getValue(PREFIX_CLIENT).isPresent()
                 || !arguments.getValue(PREFIX_PET_NAME).isPresent()
                 || !arguments.getValue(PREFIX_NOTE_TYPE).isPresent()
-                || !arguments.getValue(PREFIX_NOTE).isPresent()
-                || hasDuplicatePrefixes(arguments, PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE)) {
+                || !arguments.getValue(PREFIX_NOTE).isPresent()) {
             throw new ParseException(NoteCommand.MESSAGE_INVALID_FORMAT);
         }
+        arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_PET_NAME, PREFIX_NOTE_TYPE, PREFIX_NOTE);
 
         Index clientIndex;
         try {
@@ -45,15 +45,6 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         PetNote note = parseNote(arguments.getValue(PREFIX_NOTE).get());
 
         return new NoteCommand(clientIndex, petName, noteType, note);
-    }
-
-    private static boolean hasDuplicatePrefixes(ArgumentMultimap arguments, Prefix... prefixes) {
-        for (Prefix prefix : prefixes) {
-            if (arguments.getAllValues(prefix).size() > 1) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static PetNote parseNote(String value) throws ParseException {
