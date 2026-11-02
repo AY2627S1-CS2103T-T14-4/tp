@@ -98,8 +98,7 @@ public class AppointmentCommand extends Command {
                 client.getName(), appointment.getDate(), appointment.getTime())
                 + appointment.getEndTime().map(endTime -> " et/" + endTime).orElse("")
                 + resolvedAppointment.getPetNames().stream().map(name -> " pn/" + name).collect(Collectors.joining());
-        LocalDateTime dateTime = LocalDateTime.of(appointment.getDate().getValue(), appointment.getTime().getValue());
-        if (dateTime.isBefore(LocalDateTime.now(clock))) {
+        if (resolvedAppointment.hasEnded(LocalDateTime.now(clock))) {
             feedback += "\n" + MESSAGE_PAST_APPOINTMENT;
         }
         return new CommandResult(feedback);

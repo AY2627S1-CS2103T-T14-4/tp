@@ -101,8 +101,7 @@ public class EditAppointmentCommand extends Command {
         String feedback = String.format(MESSAGE_SUCCESS, client.getName(), date, time,
                 replacement.getDate(), replacement.getTime())
                 + replacement.getEndTime().map(end -> " et/" + end).orElse("");
-        LocalDateTime start = LocalDateTime.of(replacement.getDate().getValue(), replacement.getTime().getValue());
-        if (start.isBefore(LocalDateTime.now(clock))) {
+        if (replacement.hasEnded(LocalDateTime.now(clock))) {
             feedback += "\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT;
         }
         return new CommandResult(feedback);

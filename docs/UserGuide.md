@@ -357,7 +357,7 @@ Rules:
 * `HH:mm` must be a valid time in 24-hour format, from `00:00` to `23:59`. Use two digits for both parts; seconds and AM/PM are not accepted.
 * `t/` is the start time. If supplied, `et/` must also be a valid `HH:mm` time and must be strictly after the start time on the same date. Equal times and overnight appointments (for example, `t/23:00 et/01:00`) are rejected. Omitting `et/` records no end time; an empty `et/` is an error.
 * Past, current and future dates and times are accepted. Use `appt` to record a visit after it happened, then `done` with the same date and start time to save its session notes in completed history. A past appointment remains active until you complete or cancel it.
-* If the start is earlier than the computer's current local date and time, the success feedback adds: `This appointment is in the past. Use done to record it as a completed session.` This is informational; the appointment is added successfully.
+* If the appointment has already ended (its end time, or its start time when there is no end time, is earlier than the computer's current local date and time), the success feedback adds: `This appointment is in the past. Use done to record it as a completed session.` This is informational; the appointment is added successfully. An appointment that has started but not yet ended is in progress and gets no such note.
 * An appointment must not overlap **any active appointment across all clients**, including clients hidden by the current search filter. Overlaps are rejected for both the same client and different clients, regardless of appointment details or linked pets. The rejection identifies the conflicting client and booking slot.
 * An appointment with an end time occupies its start time up to, but not including, its end time. Adjacent bookings such as `14:00–15:00` and `15:00–16:00` are allowed. Without an end time, a booking occupies its starting minute: `t/14:00` conflicts with a range containing 14:00 or another `t/14:00`, but permits a booking starting at 14:01. Appointments on different dates do not conflict.
 * Completed-session history does not reserve booking slots. Cancelling an active appointment releases its slot; any new booking must avoid remaining active bookings, including when recording a past appointment.
@@ -436,7 +436,7 @@ Example: `editappt c/1 d/12-12-2026 t/14:00 ns/16:00`
   To remove only the end, use `editappt c/1 d/12-12-2026 t/14:00 ne/`. Clearing an already absent end succeeds.
   Take care when submitting an unfinished `ne/`: an empty value removes the end rather than reporting an error.
 * Past, current and future resulting starts are accepted, including for end-only edits and unchanged
-  starts. When the resulting start is earlier than the computer's current local date and time, success
+  starts. When the resulting appointment has already ended (as described for `appt`), success
   feedback adds: `This appointment is in the past. Use done to record it as a completed session.`
   This is informational; the edit succeeds and the appointment remains active until completed or cancelled.
 * The resulting slot must not overlap any other active booking, including those belonging to clients
@@ -611,7 +611,8 @@ are marked with ⚠. Clients without pets show `No pets recorded`.
 Appointment rows show their date, start time, optional end time, linked pet names (or `No pets linked`),
 and any stored booking details. Pet names and appointment rows wrap within the card.
 Each card separates appointments into two sections. **Started Appointments** contains bookings whose start time
-has arrived; past starts are marked `Overdue`. It shows up to three rows followed by
+has arrived; those that have already ended are marked `Overdue`, while those still in progress are not.
+It shows up to three rows followed by
 `+N more started appointment(s)` when necessary. **Upcoming Appointments** contains future bookings and has its
 own three-row limit followed by `+N more appointment(s)`. Both kinds remain stored until completed or cancelled.
 
@@ -624,7 +625,7 @@ The card below shows each part of a client entry:
 * **Name, tags and contact details**: set with `addc` and `edit`.
 * **Pet with species and breed**: set with `addp` and `editp`.
 * **Pet notes**: set with `note` and removed with `delnote`. ⚠ marks sensitivity and temperament notes, which are safety information.
-* **Started Appointments**: bookings whose start time has passed, waiting to be completed with `done` or removed with `cancel`. Past starts are marked `Overdue`.
+* **Started Appointments**: bookings whose start time has passed, waiting to be completed with `done` or removed with `cancel`. Bookings whose end time (or start time, when there is no end time) has passed are marked `Overdue`.
 * **Upcoming Appointments**: future bookings, added with `appt` and moved with `editappt`.
 * **History**: the most recent completed sessions and their notes, recorded with `done`.
 

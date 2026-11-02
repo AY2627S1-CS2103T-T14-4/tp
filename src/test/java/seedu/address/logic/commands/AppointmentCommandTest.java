@@ -115,12 +115,17 @@ public class AppointmentCommandTest {
     }
 
     @Test
-    public void execute_pastStartWithEndTime_addsAppointmentWithNotice() {
-        for (Appointment appointment : new Appointment[] {
-            createAppointment("11-12-2026", "12:00").withEndTime(new AppointmentTime("13:00")),
-            createAppointment("12-12-2026", "11:59").withEndTime(new AppointmentTime("13:00"))}) {
-            assertAppointmentAdded(appointment, " et/13:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT);
-        }
+    public void execute_endedAppointment_addsAppointmentWithNotice() {
+        assertAppointmentAdded(createAppointment("11-12-2026", "12:00").withEndTime(new AppointmentTime("13:00")),
+                " et/13:00\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT);
+        assertAppointmentAdded(createAppointment("12-12-2026", "11:00").withEndTime(new AppointmentTime("11:59")),
+                " et/11:59\n" + AppointmentCommand.MESSAGE_PAST_APPOINTMENT);
+    }
+
+    @Test
+    public void execute_inProgressAppointment_addsWithoutPastNotice() {
+        assertAppointmentAdded(createAppointment("12-12-2026", "11:59")
+                .withEndTime(new AppointmentTime("13:00")), " et/13:00");
     }
 
     @Test
