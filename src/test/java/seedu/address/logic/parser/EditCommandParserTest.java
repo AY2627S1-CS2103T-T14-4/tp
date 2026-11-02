@@ -23,6 +23,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLIENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -58,6 +59,7 @@ public class EditCommandParserTest {
     public void parse_missingParts_failure() {
         // Equivalence Partition: missing required client prefix.
         assertParseFailure(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, " p/91234567", MESSAGE_INVALID_FORMAT);
 
         // Equivalence Partition: valid client index without any editable field.
         assertParseFailure(parser, " c/1", EditCommand.MESSAGE_NOT_EDITED);
@@ -68,17 +70,33 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_invalidPreamble_failure() {
-        // Equivalence Partition: negative client index.
-        assertParseFailure(parser, " c/-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
-
-        // Boundary Value Analysis: client index below the valid range.
-        assertParseFailure(parser, " c/0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
-
-        // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, " text c/1 p/91234567", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
         assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_invalidIndex_failure() {
+        // Invalid input isolation: keep the phone valid so only the client index causes failure.
+        // Boundary Value Analysis: zero is immediately below the minimum valid index of one.
+        assertParseFailure(parser, " c/0 p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+
+        // Equivalence Partitioning: non-numeric, negative, fractional, and empty indices.
+        assertParseFailure(parser, " c/abc p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " c/-5 p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " c/1.5 p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " c/ p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+
+        // Boundary Value Analysis: one above the maximum supported integer index.
+        assertParseFailure(parser, " c/2147483648 p/91234567", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_duplicateClientPrefix_failure() {
+        assertParseFailure(parser, " c/0 c/1 p/91234567",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CLIENT));
     }
 
     @Test

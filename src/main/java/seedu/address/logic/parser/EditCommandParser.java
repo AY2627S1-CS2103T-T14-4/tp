@@ -46,13 +46,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS);
 
-        Index index;
-
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getValue(PREFIX_CLIENT).get());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
-        }
+        Index index = ParserUtil.parseIndex(argMultimap.getValue(PREFIX_CLIENT).get());
 
         EditClientDescriptor editClientDescriptor = new EditClientDescriptor();
 
