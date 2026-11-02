@@ -159,7 +159,7 @@ each section independently displays its first three rows. Active overflow uses
 `+N more started appointment(s)` and upcoming overflow uses `+N more appointment(s)`. The stored list remains in
 insertion order. Its private appointment formatter reads
 the date, start time, optional end time, recorded linked names and booking details directly from
-`Appointment`. A row such as `Appointment: 12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
+`Appointment`. A row such as `12-12-2026 14:00–15:30 · Milo, Luna (Full groom)` omits the
 end-time range when no end time exists and omits parentheses for blank details.
 
 The formatter uses `Appointment#getPetNames()` in recorded order, rather than looking up the client's
