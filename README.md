@@ -38,5 +38,9 @@ This project is distributed under the [MIT License](LICENSE).
 
 ## AI Acknowledgement
 
-Codex (Luna Light) was used to support code exploration, implementation, testing,
-and documentation. All AI-assisted changes were reviewed by the project team.
+**Notable uses of AI in this project:**
+* Claude (Anthropic) and Codex (OpenAI) were used to help write and refactor parts of the code and tests.
+* The same tools were used to find bugs through scripted testing and to give preliminary reviews of pull requests.
+* Claude was used to help draft parts of the User Guide, Developer Guide (including diagrams) and release notes.
+
+All AI output was reviewed, tested and edited by team members before being committed.
