@@ -44,6 +44,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME,
                 PREFIX_NEW_DATE, PREFIX_NEW_START_TIME, PREFIX_NEW_END_TIME);
         ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
+        ParserUtil.requireNoUnexpectedPrefix(arguments, PREFIX_NEW_DATE, PREFIX_NEW_START_TIME, PREFIX_NEW_END_TIME);
         try {
             Optional<AppointmentDate> newDate = arguments.getValue(PREFIX_NEW_DATE).map(AppointmentDate::new);
             Optional<AppointmentTime> newStart = arguments.getValue(PREFIX_NEW_START_TIME).map(AppointmentTime::new);

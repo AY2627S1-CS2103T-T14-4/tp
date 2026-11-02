@@ -82,7 +82,7 @@ public class EditAppointmentCommandParserTest {
 
     @Test
     public void parse_nonemptyInvalidEnd_fails() {
-        for (String value : new String[] {"EMPTY", "empty", "24:00", "noon", "unknown/value"}) {
+        for (String value : new String[] {"EMPTY", "empty", "24:00", "noon"}) {
             assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + value, AppointmentTime.MESSAGE_CONSTRAINTS);
         }
     }
@@ -157,9 +157,13 @@ public class EditAppointmentCommandParserTest {
 
     @Test
     public void parse_extraOrUnsupportedArguments_fails() {
-        for (String extra : new String[] {" et/17:00", " pn/Milo", " unknown/value", " extra"}) {
-            assertParseFailure(parser, TARGET_ARGUMENTS + " ns/16:00" + extra, AppointmentTime.MESSAGE_CONSTRAINTS);
+        for (String prefix : new String[] {"et/", "pn/", "unknown/"}) {
+            String unexpected = String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, prefix);
+            assertParseFailure(parser, TARGET_ARGUMENTS + " ns/16:00 " + prefix + "17:00", unexpected);
+            assertParseFailure(parser, TARGET_ARGUMENTS + " " + prefix + "17:00 ns/16:00", unexpected);
+            assertParseFailure(parser, TARGET_ARGUMENTS + " ne/" + prefix + "17:00", unexpected);
         }
+        assertParseFailure(parser, TARGET_ARGUMENTS + " ns/16:00 extra", AppointmentTime.MESSAGE_CONSTRAINTS);
     }
 
     private static EditAppointmentCommand command(String date, String start, String end) {

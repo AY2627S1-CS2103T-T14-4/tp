@@ -80,11 +80,23 @@ public class AppointmentCommandParserTest {
 
     @Test
     public void parse_invalidPetName_failsEvenAfterAValidReference() {
-        for (String name : new String[] {"", " ", "M!lo", "x".repeat(41), "Milo nt/notes"}) {
+        for (String name : new String[] {"", " ", "M!lo", "x".repeat(41)}) {
             assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/" + name, PetName.MESSAGE_CONSTRAINTS);
             assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo pn/" + name,
                     PetName.MESSAGE_CONSTRAINTS);
         }
+    }
+
+    @Test
+    public void parse_unsupportedPrefix_namesPrefixInsteadOfInvalidValue() {
+        String unexpectedNotes = String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "nt/");
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 nt/Bring towels", unexpectedNotes);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 et/15:00 nt/Bring towels", unexpectedNotes);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo nt/notes", unexpectedNotes);
+        assertParseFailure(parser, " c/1 x/2 d/12-12-2026 t/14:00",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "x/"));
+        // Slashes inside a value are not a prefix, so the value's own error is kept.
+        assertParseFailure(parser, " c/1 d/12/12/2026 t/14:00", AppointmentDate.MESSAGE_CONSTRAINTS);
     }
 
     @Test

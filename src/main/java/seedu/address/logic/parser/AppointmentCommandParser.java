@@ -45,6 +45,7 @@ public class AppointmentCommandParser implements Parser<AppointmentCommand> {
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLIENT, PREFIX_DATE, PREFIX_TIME, PREFIX_END_TIME);
         ParserUtil.AppointmentTarget target = ParserUtil.parseAppointmentTarget(arguments);
+        ParserUtil.requireNoUnexpectedPrefix(arguments, PREFIX_END_TIME, PREFIX_PET_NAME);
         try {
             Optional<AppointmentTime> endTime = arguments.getValue(PREFIX_END_TIME).map(AppointmentTime::new);
             Set<PetName> petNames = new LinkedHashSet<>();

@@ -99,6 +99,7 @@ public class CancelCommandParserTest {
 
     @Test
     public void parse_extraPetName_failsRatherThanCancellingAnotherSlot() {
-        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo", AppointmentTime.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/1 d/12-12-2026 t/14:00 pn/Milo",
+                String.format(ParserUtil.MESSAGE_UNEXPECTED_PREFIX, "pn/"));
     }
 }
